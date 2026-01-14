@@ -10,8 +10,9 @@ require("dotenv").config(); // <-- load .env variables
 
 // Import routes
 const rootDir = require("./utils/pathUtils");
-const userRouter = require("./routes/userRouter");
 const loginAndSignupRouter = require("./routes/loginAndSignupRouter");
+const userRouter = require("./routes/userRouter");
+const adminRouter = require("./routes/adminRouter");
 // ---------------- EXPRESS APP ----------------
 const app = express();
 app.set("view engine", "ejs");
@@ -49,8 +50,9 @@ app.use((req, res, next) => {
 app.use(express.static(path.join(rootDir, "public")));
 
 // ---------------- ROUTES ----------------
-app.use(userRouter);
 app.use(loginAndSignupRouter);
+app.use(userRouter);
+app.use('/admin', adminRouter);
 
 // ---------------- ERROR HANDLING ---------------- <--- isko bhi krna h important
 // 404 Page

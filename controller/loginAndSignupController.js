@@ -5,13 +5,13 @@ const User = require("../model/userSchema");
 // --- GET Signup Page ---
 exports.getSignupPage = async (req, res, next) => {
   try {
-    if (req.session.isLoggedIn) return res.redirect("/");
+    // if (req.session.isLoggedIn) return res.redirect("/");
 
     res.render("LoginandSignup/createAccount", {
       pageTitle: "Create Account",
       isLoggedIn: false,
       errors: [],
-      oldInput: { username: "", phone: "", email: "", password: "", confirmPassword: "" },
+      oldInput: { username: "", phone: "", password: "", confirmPassword: "" },
     });
   } catch (err) {
     next(err);
@@ -33,12 +33,6 @@ exports.postSignupPage = [
       if (user) throw new Error("Phone number already in use");
       return true;
     }),
-  check("email").trim().isEmail().withMessage("Invalid email")
-    .custom(async (value) => {
-      const user = await User.findOne({ emailAddress: value });
-      if (user) throw new Error("Email already in use");
-      return true;
-    }),
   check("password").notEmpty().withMessage("Password is required")
     .isLength({ min: 6 }).withMessage("Password must be at least 6 characters"),
   check("confirmPassword").custom((value, { req }) => {
@@ -48,14 +42,14 @@ exports.postSignupPage = [
 
   async (req, res, next) => {
     const errors = validationResult(req);
-    const { username, phone, email, password } = req.body;
+    const { username, phone, password } = req.body;
 
     if (!errors.isEmpty()) {
       return res.status(400).render("LoginandSignup/createAccount", {
         pageTitle: "Create Account",
         isLoggedIn: false,
         errors: errors.array().map((e) => e.msg),
-        oldInput: { username, phone, email, password, confirmPassword: req.body.confirmPassword },
+        oldInput: { username, phone, password, confirmPassword: req.body.confirmPassword },
       });
     }
 
@@ -65,7 +59,6 @@ exports.postSignupPage = [
       const newUser = new User({
         username,
         phoneNo: phone,
-        emailAddress: email,
         password: hashedPassword,
         role: "user",
         userStatus: "active",
@@ -79,7 +72,7 @@ exports.postSignupPage = [
         pageTitle: "Create Account",
         isLoggedIn: false,
         errors: ["Something went wrong. Try again."],
-        oldInput: { username, phone, email, password, confirmPassword: req.body.confirmPassword },
+        oldInput: { username, phone, password, confirmPassword: req.body.confirmPassword },
       });
     }
   },
@@ -88,7 +81,7 @@ exports.postSignupPage = [
 // --- GET Login Page ---
 exports.getloginPage = (req, res, next) => {
   try {
-    if (req.session.isLoggedIn) return res.redirect("/");
+    // if (req.session.isLoggedIn) return res.redirect("/");
     res.render("LoginandSignup/login", {
       pageTitle: "Login",
       isLoggedIn: false,

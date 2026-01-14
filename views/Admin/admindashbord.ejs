@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="/css/adminDashbord.css">
+    
+  </head>
+  <body class="flex min-h-screen">
+    <aside
+      id="sidebar"
+      class="sidebar border-r border-gray-200 fixed inset-y-0 left-0 z-50 lg:relative lg:translate-x-0 transform -translate-x-full lg:block"
+    >
+      <div class="p-4">
+        <div class="relative mb-4">
+          <input
+            type="text"
+            placeholder="Search"
+            class="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
+          <button
+            class="absolute right-0 top-0 bottom-0 px-3 bg-neutral-800 text-white rounded-r"
+          >
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
+      </div>
+
+       <!-- ============================= Nav is here ============================ -->
+
+      <nav class="text-gray-600 text-sm">
+        <a
+          href="/admin/dashboard"
+          class="nav-item flex items-center px-4 py-3 bg-gray-100 border-l-4 border-blue-500 font-semibold"
+        >
+          <i class="fas fa-tachometer-alt w-6"></i> Dashboard
+        </a>
+
+
+        <a
+          href="/admin/allUsers"
+          class="nav-item flex items-center px-4 py-3 border-b border-gray-100"
+        >
+          <i class="fas fa-users w-6"></i> All Users
+        </a>
+
+
+
+<div class="border-b border-gray-100">
+  <details class="group">
+
+    <summary class="list-none cursor-pointer w-full nav-item flex items-center justify-between px-4 py-3">
+      <span class="flex items-center gap-2">
+        <i class="fas fa-database w-6"></i> System Reports
+      </span>
+      <i class="fas fa-chevron-left text-xs transition-transform duration-200 group-open:-rotate-90"></i>
+    </summary>
+
+    <!-- Sub Menu -->
+    <div class="pl-10 py-2 space-y-2 text-sm text-gray-700">
+      <a href="adminMarketWinBid.html" class="block hover:text-[#eeba30]">Market Win/Bid</a>
+      <a href="adminDepositTransactions.html" class="block hover:text-[#eeba30]">Deposit Transactions</a>
+      <a href="adminWithdrawTransactions.html" class="block hover:text-[#eeba30]">Withdraw Transactions</a>
+    </div>
+  </details>
+</div>
+
+
+
+
+
+<div class="border-b border-gray-100">
+  <details class="group">
+    
+    <summary class="list-none cursor-pointer w-full nav-item flex items-center justify-between px-4 py-3">
+      <span class="flex items-center gap-2">
+        <i class="fas fa-gamepad w-6"></i> Game Management
+      </span>
+      <i class="fas fa-chevron-left text-xs transition-transform duration-200 group-open:-rotate-90"></i>
+    </summary>
+
+    <!-- Sub Menu -->
+    <div class="pl-10 py-2 space-y-2 text-sm text-gray-700">
+      <a href="adminGameProviders.html" class="block hover:text-[#eeba30]">Game Providers</a>
+      <a href="adminGameRates.html" class="block hover:text-[#eeba30]">Game Rates</a>
+      <a href="adminGameResult.html" class="block hover:text-[#eeba30]">Game Result</a>
+      <a href="adminGenerateResult.html" class="block hover:text-[#eeba30]">Generate Result</a>
+      <a href="adminBidRevert.html" class="block hover:text-[#eeba30]">Bid Revert</a>
+    </div>
+
+  </details>
+</div>
+
+
+
+
+<div class="border-b border-gray-100">
+  <details class="group">
+    
+    <summary
+      class="list-none cursor-pointer w-full nav-item flex items-center justify-between px-4 py-3">
+      <span class="flex items-center gap-2">
+        <i class="fas fa-book w-6"></i> Bookie Corner
+      </span>
+      <i class="fas fa-chevron-left text-xs transition-transform duration-200 group-open:-rotate-90"></i>
+    </summary>
+
+    <!-- Sub Menu -->
+    <div class="pl-10 py-2 space-y-2 text-sm text-gray-700">
+      <a href="adminOCCuttingGroup.html" class="block hover:text-[#eeba30]">OC Cutting Group</a>
+      <a href="adminLossCutting.html" class="block hover:text-[#eeba30]">Loss Cutting</a>
+    </div>
+
+  </details>
+</div>
+
+
+
+<div class="border-b border-gray-100">
+  <details class="group">
+    <summary
+      class="list-none cursor-pointer w-full nav-item flex items-center justify-between px-4 py-3">
+      <span class="flex items-center gap-2">
+        <i class="fas fa-file-alt w-6"></i> Report Management
+      </span>
+      <i class="fas fa-chevron-left text-xs transition-transform duration-200 group-open:-rotate-90"></i>
+    </summary>
+
+    <!-- Sub Menu -->
+    <div class="pl-10 py-2 space-y-2 text-sm text-gray-700">
+      <a href="adminWinnerPrediction.html" class="block hover:text-[#eeba30]">Winner Prediction</a>
+      <a href="adminBidHistory.html" class="block hover:text-[#eeba30]">Bid History</a>
+      <a href="adminWinningHistory.html" class="block hover:text-[#eeba30]">Winning History</a>
+      <a href="adminCustomerSellReport.html" class="block hover:text-[#eeba30]">Customer Sell Report</a>
+    </div>
+
+  </details>
+</div>
+
+
+
+
+<div class="border-b border-gray-100">
+  <details class="group">
+
+    <summary class="list-none cursor-pointer w-full nav-item flex items-center justify-between px-4 py-3">
+      <span class="flex items-center gap-2">
+        <i class="fas fa-wallet w-6"></i> Wallet Management
+      </span>
+      <i class="fas fa-chevron-left text-xs transition-transform duration-200 group-open:-rotate-90"></i>
+    </summary>
+
+    <!-- Sub Menu -->
+    <div class="pl-10 py-2 space-y-2 text-sm text-gray-700">
+      <a href="adminEditWallet.html" class="block hover:text-[#eeba30]">Edit Wallet</a>
+      <a href="adminFundReport.html" class="block hover:text-[#eeba30]">Fund Report</a>
+      <a href="adminDepositRequests.html" class="block hover:text-[#eeba30]">Deposit Requests</a>
+      <a href="adminWithdrawPointsRequestReport.html" class="block hover:text-[#eeba30]">Withdraw Points Request Report</a>
+    </div>
+
+  </details>
+</div>
+
+
+
+<div class="border-b border-gray-100">
+  <details class="group">
+
+    <summary class="list-none cursor-pointer w-full nav-item flex items-center justify-between px-4 py-3">
+      <span class="flex items-center gap-2">
+        <i class="fas fa-cog w-6"></i> Settings
+      </span>
+      <i class="fas fa-chevron-left text-xs transition-transform duration-200 group-open:-rotate-90"></i>
+    </summary>
+
+    <!-- Sub Menu -->
+    <div class="pl-10 py-2 space-y-2 text-sm text-gray-700">
+      <a href="adminChangePassword.html" class="block hover:text-[#eeba30]">Change Password</a>
+      <a href="adminManualDepositMethods.html" class="block hover:text-[#eeba30]">Manual Deposit Methods</a>
+      <a href="adminWithdrawTimings.html" class="block hover:text-[#eeba30]">Withdraw Timings</a>
+      <a href="adminContactUsDetails.html" class="block hover:text-[#eeba30]">Contact Us Details</a>
+      <a href="adminMainSettings.html" class="block hover:text-[#eeba30]">Main Settings</a>
+      <a href="adminPaymentGatewaySettings.html" class="block hover:text-[#eeba30]">Payment Gateway Settings</a>
+      <a href="adminImageSlider.html" class="block hover:text-[#eeba30]">Image Slider</a>
+      <a href="adminImageSliderWebsite.html" class="block hover:text-[#eeba30]">Image Slider Website</a>
+      <a href="adminHomepopupmsg.html" class="block hover:text-[#eeba30]"> Home popup msg</a>
+    </div>
+
+  </details>
+</div>
+
+
+
+
+<div class="border-b border-gray-100">
+  <details class="group">
+
+    <summary class="list-none cursor-pointer w-full nav-item flex items-center justify-between px-4 py-3">
+      <span class="flex items-center gap-2">
+        <i class="fa-solid fa-bell w-6"></i> Notice Management
+      </span>
+      <i class="fas fa-chevron-left text-xs transition-transform duration-200 group-open:-rotate-90"></i>
+    </summary>
+
+    <!-- Sub Menu -->
+    <div class="pl-10 py-2 space-y-2 text-sm text-gray-700">
+      <a href="adminBellNotifications.html" class="block hover:text-[#eeba30]">Bell Notifications</a>
+      <a href="adminSendNotification.html" class="block hover:text-[#eeba30]">Send Notification</a>
+      <a href="adminManageContents.html" class="block hover:text-[#eeba30]">Manage Contents</a>
+    </div>
+
+  </details>
+</div>
+
+
+
+
+        <div class="px-4 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider"> Personal Games </div>
+
+
+<div class="border-b border-gray-100">
+  <details class="group">
+
+    <summary class="list-none cursor-pointer w-full nav-item flex items-center justify-between px-4 py-3">
+      <span class="flex items-center gap-2">
+        <i class="fas fa-th w-6"></i> Main Starline
+      </span>
+      <i class="fas fa-chevron-left text-xs transition-transform duration-200 group-open:-rotate-90"></i>
+    </summary>
+
+    <!-- Sub Menu -->
+    <div class="pl-10 py-2 space-y-2 text-sm text-gray-700">
+      <a href="adminGameProvider.html" class="block hover:text-[#eeba30]">Game Provider</a>
+      <a href="adminGameRates.html" class="block hover:text-[#eeba30]">Game Rates</a>
+      <a href="adminBidHistory.html" class="block hover:text-[#eeba30]">Bid History</a>
+      <a href="adminGameResult.html" class="block hover:text-[#eeba30]">Game Result</a>
+      <a href="adminResultHistory.html" class="block hover:text-[#eeba30]">Result History</a>
+      <a href="adminSellReport.html" class="block hover:text-[#eeba30]">Sell Report </a>
+      <a href="adminWinningReport.html" class="block hover:text-[#eeba30]">Winning Report </a>
+    </div>
+
+  </details>
+</div>
+
+
+
+<div class="border-b border-gray-100">
+  <details class="group">
+
+    <summary class="list-none cursor-pointer w-full nav-item flex items-center justify-between px-4 py-3">
+      <span class="flex items-center gap-2">
+        <i class="fas fa-th w-6"></i> Main Jackpot
+      </span>
+      <i class="fas fa-chevron-left text-xs transition-transform duration-200 group-open:-rotate-90"></i>
+    </summary>
+
+    <!-- Sub Menu -->
+    <div class="pl-10 py-2 space-y-2 text-sm text-gray-700">
+      <a href="adminGameProvider.html" class="block hover:text-[#eeba30]">Game Provider</a>
+      <a href="adminGameRates.html" class="block hover:text-[#eeba30]">Game Rates</a>
+      <a href="adminBidHistory.html" class="block hover:text-[#eeba30]">Bid History</a>
+      <a href="adminGameResult.html" class="block hover:text-[#eeba30]">Game Result</a>
+      <a href="adminResultHistory.html" class="block hover:text-[#eeba30]">Result History</a>
+      <a href="adminSellReport.html" class="block hover:text-[#eeba30]">Sell Report </a>
+    </div>
+
+  </details>
+</div>
+
+
+
+      </nav>
+    </aside>
+
+    <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+      <!-- ============================= Header is here ============================ -->
+      <header
+      style="z-index: 50000; position: fixed; width: 100%;"
+        class="bg-white h-14 flex items-center justify-between px-4 border-b border-gray-200"
+      >
+        <button id="menuBtn" class="text-gray-600 focus:outline-none">
+          <i class="fas fa-bars text-xl"></i>
+        </button>
+        <button  class="text-gray-600">
+          <i class="fas fa-power-off text-xl"></i>
+        </button>
+      </header>
+
+
+      
+      <header
+        class="bg-white h-14 flex items-center justify-between px-4 border-b border-gray-200"
+      >
+      </header>    <!-- header overflow done -->
+
+<!-- =========================================== clander here ========================================== -->
+
+        <div class="flex flex-wrap items-center gap-3 mb-8" style="justify-content: center; margin-top: 1rem;">
+  <div class="relative"> 
+    <input
+    style="width: 16rem;"
+      type="date"
+      id="datePicker"
+      value="2026-01-09"
+      class="border border-gray-300 rounded px-4 py-2 w-64 focus:outline-none text-gray-700"
+    />
+  </div>
+  <button
+    id="filterBtn"
+    class="bg-[#eeba30] hover:bg-[#dca620] text-white font-bold py-2 px-6 rounded transition duration-200"
+    style="padding: 10px;"
+  >
+    FILTER DATA
+  </button>
+</div>
+
+<!-- =========================================== Body Start here ========================================== -->
+
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+  <!-- Card -->
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden text-center flex flex-col">
+    <div class="p-5 flex-grow">
+      <h2 class="text-2xl font-bold text-gray-800">2288321.00</h2>
+      <p class="text-gray-700 font-semibold text-sm mt-1">Your Wallet</p>
+    </div>
+    <div class="card-gradient text-white py-2 text-sm flex items-center justify-center cursor-pointer hover:opacity-90 transition">
+      More info <i class="fas fa-arrow-circle-right ml-2"></i>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden text-center flex flex-col">
+    <div class="p-5 flex-grow">
+      <h2 class="text-2xl font-bold text-gray-800">2507</h2>
+      <p class="text-gray-700 font-semibold text-sm mt-1">Total Users</p>
+    </div>
+    <a href="adminallUser.html">
+      <div class="card-gradient text-white py-2 text-sm flex items-center justify-center cursor-pointer hover:opacity-90 transition">
+             More info <i class="fas fa-arrow-circle-right ml-2"></i>
+      </div>
+    </a>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden text-center flex flex-col">
+    <div class="p-5 flex-grow">
+      <h2 class="text-2xl font-bold text-gray-800">0</h2>
+      <p class="text-gray-700 font-semibold text-sm mt-1">Today Bet Amount</p>
+    </div>
+    <div class="card-gradient text-white py-2 text-sm flex items-center justify-center cursor-pointer hover:opacity-90 transition">
+      More info <i class="fas fa-arrow-circle-right ml-2"></i>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden text-center flex flex-col">
+    <div class="p-5 flex-grow">
+      <h2 class="text-2xl font-bold text-gray-800">0</h2>
+      <p class="text-gray-700 font-semibold text-sm mt-1">Today Play Users</p>
+    </div>
+    <div class="card-gradient text-white py-2 text-sm flex items-center justify-center cursor-pointer hover:opacity-90 transition">
+      More info <i class="fas fa-arrow-circle-right ml-2"></i>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden text-center flex flex-col">
+    <div class="p-5 flex-grow">
+      <h2 class="text-2xl font-bold text-gray-800">0</h2>
+      <p class="text-gray-700 font-semibold text-sm mt-1">Today Register Users</p>
+    </div>
+    <a href="adminallUser.html">
+      <div class="card-gradient text-white py-2 text-sm flex items-center justify-center cursor-pointer hover:opacity-90 transition">
+             More info <i class="fas fa-arrow-circle-right ml-2"></i>
+      </div>
+    </a>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden text-center flex flex-col">
+    <div class="p-5 flex-grow">
+      <h2 class="text-2xl font-bold text-gray-800">0</h2>
+      <p class="text-gray-700 font-semibold text-sm mt-1">Today Profit</p>
+    </div>
+    <div class="card-gradient text-white py-2 text-sm flex items-center justify-center cursor-pointer hover:opacity-90 transition">
+      More info <i class="fas fa-arrow-circle-right ml-2"></i>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden text-center flex flex-col">
+    <div class="p-5 flex-grow">
+      <h2 class="text-2xl font-bold text-gray-800">0</h2>
+      <p class="text-gray-700 font-semibold text-sm mt-1">Today Withdraw Complete</p>
+    </div>
+    <div class="card-gradient text-white py-2 text-sm flex items-center justify-center cursor-pointer hover:opacity-90 transition">
+      More info <i class="fas fa-arrow-circle-right ml-2"></i>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden text-center flex flex-col">
+    <div class="p-5 flex-grow">
+      <h2 class="text-2xl font-bold text-gray-800">0</h2>
+      <p class="text-gray-700 font-semibold text-sm mt-1">Today Deposit</p>
+    </div>
+    <div class="card-gradient text-white py-2 text-sm flex items-center justify-center cursor-pointer hover:opacity-90 transition">
+      More info <i class="fas fa-arrow-circle-right ml-2"></i>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden text-center flex flex-col">
+    <div class="p-5 flex-grow">
+      <h2 class="text-2xl font-bold text-gray-800">0.00</h2>
+      <p class="text-gray-700 font-semibold text-sm mt-1">Today Winning Amount</p>
+    </div>
+    <div class="card-gradient text-white py-2 text-sm flex items-center justify-center cursor-pointer hover:opacity-90 transition">
+      More info <i class="fas fa-arrow-circle-right ml-2"></i>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden text-center flex flex-col">
+    <div class="p-5 flex-grow">
+      <h2 class="text-2xl font-bold text-gray-800">95519</h2>
+      <p class="text-gray-700 font-semibold text-sm mt-1">Total Wallet Balance</p>
+    </div>
+    <div class="card-gradient text-white py-2 text-sm flex items-center justify-center cursor-pointer hover:opacity-90 transition">
+      More info <i class="fas fa-arrow-circle-right ml-2"></i>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden text-center flex flex-col">
+    <div class="p-5 flex-grow">
+      <h2 class="text-2xl font-bold text-gray-800">10</h2>
+      <p class="text-gray-700 font-semibold text-sm mt-1">Banned Users</p>
+    </div>
+    <div class="card-gradient text-white py-2 text-sm flex items-center justify-center cursor-pointer hover:opacity-90 transition">
+      More info <i class="fas fa-arrow-circle-right ml-2"></i>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden text-center flex flex-col">
+    <div class="p-5 flex-grow">
+      <h2 class="text-2xl font-bold text-gray-800">0</h2>
+      <p class="text-gray-700 font-semibold text-sm mt-1">Today Admin Deposit</p>
+    </div>
+    <div class="card-gradient text-white py-2 text-sm flex items-center justify-center cursor-pointer hover:opacity-90 transition">
+      More info <i class="fas fa-arrow-circle-right ml-2"></i>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden text-center flex flex-col">
+    <div class="p-5 flex-grow">
+      <h2 class="text-2xl font-bold text-gray-800">0</h2>
+      <p class="text-gray-700 font-semibold text-sm mt-1">Today Admin Withdrawal</p>
+    </div>
+    <div class="card-gradient text-white py-2 text-sm flex items-center justify-center cursor-pointer hover:opacity-90 transition">
+      More info <i class="fas fa-arrow-circle-right ml-2"></i>
+    </div>
+  </div>
+
+</div>
+
+      </div>
+    </main>
+
+    <script src="js/sidebar.js"></script>
+    <script src="js/calander.js"></script>
+  </body>
+</html>

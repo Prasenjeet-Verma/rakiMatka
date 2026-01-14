@@ -35,19 +35,19 @@
     <% } %>
 
     <form id="loginForm" action="/login" method="POST">
-        <div class="input-mode-tabs">
+        <!-- <div class="input-mode-tabs">
             <button type="button" id="tab-username" class="active">Username</button>
             <button type="button" id="tab-phone">Phone Number</button>
-        </div>
+        </div> -->
 
         <!-- Username input -->
-        <div class="input-group" id="input-group-username">
+        <!-- <div class="input-group" id="input-group-username">
             <i class="fa-regular fa-user icon-left"></i>
             <input type="text" id="username" name="login" placeholder="Enter Username" value="<%= oldInput.login %>" required>
-        </div>
+        </div> -->
         
         <!-- Phone input -->
-        <div class="input-group hidden" id="input-group-phone">
+        <div class="input-group" id="input-group-phone">
             <i class="fa-solid fa-phone icon-left"></i>
             <input type="text" id="phone" name="login" placeholder="Enter Phone Number" value="<%= oldInput.login %>">
         </div>
@@ -75,6 +75,6 @@
     </p>
 </div>
 
-<script src="/js/login.js"></script>
+<!-- <script src="/js/login.js"></script> -->
 </body>
 </html>

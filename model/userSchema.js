@@ -12,11 +12,6 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
-  emailAddress: {
-    type: String,
-    required: true,
-    unique: true,
-  },
   password: {
     type: String,
     required: true,
@@ -35,6 +30,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: "default.png", // optional
   },
+  wallet: { type: Number, default: 0 }
 }, { timestamps: true });
 
 module.exports = mongoose.model("User", userSchema);
