@@ -143,7 +143,7 @@ exports.postLoginPage = [
       };
       await req.session.save();
 
-      if (user.role === "admin") return res.redirect("/admin-home");
+      if (user.role === "admin") return res.redirect("/admin/dashboard");
       return res.redirect("/");
     } catch (err) {
       console.error(err);

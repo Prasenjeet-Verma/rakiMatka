@@ -52,7 +52,7 @@ app.use(express.static(path.join(rootDir, "public")));
 // ---------------- ROUTES ----------------
 app.use(loginAndSignupRouter);
 app.use(userRouter);
-app.use('/admin', adminRouter);
+app.use(adminRouter);
 
 // ---------------- ERROR HANDLING ---------------- <--- isko bhi krna h important
 // 404 Page
