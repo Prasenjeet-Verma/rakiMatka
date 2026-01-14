@@ -3,7 +3,7 @@ const bcrypt = require("bcryptjs");
 const User = require("../model/userSchema");
 const WalletTransaction = require("../model/WalletTransaction");
 exports.getAdminLoginPage = async  (req, res, next) => {
-  res.render("admin/adminLogin", {
+  res.render("Admin/adminLogin", {
     pageTitle: "Admin Login",
     errors: [],
     oldInput: { login: "", password: "" },
@@ -19,7 +19,7 @@ exports.postAdminLogin = [
     const { login, password } = req.body;
 
     if (!errors.isEmpty()) {
-      return res.status(400).render("admin/adminLogin", {
+      return res.status(400).render("Admin/adminLogin", {
         pageTitle: "Admin Login",
         errors: errors.array().map(e => e.msg),
         oldInput: { login, password },
@@ -34,7 +34,7 @@ exports.postAdminLogin = [
       });
 
       if (!admin || admin.userStatus === "suspended") {
-        return res.status(400).render("admin/adminLogin", {
+        return res.status(400).render("Admin/adminLogin", {
           pageTitle: "Admin Login",
           errors: [admin ? "Admin account suspended" : "Invalid admin credentials"],
           oldInput: { login, password },
@@ -43,7 +43,7 @@ exports.postAdminLogin = [
 
       const match = await bcrypt.compare(password, admin.password);
       if (!match) {
-        return res.status(400).render("admin/adminLogin", {
+        return res.status(400).render("Admin/adminLogin", {
           pageTitle: "Admin Login",
           errors: ["Invalid admin credentials"],
           oldInput: { login, password },
@@ -64,7 +64,7 @@ exports.postAdminLogin = [
 
     } catch (err) {
       console.error(err);
-      res.status(500).render("admin/adminLogin", {
+      res.status(500).render("Admin/adminLogin", {
         pageTitle: "Admin Login",
         errors: ["Something went wrong"],
         oldInput: { login, password },
