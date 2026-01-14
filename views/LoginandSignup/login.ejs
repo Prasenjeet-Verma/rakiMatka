@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumina | Login</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/login.css">
+</head>
+<body>
+
+<div class="blur-element top-left"></div>
+<div class="blur-element bottom-right"></div>
+
+<div class="glass-card">
+    <a href="/" class="close-btn" title="Go Back">
+        <i class="fa-solid fa-xmark"></i>
+    </a>
+
+    <div class="login-header">
+        <div class="logo-icon">
+            <i class="fa-solid fa-lock"></i>
+        </div>
+        <h2>Welcome Back</h2>
+        <p style="color: #6b7280; font-size: 0.9rem;">Sign in to your Lumina account</p>
+    </div>
+
+    <!-- Display Errors -->
+    <% if (errors.length > 0) { %>
+        <div class="error-messages">
+            <% errors.forEach(error => { %>
+                <p class="error"><%= error %></p>
+            <% }) %>
+        </div>
+    <% } %>
+
+    <form id="loginForm" action="/login" method="POST">
+        <div class="input-mode-tabs">
+            <button type="button" id="tab-username" class="active">Username</button>
+            <button type="button" id="tab-phone">Phone Number</button>
+        </div>
+
+        <!-- Username input -->
+        <div class="input-group" id="input-group-username">
+            <i class="fa-regular fa-user icon-left"></i>
+            <input type="text" id="username" name="login" placeholder="Enter Username" value="<%= oldInput.login %>" required>
+        </div>
+        
+        <!-- Phone input -->
+        <div class="input-group hidden" id="input-group-phone">
+            <i class="fa-solid fa-phone icon-left"></i>
+            <input type="text" id="phone" name="login" placeholder="Enter Phone Number" value="<%= oldInput.login %>">
+        </div>
+
+        <!-- Password input -->
+        <div class="input-group">
+            <i class="fa-solid fa-key icon-left"></i>
+            <input type="password" id="password" name="password" placeholder="Password" value="<%= oldInput.password %>" required>
+            <i class="fa-regular fa-eye toggle-password" id="togglePassword"></i>
+        </div>
+
+        <div class="actions">
+            <label class="remember-me">
+                <input type="checkbox" name="remember" id="remember">
+                Remember me
+            </label>
+        </div>
+
+        <button type="submit" class="login-button">Log In</button>
+    </form>
+
+    <p class="footer-text">
+        Don't have an account? 
+        <a href="/signup">Create an account</a>
+    </p>
+</div>
+
+<script src="/js/login.js"></script>
+</body>
+</html>

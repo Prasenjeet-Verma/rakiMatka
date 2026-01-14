@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumina | Complete Registration</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/userCreateAccount.css">
+</head>
+<body>
+
+    <div class="blur-element top-left"></div>
+    <div class="blur-element bottom-right"></div>
+
+    <div class="glass-card">
+        <a href="/" class="close-btn" title="Go Back">
+            <i class="fa-solid fa-xmark"></i>
+        </a>
+
+        <div class="page-header">
+            <div class="header-icon">
+                <i class="fa-solid fa-user-plus"></i>
+            </div>
+            <h2>Create Your Account</h2>
+            <p style="color: #6b7280; font-size: 0.9rem;">Fill in all details to get started.</p>
+        </div>
+
+        <!-- Display Errors -->
+        <% if (errors.length > 0) { %>
+            <div class="error-messages">
+                <% errors.forEach(error => { %>
+                    <p class="error"><%= error %></p>
+                <% }) %>
+            </div>
+        <% } %>
+
+        <form id="registerForm" action="/signup" method="POST">
+            
+            <div class="input-group">
+                <i class="fa-regular fa-user icon-left"></i>
+                <input type="text" id="username" name="username" placeholder="Choose a Username" value="<%= oldInput.username %>" required>
+            </div>
+            
+            <div class="input-group">
+                <i class="fa-solid fa-phone icon-left"></i>
+                <input type="text" id="phone" name="phone" placeholder="Phone Number" value="<%= oldInput.phone %>" required>
+            </div>
+            
+            <div class="input-group">
+                <i class="fa-regular fa-envelope icon-left"></i>
+                <input type="email" id="email" name="email" placeholder="Email Address" value="<%= oldInput.email %>" required>
+            </div>
+            
+            <div class="input-group">
+                <i class="fa-solid fa-key icon-left"></i>
+                <input type="password" id="password" name="password" placeholder="Create Password" value="<%= oldInput.password %>" required>
+                <i class="fa-regular fa-eye toggle-password" id="togglePassword"></i>
+            </div>
+            
+            <div class="input-group">
+                <i class="fa-solid fa-lock icon-left"></i>
+                <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm Password" value="<%= oldInput.confirmPassword %>" required>
+                <i class="fa-regular fa-eye toggle-password" id="toggleConfirmPassword"></i>
+            </div>
+
+            <button type="submit" class="submit-button">
+                Complete Registration
+            </button>
+        </form>
+        
+        <p class="terms-text">
+            By clicking "Complete Registration", you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
+        </p>
+
+        <p class="footer-link">
+            Already have an account? 
+            <a href="/login">Log In</a>
+        </p>
+    </div>
+    
+    <script src="/js/userCreateAccount.js"></script>
+    
+</body>
+</html>

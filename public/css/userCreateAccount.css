@@ -1,0 +1,231 @@
+/* --- 1. Custom Color Variables & Global Styles (Inherited) --- */
+:root {
+  --color-white: #ffffff;
+  --color-brand-light: #f3e8ff;
+  --color-brand-default: #8176f9;
+  --color-brand-dark: #3712dd;
+  --color-brand-accent: #3712dd;
+  --color-gray-600: #4b5563;
+}
+
+body {
+  /* Background Gradient */
+  background: linear-gradient(
+    135deg,
+    var(--color-white) 0%,
+    var(--color-brand-light) 50%,
+    #e9d5ff 100%
+  );
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 1rem;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Glassmorphism Card Effect */
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 1.5rem;
+  padding: 2.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  max-width: 420px;
+  width: 100%;
+  z-index: 10;
+  position: relative;
+}
+
+/* Close Icon */
+.close-btn {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  color: var(--color-gray-600);
+  font-size: 1.25rem;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.close-btn:hover {
+  color: var(--color-brand-dark);
+  background-color: rgba(255, 255, 255, 0.5);
+  transform: rotate(90deg);
+}
+
+/* Header */
+.page-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  margin-top: 0.5rem;
+}
+
+.header-icon {
+  width: 3rem;
+  height: 3rem;
+  margin: 0 auto 0.5rem;
+  background-color: var(--color-brand-default);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-white);
+  font-size: 1.25rem;
+}
+
+.page-header h2 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--color-brand-dark);
+  margin: 0;
+}
+
+/* --- Form Elements --- */
+.input-group {
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.input-group input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.75rem 1rem;
+  padding-left: 2.5rem;
+  padding-right: 2.5rem; /* Space for eye icon */
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  background-color: var(--color-white);
+  font-size: 1rem;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: var(--color-brand-default);
+  box-shadow: 0 0 0 3px rgba(192, 132, 252, 0.3);
+}
+
+/* Input Icons */
+.input-group .icon-left {
+  position: absolute;
+  top: 50%;
+  left: 0.75rem;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  pointer-events: none;
+}
+.input-group .toggle-password {
+  position: absolute;
+  top: 50%;
+  right: 1rem;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  cursor: pointer;
+  z-index: 5;
+  transition: color 0.3s;
+}
+.input-group .toggle-password:hover {
+  color: var(--color-brand-dark);
+}
+
+/* Submit Button */
+.submit-button {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: var(--color-brand-dark);
+  color: var(--color-white);
+  font-weight: 700;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.3s;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 1rem;
+}
+
+.submit-button:hover {
+  background-color: var(--color-brand-accent);
+  transform: translateY(-1px);
+}
+
+/* Terms and Conditions Text */
+.terms-text {
+  text-align: center;
+  margin-top: 1rem;
+  font-size: 0.75rem;
+  color: var(--color-gray-600);
+}
+
+.terms-text a {
+  color: var(--color-brand-default);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* Footer */
+.footer-link {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: 0.875rem;
+}
+
+.footer-link a {
+  color: var(--color-brand-default);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.footer-link a:hover {
+  color: var(--color-brand-dark);
+}
+
+/* Decorative blur */
+.blur-element {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  background: var(--color-brand-default);
+  opacity: 0.3;
+  border-radius: 50%;
+  filter: blur(80px);
+  z-index: 0;
+  animation: float 10s ease-in-out infinite;
+}
+
+.blur-element.top-left {
+  top: 10%;
+  left: 5%;
+}
+
+.blur-element.bottom-right {
+  bottom: 10%;
+  right: 5%;
+  background: var(--color-brand-accent);
+  animation-delay: 2s;
+}
+
+@keyframes float {
+  0% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(20px, 30px);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}

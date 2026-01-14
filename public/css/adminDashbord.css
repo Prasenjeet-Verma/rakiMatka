@@ -1,0 +1,24 @@
+@import url("https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;600;700&display=swap");
+
+body {
+  font-family: "Source Sans Pro", sans-serif;
+  background-color: #f4f6f9;
+}
+
+.sidebar {
+  background-color: #ffffff;
+  width: 250px;
+  transition: all 0.3s;
+}
+
+.card-gradient {
+  background: linear-gradient(to right, #1e00d3 0%, #800020 100%);
+}
+
+.nav-item:hover {
+  background-color: #f8f9fa;
+}
+
+.sidebar-hidden {
+  margin-left: -250px;
+}

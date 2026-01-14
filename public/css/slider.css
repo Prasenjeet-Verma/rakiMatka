@@ -1,0 +1,261 @@
+
+
+
+
+
+
+
+
+/* ++++++++++++++++++++++++++++++++++++++++++ Banner  +++++++++++++++++++++++++++++++++++++++++++ */
+ 
+@media (min-width: 1025px) and (max-width: 1900px) {
+.mbanner{
+    width: 100%;
+    height: 28rem;
+   
+    
+    background-image: linear-gradient(to bottom right, #7E22CE, #C084FC);
+    padding-bottom: 1rem;
+    position: relative;
+    
+   }
+
+.banner-container {
+            position: relative;
+            overflow: hidden;
+            height: 26rem; 
+            width: 100%;
+            
+        }
+
+   .banner-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform: translateX(100%); /* start off-screen right */
+  opacity: 0;
+  transition: transform 0.7s ease-in-out, opacity 0.5s ease-in-out;
+  border-radius: 12px;
+}
+
+.banner-slide.active {
+  transform: translateX(0);
+  opacity: 1;
+  z-index: 10;
+}
+
+.banner-slide.outgoing-left {
+  transform: translateX(-100%);
+  opacity: 0;
+  z-index: 5;
+}
+
+.banner-slide.outgoing-right {
+  transform: translateX(100%);
+  opacity: 0;
+  z-index: 5;
+}
+
+}
+/* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@media (min-width: 766px) and (max-width: 1024px){
+
+
+
+    
+    /* +++++++++++++++++++++++++++++++++++++++++ Banner ++++++++++++++++++++++++++++++++++++++++++++ */
+
+
+.mbanner{
+    width: 100%;
+    height: 22rem;
+    position: relative;
+    background-image: linear-gradient(to bottom right, #7E22CE, #C084FC);
+    padding-bottom: 1rem;
+    position: relative;
+   
+   }
+
+.banner-container {
+            position: relative;
+            
+            overflow: hidden;
+            height: 20rem; 
+            width: 100%;
+            
+        }
+
+   .banner-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform: translateX(100%); /* start off-screen right */
+  opacity: 0;
+  transition: transform 0.7s ease-in-out, opacity 0.5s ease-in-out;
+  border-radius: 12px;
+}
+
+.banner-slide.active {
+  transform: translateX(0);
+  opacity: 1;
+  z-index: 10;
+}
+
+.banner-slide.outgoing-left {
+  transform: translateX(-100%);
+  opacity: 0;
+  z-index: 5;
+}
+
+.banner-slide.outgoing-right {
+  transform: translateX(100%);
+  opacity: 0;
+  z-index: 5;
+}
+
+}
+/* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+@media (min-width: 320px) and (max-width: 765px) {
+    .body{
+    height: 100%;
+    width: 90%;
+    position: relative;
+    left: 5%;
+    top: 55px;
+  
+}
+
+
+
+/* ++++++++++++++++++++++++++++++++++++++++ Banner +++++++++++++++++++++++++++++++++++++++++++++ */
+.mbanner{
+    width: 100%;
+    height: 12rem;
+    position: relative;
+   
+    background-image: linear-gradient(to bottom right, #7E22CE, #C084FC );
+    padding-bottom: 1rem;
+    position: relative;
+   
+   }
+
+.banner-container {
+            position: relative;
+            overflow: hidden;
+            height: 10rem; 
+            width: 100%;
+            
+        }
+
+   .banner-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform: translateX(100%); /* start off-screen right */
+  opacity: 0;
+  transition: transform 0.7s ease-in-out, opacity 0.5s ease-in-out;
+}
+
+.banner-slide.active {
+  transform: translateX(0);
+  opacity: 1;
+  z-index: 10;
+}
+
+.banner-slide.outgoing-left {
+  transform: translateX(-100%);
+  opacity: 0;
+  z-index: 5;
+}
+
+.banner-slide.outgoing-right {
+  transform: translateX(100%);
+  opacity: 0;
+  z-index: 5;
+}
+}
+
+/* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
