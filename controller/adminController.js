@@ -234,65 +234,6 @@ exports.updateWallet = async (req, res) => {
 };
 
 // Render variables dono ka same rhna chahiye 
-// exports.getAllUsersPage = async (req, res) => {
-//   try {
-//     // 🔐 Admin check
-//     if (!req.session.isLoggedIn || req.session.admin.role !== "admin") {
-//       return res.redirect("/admin/login");
-//     }
-
-//     // 🧠 Admin verify
-//     const admin = await User.findOne({
-//       _id: req.session.admin._id,
-//       role: "admin",
-//       userStatus: "active",
-//     });
-
-//     if (!admin) {
-//       req.session.destroy();
-//       return res.redirect("/admin/login");
-//     }
-
-//     // 👥 Fetch all normal users (not admin)
-//     const users = await User.find({ role: "user" }).sort({ createdAt: -1 });
-
-//     // 📊 Wallet summary for each user
-//     const usersWithStats = await Promise.all(
-//       users.map(async (user) => {
-//         const totalCredit = await WalletTransaction.aggregate([
-//           { $match: { user: user._id, type: "credit", status: "success" } },
-//           { $group: { _id: null, total: { $sum: "$amount" } } },
-//         ]);
-
-//         const totalDebit = await WalletTransaction.aggregate([
-//           { $match: { user: user._id, type: "debit", status: "success" } },
-//           { $group: { _id: null, total: { $sum: "$amount" } } },
-//         ]);
-
-//         return {
-//           ...user.toObject(),
-//           totalCredit: totalCredit[0]?.total || 0,
-//           totalDebit: totalDebit[0]?.total || 0,
-//         };
-//       })
-//     );
-
-//     res.render("Admin/adminallUser", {
-//       pageTitle: "All Users",
-//       admin,
-//       users: usersWithStats,
-//       errors: [],
-//       oldInput: {},
-//       isLoggedIn: req.session.isLoggedIn
-//     });
-
-//   } catch (error) {
-//     console.error("All Users Page Error:", error);
-//     res.redirect("/admin/dashboard");
-//   }
-// };
-
-
 exports.getAllUsersPage = async (req, res) => {
   try {
     if (!req.session.isLoggedIn || req.session.admin.role !== "admin") {
@@ -477,11 +418,120 @@ exports.adminCreateUser = async (req, res) => {
     res.redirect("/admin/allUsers");
   }
 };
-
-
 //End
 
 
-exports.getSingleUserDetails = async (req, res, next) => {
+exports.getSingleUserDetails = async (req, res) => {
+  try {
+    // 🔐 Admin auth check
+    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
+      return res.redirect("/admin/login");
+    }
 
-}
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active"
+    });
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    const userId = req.params.userId;
+
+    // 👤 Get user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.redirect("/admin/allUsers");
+    }
+
+    // 💰 TOTAL DEPOSIT (all money coming into user wallet)
+    const depositAgg = await WalletTransaction.aggregate([
+      {
+        $match: {
+          user: user._id,
+          source: { $in: ["admin_credit", "deposit", "refund"] },
+          status: "success"
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$amount" }
+        }
+      }
+    ]);
+
+    // 💸 TOTAL WITHDRAW (all money going out from user wallet)
+    const withdrawAgg = await WalletTransaction.aggregate([
+      {
+        $match: {
+          user: user._id,
+          source: { $in: ["admin_debit", "withdraw"] },
+          status: "success"
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$amount" }
+        }
+      }
+    ]);
+
+    const totalDeposit = depositAgg[0]?.total || 0;
+    const totalWithdraw = withdrawAgg[0]?.total || 0;
+
+
+
+    // 🧾 Last 50 Transactions
+    const transactions = await WalletTransaction.find({ user: user._id })
+      .populate("admin", "username phoneNo")
+      .sort({ createdAt: -1 })
+      .limit(50);
+
+    // 📤 Send to page
+    res.render("Admin/singleUserDetails", {
+      pageTitle: "User Details",
+      admin,
+      user,
+      walletBalance: user.wallet,
+      totalDeposit,
+      totalWithdraw,
+      transactions,
+      isLoggedIn: req.session.isLoggedIn
+    });
+
+  } catch (error) {
+    console.error("Single User Details Error:", error);
+    res.redirect("/admin/allUsers");
+  }
+};
+
+exports.changeUserPassword = async (req, res) => {
+  try {
+    if (!req.session.isLoggedIn || req.session.admin.role !== "admin") {
+      return res.redirect("/admin/login");
+    }
+
+    const { userId, newPassword } = req.body;
+
+    if (!newPassword || newPassword.length < 6) {
+      return res.redirect("/admin/singleuser-details/" + userId);
+    }
+
+    const hashed = await bcrypt.hash(newPassword, 12);
+
+    await User.findByIdAndUpdate(userId, {
+      password: hashed
+    });
+
+    res.redirect("/admin/singleuser-details/" + userId);
+
+  } catch (err) {
+    console.log("Password change error:", err);
+    res.redirect("/admin/singleuser-details/" + userId);
+  }
+};

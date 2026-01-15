@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  <link rel="stylesheet" href="/css/adminDashbord.css" />
+</head>
+
+<body class="flex min-h-screen">
+  <aside id="sidebar"
+    class="sidebar border-r border-gray-200 fixed inset-y-0 left-0 z-50 lg:relative lg:translate-x-0 transform -translate-x-full lg:block">
+    <div class="p-4">
+      <div class="relative mb-4">
+        <input type="text" placeholder="Search"
+          class="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
+        <button class="absolute right-0 top-0 bottom-0 px-3 bg-neutral-800 text-white rounded-r">
+          <i class="fas fa-search"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- ============================= Nav is here ============================ -->
+
+    <nav class="text-gray-600 text-sm">
+      <a href="/admin/dashboard" class="nav-item flex items-center px-4 py-3 border-b border-gray-100">
+        <i class="fas fa-tachometer-alt w-6"></i> Dashboard
+      </a>
+
+      <a href="/admin/allUsers"
+        class="nav-item flex items-center px-4 py-3 bg-gray-100 border-l-4 border-blue-500 font-semibold">
+        <i class="fas fa-users w-6"></i> All Users
+      </a>
+
+      <div class="border-b border-gray-100">
+        <details class="group">
+          <summary class="list-none cursor-pointer w-full nav-item flex items-center justify-between px-4 py-3">
+            <span class="flex items-center gap-2">
+              <i class="fas fa-database w-6"></i> System Reports
+            </span>
+            <i class="fas fa-chevron-left text-xs transition-transform duration-200 group-open:-rotate-90"></i>
+          </summary>
+
+          <!-- Sub Menu -->
+          <div class="pl-10 py-2 space-y-2 text-sm text-gray-700">
+            <a href="adminMarketWinBid.html" class="block hover:text-[#eeba30]">Market Win/Bid</a>
+            <a href="adminDepositTransactions.html" class="block hover:text-[#eeba30]">Deposit Transactions</a>
+            <a href="adminWithdrawTransactions.html" class="block hover:text-[#eeba30]">Withdraw Transactions</a>
+          </div>
+        </details>
+      </div>
+
+      <div class="border-b border-gray-100">
+        <details class="group">
+          <summary class="list-none cursor-pointer w-full nav-item flex items-center justify-between px-4 py-3">
+            <span class="flex items-center gap-2">
+              <i class="fas fa-gamepad w-6"></i> Game Management
+            </span>
+            <i class="fas fa-chevron-left text-xs transition-transform duration-200 group-open:-rotate-90"></i>
+          </summary>
+
+          <!-- Sub Menu -->
+          <div class="pl-10 py-2 space-y-2 text-sm text-gray-700">
+            <a href="adminGameProviders.html" class="block hover:text-[#eeba30]">Game Providers</a>
+            <a href="adminGameRates.html" class="block hover:text-[#eeba30]">Game Rates</a>
+            <a href="adminGameResult.html" class="block hover:text-[#eeba30]">Game Result</a>
+            <a href="adminGenerateResult.html" class="block hover:text-[#eeba30]">Generate Result</a>
+            <a href="adminBidRevert.html" class="block hover:text-[#eeba30]">Bid Revert</a>
+          </div>
+        </details>
+      </div>
+
+      <div class="border-b border-gray-100">
+        <details class="group">
+          <summary class="list-none cursor-pointer w-full nav-item flex items-center justify-between px-4 py-3">
+            <span class="flex items-center gap-2">
+              <i class="fas fa-book w-6"></i> Bookie Corner
+            </span>
+            <i class="fas fa-chevron-left text-xs transition-transform duration-200 group-open:-rotate-90"></i>
+          </summary>
+
+          <!-- Sub Menu -->
+          <div class="pl-10 py-2 space-y-2 text-sm text-gray-700">
+            <a href="adminOCCuttingGroup.html" class="block hover:text-[#eeba30]">OC Cutting Group</a>
+            <a href="adminLossCutting.html" class="block hover:text-[#eeba30]">Loss Cutting</a>
+          </div>
+        </details>
+      </div>
+
+      <div class="border-b border-gray-100">
+        <details class="group">
+          <summary class="list-none cursor-pointer w-full nav-item flex items-center justify-between px-4 py-3">
+            <span class="flex items-center gap-2">
+              <i class="fas fa-file-alt w-6"></i> Report Management
+            </span>
+            <i class="fas fa-chevron-left text-xs transition-transform duration-200 group-open:-rotate-90"></i>
+          </summary>
+
+          <!-- Sub Menu -->
+          <div class="pl-10 py-2 space-y-2 text-sm text-gray-700">
+            <a href="adminWinnerPrediction.html" class="block hover:text-[#eeba30]">Winner Prediction</a>
+            <a href="adminBidHistory.html" class="block hover:text-[#eeba30]">Bid History</a>
+            <a href="adminWinningHistory.html" class="block hover:text-[#eeba30]">Winning History</a>
+            <a href="adminCustomerSellReport.html" class="block hover:text-[#eeba30]">Customer Sell Report</a>
+          </div>
+        </details>
+      </div>
+
+      <div class="border-b border-gray-100">
+        <details class="group">
+          <summary class="list-none cursor-pointer w-full nav-item flex items-center justify-between px-4 py-3">
+            <span class="flex items-center gap-2">
+              <i class="fas fa-wallet w-6"></i> Wallet Management
+            </span>
+            <i class="fas fa-chevron-left text-xs transition-transform duration-200 group-open:-rotate-90"></i>
+          </summary>
+
+          <!-- Sub Menu -->
+          <div class="pl-10 py-2 space-y-2 text-sm text-gray-700">
+            <a href="adminEditWallet.html" class="block hover:text-[#eeba30]">Edit Wallet</a>
+            <a href="adminFundReport.html" class="block hover:text-[#eeba30]">Fund Report</a>
+            <a href="adminDepositRequests.html" class="block hover:text-[#eeba30]">Deposit Requests</a>
+            <a href="adminWithdrawPointsRequestReport.html" class="block hover:text-[#eeba30]">Withdraw Points Request
+              Report</a>
+          </div>
+        </details>
+      </div>
+
+      <div class="border-b border-gray-100">
+        <details class="group">
+          <summary class="list-none cursor-pointer w-full nav-item flex items-center justify-between px-4 py-3">
+            <span class="flex items-center gap-2">
+              <i class="fas fa-cog w-6"></i> Settings
+            </span>
+            <i class="fas fa-chevron-left text-xs transition-transform duration-200 group-open:-rotate-90"></i>
+          </summary>
+
+          <!-- Sub Menu -->
+          <div class="pl-10 py-2 space-y-2 text-sm text-gray-700">
+            <a href="adminChangePassword.html" class="block hover:text-[#eeba30]">Change Password</a>
+            <a href="adminManualDepositMethods.html" class="block hover:text-[#eeba30]">Manual Deposit Methods</a>
+            <a href="adminWithdrawTimings.html" class="block hover:text-[#eeba30]">Withdraw Timings</a>
+            <a href="adminContactUsDetails.html" class="block hover:text-[#eeba30]">Contact Us Details</a>
+            <a href="adminMainSettings.html" class="block hover:text-[#eeba30]">Main Settings</a>
+            <a href="adminPaymentGatewaySettings.html" class="block hover:text-[#eeba30]">Payment Gateway Settings</a>
+            <a href="adminImageSlider.html" class="block hover:text-[#eeba30]">Image Slider</a>
+            <a href="adminImageSliderWebsite.html" class="block hover:text-[#eeba30]">Image Slider Website</a>
+            <a href="adminHomepopupmsg.html" class="block hover:text-[#eeba30]">
+              Home popup msg</a>
+          </div>
+        </details>
+      </div>
+
+      <div class="border-b border-gray-100">
+        <details class="group">
+          <summary class="list-none cursor-pointer w-full nav-item flex items-center justify-between px-4 py-3">
+            <span class="flex items-center gap-2">
+              <i class="fa-solid fa-bell w-6"></i> Notice Management
+            </span>
+            <i class="fas fa-chevron-left text-xs transition-transform duration-200 group-open:-rotate-90"></i>
+          </summary>
+
+          <!-- Sub Menu -->
+          <div class="pl-10 py-2 space-y-2 text-sm text-gray-700">
+            <a href="adminBellNotifications.html" class="block hover:text-[#eeba30]">Bell Notifications</a>
+            <a href="adminSendNotification.html" class="block hover:text-[#eeba30]">Send Notification</a>
+            <a href="adminManageContents.html" class="block hover:text-[#eeba30]">Manage Contents</a>
+          </div>
+        </details>
+      </div>
+
+      <div class="px-4 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">
+        Personal Games
+      </div>
+
+      <div class="border-b border-gray-100">
+        <details class="group">
+          <summary class="list-none cursor-pointer w-full nav-item flex items-center justify-between px-4 py-3">
+            <span class="flex items-center gap-2">
+              <i class="fas fa-th w-6"></i> Main Starline
+            </span>
+            <i class="fas fa-chevron-left text-xs transition-transform duration-200 group-open:-rotate-90"></i>
+          </summary>
+
+          <!-- Sub Menu -->
+          <div class="pl-10 py-2 space-y-2 text-sm text-gray-700">
+            <a href="adminGameProvider.html" class="block hover:text-[#eeba30]">Game Provider</a>
+            <a href="adminGameRates.html" class="block hover:text-[#eeba30]">Game Rates</a>
+            <a href="adminBidHistory.html" class="block hover:text-[#eeba30]">Bid History</a>
+            <a href="adminGameResult.html" class="block hover:text-[#eeba30]">Game Result</a>
+            <a href="adminResultHistory.html" class="block hover:text-[#eeba30]">Result History</a>
+            <a href="adminSellReport.html" class="block hover:text-[#eeba30]">Sell Report
+            </a>
+            <a href="adminWinningReport.html" class="block hover:text-[#eeba30]">Winning Report
+            </a>
+          </div>
+        </details>
+      </div>
+
+      <div class="border-b border-gray-100">
+        <details class="group">
+          <summary class="list-none cursor-pointer w-full nav-item flex items-center justify-between px-4 py-3">
+            <span class="flex items-center gap-2">
+              <i class="fas fa-th w-6"></i> Main Jackpot
+            </span>
+            <i class="fas fa-chevron-left text-xs transition-transform duration-200 group-open:-rotate-90"></i>
+          </summary>
+
+          <!-- Sub Menu -->
+          <div class="pl-10 py-2 space-y-2 text-sm text-gray-700">
+            <a href="adminGameProvider.html" class="block hover:text-[#eeba30]">Game Provider</a>
+            <a href="adminGameRates.html" class="block hover:text-[#eeba30]">Game Rates</a>
+            <a href="adminBidHistory.html" class="block hover:text-[#eeba30]">Bid History</a>
+            <a href="adminGameResult.html" class="block hover:text-[#eeba30]">Game Result</a>
+            <a href="adminResultHistory.html" class="block hover:text-[#eeba30]">Result History</a>
+            <a href="adminSellReport.html" class="block hover:text-[#eeba30]">Sell Report
+            </a>
+          </div>
+        </details>
+      </div>
+    </nav>
+  </aside>
+
+  <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+    <!-- ============================= Header is here ============================ -->
+    <header style="z-index: 50000; position: fixed; width: 100%"
+      class="bg-white h-14 flex items-center justify-between px-4 border-b border-gray-200">
+      <button id="menuBtn" class="text-gray-600 focus:outline-none">
+        <i class="fas fa-bars text-xl"></i>
+      </button>
+      <button class="text-gray-600">
+        <i class="fas fa-power-off text-xl"></i>
+      </button>
+    </header>
+
+    <header class="bg-white h-14 flex items-center justify-between px-4 border-b border-gray-200"></header>
+    <!-- header overflow done -->
+
+    <!-- =========================================== Body Start here ========================================== -->
+
+    <!-- ======================== Information 1 ===================== -->
+
+    <info class="bg-gray-100 p-4">
+      <div class="max-w-7xl mx-auto bg-white rounded-lg shadow p-6">
+        <!-- GRID -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- LEFT: PERSONAL INFO -->
+          <div class="border rounded-lg p-4">
+            <div class="flex justify-between items-center mb-4">
+              <h2 class="text-lg font-semibold">Personal Information</h2>
+              <div class="flex gap-2">
+                <button class="bg-green-500 text-white px-3 py-1 rounded text-sm">
+                  WhatsApp
+                </button>
+                <button class="bg-red-500 text-white px-3 py-1 rounded text-sm">
+                  Call
+                </button>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full border text-sm">
+                <tbody>
+
+                  <tr class="border">
+                    <td class="font-medium p-2 border">Full Name</td>
+                    <td class="p-2">
+                      <%= user.username %>
+                    </td>
+                  </tr>
+
+                  <tr class="border">
+                    <td class="font-medium p-2 border">Password</td>
+
+                    <td class="p-2 flex items-center justify-between">
+                      <span>********</span>
+
+                      <button onclick="openPasswordModal('<%= user._id %>')"
+                        class="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700">
+                        Edit
+                      </button>
+                    </td>
+                  </tr>
+
+                  <tr class="border">
+                    <td class="font-medium p-2 border">Mobile Number</td>
+                    <td class="p-2">
+                      <%= user.phoneNo %>
+                    </td>
+                  </tr>
+
+                  <tr class="border">
+                    <td class="font-medium p-2 border">Registration Date</td>
+                    <td class="p-2">
+                      <%= new Date(user.createdAt).toLocaleString("en-IN") %>
+                    </td>
+                  </tr>
+
+                  <tr class="border">
+                    <td class="font-medium p-2 border">User Status</td>
+                    <td class="p-2">
+                      <% if(user.userStatus==="active" ){ %>
+                        <span class="bg-green-500 text-white px-2 py-1 rounded text-xs">
+                          Active
+                        </span>
+                        <% } else { %>
+                          <span class="bg-red-500 text-white px-2 py-1 rounded text-xs">
+                            Suspended
+                          </span>
+                          <% } %>
+                    </td>
+                  </tr>
+
+                </tbody>
+              </table>
+            </div>
+
+
+            <!-- WALLET -->
+            <div class="text-center mt-8">
+              <h3 class="text-3xl text-gray-400 font-light">
+                Wallet Balance
+              </h3>
+              <p class="text-4xl font-semibold mt-2">
+                <%= user.wallet %>₹ <span class="text-green-600 text-lg">Points</span>
+              </p>
+
+              <div class="flex justify-center gap-3 mt-4">
+                <button class="openPointsModal bg-green-600 text-white px-5 py-2 rounded hover:bg-green-700"
+                  data-type="add" data-userid="<%= user._id %>">
+                  Add Points
+                </button>
+
+                <button class="openPointsModal bg-red-600 text-white px-5 py-2 rounded hover:bg-red-700"
+                  data-type="withdraw" data-userid="<%= user._id %>">
+                  Withdraw Points
+                </button>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT: PAYMENT + TOTAL -->
+          <div class="space-y-6">
+            <!-- PAYMENT INFO -->
+            <div class="border rounded-lg p-4">
+              <h2 class="text-lg font-semibold mb-4">Payment Information</h2>
+              <table class="w-full border text-sm">
+                <tbody>
+                  <tr class="border">
+                    <td class="font-medium p-2 border">
+                      Account Holder Name
+                    </td>
+                    <td class="p-2">N/A</td>
+                  </tr>
+                  <tr class="border">
+                    <td class="font-medium p-2 border">Account Number</td>
+                    <td class="p-2">N/A</td>
+                  </tr>
+                  <tr class="border">
+                    <td class="font-medium p-2 border">IFSC Code</td>
+                    <td class="p-2">N/A</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- DEPOSIT / WITHDRAW -->
+            <div class="border rounded-lg p-4">
+              <h2 class="text-lg font-semibold mb-4">
+                Deposit / Withdraw Total
+              </h2>
+              <table class="w-full border text-sm">
+                <tbody>
+<tr class="border">
+  <td class="font-medium p-2 border">Total Deposit</td>
+  <td class="p-2 text-green-600 font-semibold">
+    ₹ <%= totalDeposit %>
+  </td>
+</tr>
+
+<tr class="border">
+  <td class="font-medium p-2 border">Total Withdraw</td>
+  <td class="p-2 text-red-600 font-semibold">
+    ₹ <%= totalWithdraw %>
+  </td>
+</tr>
+
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </info>
+
+    <!-- ======================== Withdwaw Points Requests ======================== -->
+    <record class="bg-gray-100 p-4">
+      <div class="bg-white rounded-lg shadow p-4">
+        <!-- HEADER -->
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+          <div class="flex items-center gap-2">
+            <h2 class="font-semibold">Withdraw Points Requests</h2>
+            <select class="border rounded px-2 py-1 text-sm">
+              <option>All</option>
+              <option>Success</option>
+              <option>Rejected</option>
+              <option>Pending</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- CONTROLS -->
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+          <div class="flex items-center gap-2">
+            <span class="text-sm">Show</span>
+            <select class="border rounded px-2 py-1 text-sm">
+              <option>10</option>
+              <option>50</option>
+              <option>100</option>
+              <option>All</option>
+            </select>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <label class="text-sm">Search:</label>
+            <input type="text" class="border rounded px-2 py-1 text-sm w-40" />
+          </div>
+        </div>
+
+        <!-- TABLE -->
+        <div class="overflow-x-auto">
+          <table class="min-w-full border text-sm">
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="border px-3 py-2 text-left">ID</th>
+                <th class="border px-3 py-2 text-left">Mobile</th>
+                <th class="border px-3 py-2 text-left">Name</th>
+                <th class="border px-3 py-2 text-left">Amount</th>
+                <th class="border px-3 py-2 text-left">Status</th>
+                <th class="border px-3 py-2 text-left">Created at</th>
+                <th class="border px-3 py-2 text-left">Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr class="bg-blue-50">
+                <td class="border px-3 py-2">1</td>
+                <td class="border px-3 py-2">9194253817</td>
+                <td class="border px-3 py-2">Rajesh Nagde</td>
+                <td class="border px-3 py-2">1000</td>
+                <td class="border px-3 py-2">
+                  <span class="bg-green-600 text-white text-xs px-2 py-1 rounded">
+                    Success
+                  </span>
+                </td>
+                <td class="border px-3 py-2">01/07/2026, 08:27:26 AM</td>
+                <td class="border px-3 py-2 text-gray-500">
+                  No action available
+                </td>
+              </tr>
+
+              <tr>
+                <td class="border px-3 py-2">2</td>
+                <td class="border px-3 py-2">9194253817</td>
+                <td class="border px-3 py-2">Rajesh Nagde</td>
+                <td class="border px-3 py-2">1200</td>
+                <td class="border px-3 py-2">
+                  <span class="bg-red-600 text-white text-xs px-2 py-1 rounded">
+                    Rejected
+                  </span>
+                </td>
+                <td class="border px-3 py-2">01/05/2026, 08:00:14 AM</td>
+                <td class="border px-3 py-2 text-gray-500">
+                  No action available
+                </td>
+              </tr>
+
+              <tr class="bg-blue-50">
+                <td class="border px-3 py-2">3</td>
+                <td class="border px-3 py-2">9194253817</td>
+                <td class="border px-3 py-2">Rajesh Nagde</td>
+                <td class="border px-3 py-2">1400</td>
+                <td class="border px-3 py-2">
+                  <span class="bg-red-600 text-white text-xs px-2 py-1 rounded">
+                    Rejected
+                  </span>
+                </td>
+                <td class="border px-3 py-2">01/03/2026, 08:05:59 AM</td>
+                <td class="border px-3 py-2 text-gray-500">
+                  No action available
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-4 text-sm">
+          <p>Showing 1 to 3 of 3 entries</p>
+
+          <div class="flex items-center gap-2">
+            <button class="border px-3 py-1 rounded text-gray-600">
+              Previous
+            </button>
+            <button class="border px-3 py-1 rounded bg-gray-200">1</button>
+            <button class="border px-3 py-1 rounded text-gray-600">
+              Next
+            </button>
+          </div>
+        </div>
+      </div>
+    </record>
+
+    <!-- ======================== Bid History ======================== -->
+    <record class="bg-gray-100 p-4">
+      <div class="bg-white rounded-lg shadow p-4">
+        <!-- HEADER -->
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+          <div class="flex items-center gap-2">
+            <h2 class="font-semibold">Bid History</h2>
+            <select class="border rounded px-2 py-1 text-sm">
+              <option>All</option>
+              <option>Main Market</option>
+              <option>Starline</option>
+              <option>Jackpot</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- CONTROLS -->
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-sm">Show</span>
+            <select class="border rounded px-2 py-1 text-sm">
+              <option>10</option>
+              <option>50</option>
+              <option>100</option>
+              <option>All</option>
+            </select>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <label class="text-sm">Search:</label>
+            <input type="text" class="border rounded px-2 py-1 text-sm w-40" />
+          </div>
+        </div>
+
+        <!-- TABLE -->
+        <div class="overflow-x-auto">
+          <table class="min-w-[1400px] w-full border text-sm">
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="border px-3 py-2 text-left">ID</th>
+                <th class="border px-3 py-2 text-left">Mobile Number</th>
+                <th class="border px-3 py-2 text-left">User name</th>
+                <th class="border px-3 py-2 text-left">Game Type</th>
+                <th class="border px-3 py-2 text-left">Market</th>
+                <th class="border px-3 py-2 text-left">Session</th>
+                <th class="border px-3 py-2 text-left">Amount</th>
+                <th class="border px-3 py-2 text-left">Digits</th>
+                <th class="border px-3 py-2 text-left">Game Name</th>
+                <th class="border px-3 py-2 text-left">Game Status</th>
+                <th class="border px-3 py-2 text-left">Placed on</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <!-- ROW -->
+              <tr class="bg-blue-50">
+                <td class="border px-3 py-2">1</td>
+                <td class="border px-3 py-2">9194253817</td>
+                <td class="border px-3 py-2">Rajesh Nagde</td>
+                <td class="border px-3 py-2">Main Game</td>
+                <td class="border px-3 py-2">KALYAN NIGHT</td>
+                <td class="border px-3 py-2">close</td>
+                <td class="border px-3 py-2">50.00</td>
+                <td class="border px-3 py-2">3</td>
+                <td class="border px-3 py-2">single</td>
+                <td class="border px-3 py-2">
+                  <span class="bg-red-600 text-white text-xs px-2 py-1 rounded">
+                    Lost
+                  </span>
+                </td>
+                <td class="border px-3 py-2">01/06/2026, 11:13:02 PM</td>
+              </tr>
+
+              <!-- ROW -->
+              <tr>
+                <td class="border px-3 py-2">2</td>
+                <td class="border px-3 py-2">9194253817</td>
+                <td class="border px-3 py-2">Rajesh Nagde</td>
+                <td class="border px-3 py-2">Main Game</td>
+                <td class="border px-3 py-2">KALYAN NIGHT</td>
+                <td class="border px-3 py-2">close</td>
+                <td class="border px-3 py-2">25.00</td>
+                <td class="border px-3 py-2">5</td>
+                <td class="border px-3 py-2">single</td>
+                <td class="border px-3 py-2">
+                  <span class="bg-green-600 text-white text-xs px-2 py-1 rounded">
+                    Win
+                  </span>
+                </td>
+                <td class="border px-3 py-2">01/06/2026, 11:13:02 PM</td>
+              </tr>
+
+              <!-- ADD MORE ROWS SAME WAY -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-4 text-sm">
+          <p>Showing 1 to 10 of 70 entries</p>
+
+          <div class="flex items-center gap-2 flex-wrap">
+            <button class="border px-3 py-1 rounded text-gray-600">
+              Previous
+            </button>
+            <button class="border px-3 py-1 rounded bg-gray-200">1</button>
+            <button class="border px-3 py-1 rounded">Next</button>
+          </div>
+        </div>
+      </div>
+    </record>
+
+    <!-- ======================== Transaction History ===================== -->
+
+    <record class="bg-gray-100 p-4">
+      <div class="bg-white rounded-lg shadow p-4">
+        <!-- HEADER -->
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+          <div class="flex items-center gap-2">
+            <h2 class="font-semibold">Transaction History</h2>
+            <select class="border rounded px-2 py-1 text-sm">
+              <option>All</option>
+              <option>Credit</option>
+              <option>Debit</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- CONTROLS -->
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+          <div class="flex items-center gap-2">
+            <span class="text-sm">Show</span>
+            <select class="border rounded px-2 py-1 text-sm">
+              <option>10</option>
+              <option>50</option>
+              <option>100</option>
+              <option>All</option>
+            </select>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <label class="text-sm">Search:</label>
+            <input type="text" class="border rounded px-2 py-1 text-sm w-40" />
+          </div>
+        </div>
+
+        <!-- TABLE -->
+        <div class="overflow-x-auto">
+          <table class="min-w-full border text-sm">
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="border px-3 py-2 text-left">ID</th>
+                <th class="border px-3 py-2 text-left">Mobile Number</th>
+                <th class="border px-3 py-2 text-left">User Name</th>
+                <th class="border px-3 py-2 text-left">Amount</th>
+                <th class="border px-3 py-2 text-left">Type</th>
+                <th class="border px-3 py-2 text-left">Remark</th>
+                <th class="border px-3 py-2 text-left">Before Wallet</th>
+                <th class="border px-3 py-2 text-left">After Wallet</th>
+                <th class="border px-3 py-2 text-left">Date</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr class="bg-blue-50">
+                <td class="border px-3 py-2">1</td>
+                <td class="border px-3 py-2">7755088407</td>
+                <td class="border px-3 py-2">Mintu Momin</td>
+                <td class="border px-3 py-2">5</td>
+                <td class="border px-3 py-2">Signup Reward</td>
+                <td class="border px-3 py-2">
+                  <span class="bg-green-600 text-white text-xs px-2 py-1 rounded">
+                    Credit
+                  </span>
+                </td>
+                <td class="border px-3 py-2">0</td>
+                <td class="border px-3 py-2">5</td>
+                <td class="border px-3 py-2">12/12/2025, 10:30:37 AM</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-4 text-sm">
+          <p>Showing 1 to 1 of 1 entries</p>
+
+          <div class="flex items-center gap-2">
+            <button class="border px-3 py-1 rounded text-gray-600">
+              Previous
+            </button>
+            <button class="border px-3 py-1 rounded bg-gray-200">1</button>
+            <button class="border px-3 py-1 rounded text-gray-600">
+              Next
+            </button>
+          </div>
+        </div>
+      </div>
+    </record>
+
+    <!-- ======================  Add and Withdrowl Modal Here ======================= -->
+    <!-- POINTS MODAL -->
+
+
+    <div id="pointsModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50">
+      <div class="bg-white w-full max-w-md rounded-lg shadow-lg">
+        <!-- HEADER -->
+        <div class="flex justify-between items-center px-5 py-4 border-b">
+          <h2 id="modalTitle" class="text-xl font-semibold">
+            Add / Withdraw Points
+          </h2>
+          <button id="closePointsModal" class="text-2xl text-gray-500 hover:text-black">
+            &times;
+          </button>
+        </div>
+
+        <!-- BODY -->
+        <div class="p-5 space-y-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">Amount</label>
+            <input id="pointsAmount" type="number" placeholder="Enter Points"
+              class="w-full border rounded-md px-3 py-2" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-1">Type</label>
+            <input id="pointsType" type="text" readonly
+              class="w-full border rounded-md px-3 py-2 bg-gray-100 text-gray-600" />
+          </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="flex justify-end gap-3 px-5 py-4 border-t">
+          <button id="submitPoints" class="bg-green-600 text-white px-5 py-2 rounded">
+            Submit
+          </button>
+
+          <button id="cancelPointsModal" class="bg-red-600 text-white px-5 py-2 rounded hover:bg-red-700">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+
+
+
+    <div id="passwordModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50">
+      <div class="bg-white w-full max-w-sm rounded shadow">
+
+        <div class="px-4 py-3 border-b flex justify-between">
+          <h2 class="font-semibold">Change User Password</h2>
+          <button onclick="closePasswordModal()" class="text-xl">&times;</button>
+        </div>
+
+        <form method="POST" action="/admin/change-user-password">
+          <input type="hidden" id="passwordUserId" name="userId">
+
+          <div class="p-4">
+            <label class="block text-sm mb-1">New Password</label>
+            <input type="password" name="newPassword" required class="w-full border px-3 py-2 rounded">
+          </div>
+
+          <div class="px-4 py-3 border-t flex justify-end gap-2">
+            <button type="button" onclick="closePasswordModal()"
+              class="px-4 py-2 bg-gray-400 text-white rounded">Cancel</button>
+            <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded">Update</button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+
+  </main>
+  <script>
+    function openPasswordModal(userId) {
+      document.getElementById("passwordModal").classList.remove("hidden");
+      document.getElementById("passwordUserId").value = userId;
+    }
+
+    function closePasswordModal() {
+      document.getElementById("passwordModal").classList.add("hidden");
+    }
+  </script>
+  <script src="/js/sidebar.js"></script>
+  <script src="/js/calander.js"></script>
+  <script src="/js/addAndWithdrowlModal.js"></script>
+</body>
+
+</html>

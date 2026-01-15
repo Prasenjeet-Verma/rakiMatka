@@ -10,4 +10,6 @@ adminRouter.post("/admin/user-status/:userId", adminController.toggleUserStatus)
 adminRouter.post("/admin/update-wallet", adminController.updateWallet);
 adminRouter.post("/admin/createuser", adminController.adminCreateUser);
 adminRouter.get('/admin/singleuser-details/:userId', adminController.getSingleUserDetails);
+adminRouter.post("/admin/change-user-password", adminController.changeUserPassword);
+
 module.exports = adminRouter;

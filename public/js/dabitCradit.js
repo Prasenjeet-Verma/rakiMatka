@@ -62,7 +62,7 @@ submitBtn.addEventListener("click", async () => {
 
       setTimeout(() => {
         location.reload();
-      }, 1200);
+      }, 500);
     } else {
       successBox.className = "text-red-600 text-sm mt-2 text-center";
       successBox.innerText = data.message || "Update failed";
