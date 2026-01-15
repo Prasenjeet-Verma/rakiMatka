@@ -234,14 +234,71 @@ exports.updateWallet = async (req, res) => {
 };
 
 // Render variables dono ka same rhna chahiye 
+// exports.getAllUsersPage = async (req, res) => {
+//   try {
+//     // 🔐 Admin check
+//     if (!req.session.isLoggedIn || req.session.admin.role !== "admin") {
+//       return res.redirect("/admin/login");
+//     }
+
+//     // 🧠 Admin verify
+//     const admin = await User.findOne({
+//       _id: req.session.admin._id,
+//       role: "admin",
+//       userStatus: "active",
+//     });
+
+//     if (!admin) {
+//       req.session.destroy();
+//       return res.redirect("/admin/login");
+//     }
+
+//     // 👥 Fetch all normal users (not admin)
+//     const users = await User.find({ role: "user" }).sort({ createdAt: -1 });
+
+//     // 📊 Wallet summary for each user
+//     const usersWithStats = await Promise.all(
+//       users.map(async (user) => {
+//         const totalCredit = await WalletTransaction.aggregate([
+//           { $match: { user: user._id, type: "credit", status: "success" } },
+//           { $group: { _id: null, total: { $sum: "$amount" } } },
+//         ]);
+
+//         const totalDebit = await WalletTransaction.aggregate([
+//           { $match: { user: user._id, type: "debit", status: "success" } },
+//           { $group: { _id: null, total: { $sum: "$amount" } } },
+//         ]);
+
+//         return {
+//           ...user.toObject(),
+//           totalCredit: totalCredit[0]?.total || 0,
+//           totalDebit: totalDebit[0]?.total || 0,
+//         };
+//       })
+//     );
+
+//     res.render("Admin/adminallUser", {
+//       pageTitle: "All Users",
+//       admin,
+//       users: usersWithStats,
+//       errors: [],
+//       oldInput: {},
+//       isLoggedIn: req.session.isLoggedIn
+//     });
+
+//   } catch (error) {
+//     console.error("All Users Page Error:", error);
+//     res.redirect("/admin/dashboard");
+//   }
+// };
+
+
 exports.getAllUsersPage = async (req, res) => {
   try {
-    // 🔐 Admin check
     if (!req.session.isLoggedIn || req.session.admin.role !== "admin") {
       return res.redirect("/admin/login");
     }
 
-    // 🧠 Admin verify
     const admin = await User.findOne({
       _id: req.session.admin._id,
       role: "admin",
@@ -253,10 +310,29 @@ exports.getAllUsersPage = async (req, res) => {
       return res.redirect("/admin/login");
     }
 
-    // 👥 Fetch all normal users (not admin)
-    const users = await User.find({ role: "user" }).sort({ createdAt: -1 });
+    const page = parseInt(req.query.page) || 1;
+    const limit = req.query.limit === "all" ? 0 : parseInt(req.query.limit) || 10;
+    const skip = limit === 0 ? 0 : (page - 1) * limit;
 
-    // 📊 Wallet summary for each user
+    const search = req.query.search || "";
+
+    // 🔍 Search filter
+    const filter = {
+      role: "user",
+      ...(search && {
+        username: { $regex: search, $options: "i" }
+      })
+    };
+
+    // Count after search
+    const totalUsers = await User.countDocuments(filter);
+
+    // Fetch users
+    const users = await User.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit === 0 ? totalUsers : limit);
+
     const usersWithStats = await Promise.all(
       users.map(async (user) => {
         const totalCredit = await WalletTransaction.aggregate([
@@ -277,13 +353,20 @@ exports.getAllUsersPage = async (req, res) => {
       })
     );
 
+    const totalPages = limit === 0 ? 1 : Math.ceil(totalUsers / limit);
+
     res.render("Admin/adminallUser", {
       pageTitle: "All Users",
       admin,
       users: usersWithStats,
       errors: [],
       oldInput: {},
-      isLoggedIn: req.session.isLoggedIn
+      isLoggedIn: req.session.isLoggedIn,
+      currentPage: page,
+      totalPages,
+      limit,
+      totalUsers,
+      search // 👈 pass back to view
     });
 
   } catch (error) {
@@ -294,7 +377,6 @@ exports.getAllUsersPage = async (req, res) => {
 
 exports.adminCreateUser = async (req, res) => {
   try {
-    // 🔐 Admin check
     if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
       return res.redirect("/admin/login");
     }
@@ -305,12 +387,27 @@ exports.adminCreateUser = async (req, res) => {
       return res.redirect("/admin/login");
     }
 
+    const page = parseInt(req.query.page) || 1;
+    const limit = req.query.limit === "all" ? 0 : parseInt(req.query.limit) || 10;
+    const skip = limit === 0 ? 0 : (page - 1) * limit;
+    const search = req.query.search || "";
 
+    // 🔍 same filter as getAllUsersPage
+    const filter = {
+      role: "user",
+      ...(search && {
+        username: { $regex: search, $options: "i" }
+      })
+    };
 
-    // 👥 Re-fetch users for page
-    const users = await User.find({ role: "user" }).sort({ createdAt: -1 });
+    const totalUsers = await User.countDocuments(filter);
+    const totalPages = limit === 0 ? 1 : Math.ceil(totalUsers / limit);
 
-    // 📊 Wallet stats
+    const users = await User.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit === 0 ? totalUsers : limit);
+
     const usersWithStats = await Promise.all(
       users.map(async (user) => {
         const totalCredit = await WalletTransaction.aggregate([
@@ -331,64 +428,60 @@ exports.adminCreateUser = async (req, res) => {
       })
     );
 
-
-
     const { username, phoneNo, password, wallet } = req.body;
     const errors = [];
 
-    // 🧠 Validations
     if (!username) errors.push("Username is required");
     if (!phoneNo) errors.push("Phone number is required");
     if (!password) errors.push("Password is required");
     if (password && password.length < 6) errors.push("Password must be at least 6 characters");
 
     const existingUser = await User.findOne({
-      $or: [{ username }, { phoneNo }]
+      $or: [{ username }, { phoneNo }],
     });
 
-    if (existingUser) {
-      errors.push("Username or phone number already exists");
-    }
+    if (existingUser) errors.push("Username or phone number already exists");
 
-    // ❌ If any error → re-render page
     if (errors.length > 0) {
       return res.status(400).render("Admin/adminallUser", {
         pageTitle: "Create User",
-        admin: req.session.admin,
+        admin,
         users: usersWithStats,
         isLoggedIn: req.session.isLoggedIn,
         errors,
-        oldInput: { username, phoneNo, wallet }
+        oldInput: { username, phoneNo, wallet },
+        currentPage: page,
+        totalPages,
+        limit,
+        totalUsers,
+        search   // 👈 keep search
       });
     }
 
-    // 🔐 Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    const newUser = new User({
+    await new User({
       username,
       phoneNo,
       password: hashedPassword,
       wallet: Number(wallet) || 0,
       role: "user",
-      userStatus: "active"
-    });
+      userStatus: "active",
+    }).save();
 
-    await newUser.save();
-
-    // ✅ Success
-    res.redirect("/admin/allUsers");
+    // 🔥 redirect with search preserved
+    res.redirect(`/admin/allUsers?page=${page}&limit=${limit === 0 ? "all" : limit}&search=${search}`);
 
   } catch (err) {
     console.error("Admin Create Error:", err);
-    res.status(500).render("Admin/adminallUser", {
-      pageTitle: "Create User",
-      admin: req.session.admin,
-      users: usersWithStats,
-      isLoggedIn: req.session.isLoggedIn,
-      errors: ["Something went wrong. Try again."],
-      oldInput: req.body
-    });
+    res.redirect("/admin/allUsers");
   }
 };
+
+
 //End
+
+
+exports.getSingleUserDetails = async (req, res, next) => {
+
+}

@@ -76,25 +76,21 @@ if (openModalOnLoad && openModalOnLoad.value === "true") {
 
   //Search Functionality Code
 const searchInput = document.getElementById("userSearch");
-const table = document.getElementById("userTable");
+
+let typingTimer;
 
 searchInput.addEventListener("keyup", function () {
-  const filter = this.value.toLowerCase();
-  const rows = table.getElementsByTagName("tr");
+  clearTimeout(typingTimer);
 
-  for (let i = 0; i < rows.length; i++) {
-    const usernameCell = rows[i].querySelector(".username");
+  typingTimer = setTimeout(() => {
+    const value = this.value.trim();
+    const url = new URL(window.location.href);
 
-    if (!usernameCell) continue;
+    url.searchParams.set("page", 1); // reset page
+    url.searchParams.set("search", value);
 
-    const username = usernameCell.innerText.toLowerCase();
-
-    if (username.includes(filter)) {
-      rows[i].style.display = "";
-    } else {
-      rows[i].style.display = "none";
-    }
-  }
+    window.location.href = url.toString();
+  }, 400);
 });
 
 
