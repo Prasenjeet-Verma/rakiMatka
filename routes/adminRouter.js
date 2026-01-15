@@ -8,5 +8,5 @@ adminRouter.get('/admin/dashboard', adminController.getAdminDashboard);
 adminRouter.get('/admin/allUsers', adminController.getAllUsersPage);
 adminRouter.post("/admin/user-status/:userId", adminController.toggleUserStatus);
 adminRouter.post("/admin/update-wallet", adminController.updateWallet);
-
+adminRouter.post("/admin/createuser", adminController.adminCreateUser);
 module.exports = adminRouter;

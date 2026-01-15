@@ -335,7 +335,9 @@
 
     <div class="flex items-center gap-2 text-sm">
       <label>Search:</label>
-      <input type="text" class="border rounded px-2 py-1">
+     <input type="text" id="userSearch"
+       class="border rounded px-2 py-1"
+       placeholder="Search username">
     </div>
 
   </div>
@@ -359,14 +361,14 @@
       </thead>
 
       <!-- BODY -->
-  <tbody>
+  <tbody id="userTable">
   <% users.forEach((user, index) => { %>
     <tr class="hover:bg-gray-50">
       <td class="border px-3 py-2"><%= index + 1 %></td>
 
       <td class="border px-3 py-2"><%= user.phoneNo %></td>
 
-      <td class="border px-3 py-2"><%= user.username %></td>
+      <td class="border px-3 py-2 username"><%= user.username %></td>
 
       <td class="border px-3 py-2">****</td>
 
@@ -440,6 +442,7 @@
 
 
 <!-- =========================================== Create User Modal here ========================================== -->
+<input type="hidden" id="openModalOnLoad" value="<%= errors && errors.length > 0 ? 'true' : 'false' %>">
 
 <!-- MODAL BACKDROP -->
 <div id="userModal"
@@ -457,29 +460,37 @@
     </div>
 
     <!-- FORM -->
-    <form class="space-y-3">
+     <% if (errors && errors.length > 0) { %>
+  <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded mb-3">
+    <% errors.forEach(err => { %>
+      <p>• <%= err %></p>
+    <% }) %>
+  </div>
+<% } %>
+
+    <form action="/admin/createuser" method="POST" class="space-y-3">
 
       <div>
         <label class="text-sm font-medium">Name</label>
-        <input type="text"
+        <input type="text" name="username" value="<%= oldInput?.username || '' %>"
           class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
       </div>
 
       <div>
         <label class="text-sm font-medium">Mobile</label>
-        <input type="text"
+        <input type="text" name="phoneNo" value="<%= oldInput?.phoneNo || '' %>"
           class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
       </div>
 
       <div>
         <label class="text-sm font-medium">Password</label>
-        <input type="password"
+        <input type="password" name="password"
           class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
       </div>
 
       <div>
         <label class="text-sm font-medium">Wallet Amount</label>
-        <input type="number"
+        <input type="number" name="wallet" value="<%= oldInput?.wallet || '' %>"
           class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
       </div>
 

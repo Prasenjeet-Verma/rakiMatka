@@ -135,16 +135,36 @@ exports.postLoginPage = [
 
       // ✅ Session + role-based redirect
       req.session.isLoggedIn = true;
+
+      // Common user session
       req.session.user = {
         _id: user._id.toString(),
         username: user.username,
         role: user.role,
         profilePhoto: user.profilePhoto,
       };
+
+      // 🔥 If admin, also store in admin session
+      if (user.role === "admin") {
+        req.session.admin = {
+          _id: user._id.toString(),
+          username: user.username,
+          role: user.role,
+          profilePhoto: user.profilePhoto,
+        };
+      } else {
+        req.session.admin = null; // normal users ke liye admin empty
+      }
+
       await req.session.save();
 
-      if (user.role === "admin") return res.redirect("/admin/dashboard");
-      return res.redirect("/");
+      // Role based redirect
+      if (user.role === "admin") {
+        return res.redirect("/admin/dashboard");
+      } else {
+        return res.redirect("/"); // ya user home
+      }
+
     } catch (err) {
       console.error(err);
       res.status(500).render("LoginandSignup/login", {
@@ -159,10 +179,27 @@ exports.postLoginPage = [
 
 // --- Logout ---
 exports.getLogout = (req, res, next) => {
-  if (!req.session.isLoggedIn || !req.session.user) return res.redirect("/login");
+  if (!req.session) return res.redirect("/login");
+
+  // 🔹 Save role before destroying session
+  const wasAdmin = req.session.admin?.role === "admin";
+
   req.session.destroy((err) => {
-    if (err) return next(err);
+    if (err) {
+      console.error("Logout Error:", err);
+      return next(err);
+    }
+
     res.clearCookie("connect.sid");
+
+    // 🔹 Redirect based on previous role
+    if (wasAdmin) {
+      return res.redirect("/admin/login");
+    }
+
     res.redirect("/login");
   });
 };
+
+
+

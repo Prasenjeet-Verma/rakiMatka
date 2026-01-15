@@ -3,10 +3,15 @@ document.addEventListener("DOMContentLoaded", () => {
   // ======================
   // USER CREATE MODAL
   // ======================
+  const cancelModal = document.getElementById("cancelModal");
   const openModal = document.getElementById("openModal");
   const closeModal = document.getElementById("closeModal");
-  const cancelModal = document.getElementById("cancelModal");
   const userModal = document.getElementById("userModal");
+  const openModalOnLoad = document.getElementById("openModalOnLoad");
+
+if (openModalOnLoad && openModalOnLoad.value === "true") {
+  userModal.classList.remove("hidden");
+}
 
   if (openModal && closeModal && cancelModal && userModal) {
 
@@ -67,5 +72,30 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     };
   }
+
+
+  //Search Functionality Code
+const searchInput = document.getElementById("userSearch");
+const table = document.getElementById("userTable");
+
+searchInput.addEventListener("keyup", function () {
+  const filter = this.value.toLowerCase();
+  const rows = table.getElementsByTagName("tr");
+
+  for (let i = 0; i < rows.length; i++) {
+    const usernameCell = rows[i].querySelector(".username");
+
+    if (!usernameCell) continue;
+
+    const username = usernameCell.innerText.toLowerCase();
+
+    if (username.includes(filter)) {
+      rows[i].style.display = "";
+    } else {
+      rows[i].style.display = "none";
+    }
+  }
+});
+
 
 });
