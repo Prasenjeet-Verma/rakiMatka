@@ -2,6 +2,7 @@ const { check, validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const User = require("../model/userSchema");
 const WalletTransaction = require("../model/WalletTransaction");
+const UserBankDetails = require("../model/UserBankDetails");
 exports.getAdminLoginPage = async (req, res, next) => {
   res.render("Admin/adminLogin", {
     pageTitle: "Admin Login",
@@ -447,6 +448,9 @@ exports.getSingleUserDetails = async (req, res) => {
       return res.redirect("/admin/allUsers");
     }
 
+    // 🏦 Get bank details
+const bankDetails = await UserBankDetails.findOne({ user: user._id });
+
     // 💰 TOTAL DEPOSIT (all money coming into user wallet)
     const depositAgg = await WalletTransaction.aggregate([
       {
@@ -497,6 +501,7 @@ exports.getSingleUserDetails = async (req, res) => {
       pageTitle: "User Details",
       admin,
       user,
+      bankDetails, // ✅ NOW AVAILABLE
       walletBalance: user.wallet,
       totalDeposit,
       totalWithdraw,

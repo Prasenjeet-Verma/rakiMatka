@@ -162,7 +162,7 @@ exports.postLoginPage = [
       if (user.role === "admin") {
         return res.redirect("/admin/dashboard");
       } else {
-        return res.redirect("/"); // ya user home
+        return res.redirect("/userdashboard"); // ya user home
       }
 
     } catch (err) {
@@ -178,7 +178,7 @@ exports.postLoginPage = [
 ];
 
 // --- Logout ---
-exports.getLogout = (req, res, next) => {
+exports.logoutUserAndAdmin = (req, res, next) => {
   if (!req.session) return res.redirect("/login");
 
   // 🔹 Save role before destroying session

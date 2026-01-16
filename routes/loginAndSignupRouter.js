@@ -6,6 +6,6 @@ loginAndSingupRouter.get('/login', loginAndSignupController.getloginPage);
 loginAndSingupRouter.post('/login', loginAndSignupController.postLoginPage);
 loginAndSingupRouter.get('/signup', loginAndSignupController.getSignupPage);
 loginAndSingupRouter.post('/signup', loginAndSignupController.postSignupPage);
-
+loginAndSingupRouter.get('/logout', loginAndSignupController.logoutUserAndAdmin);
 
 module.exports = loginAndSingupRouter;

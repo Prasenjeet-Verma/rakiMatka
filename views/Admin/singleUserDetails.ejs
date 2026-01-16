@@ -354,15 +354,15 @@
                     <td class="font-medium p-2 border">
                       Account Holder Name
                     </td>
-                    <td class="p-2">N/A</td>
+                    <td class="p-2"><%= bankDetails?.accountHolderName || "N/A" %></td>
                   </tr>
                   <tr class="border">
                     <td class="font-medium p-2 border">Account Number</td>
-                    <td class="p-2">N/A</td>
+                    <td class="p-2"><%= bankDetails?.accountNumber || "N/A" %></td>
                   </tr>
                   <tr class="border">
                     <td class="font-medium p-2 border">IFSC Code</td>
-                    <td class="p-2">N/A</td>
+                    <td class="p-2"><%= bankDetails?.ifscCode || "N/A" %></td>
                   </tr>
                 </tbody>
               </table>

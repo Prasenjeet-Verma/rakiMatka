@@ -1,0 +1,390 @@
+:root {
+  --primary-green: #005c4b;
+  --light-teal: #6fb2a0;
+  --border-color: #eeeeee;
+  --text-color: #333;
+}
+
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  background-color: #f4f4f4;
+}
+
+/* Sidebar Container */
+.sidebar {
+  width: 320px;
+  background-color: #ffffff;
+  height: 100vh;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+}
+
+/* Profile Section */
+.profile-header {
+  padding: 25px 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+  background-color: var(--light-teal);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 40px;
+  font-weight: bold;
+}
+
+.user-info h2 {
+  margin: 0;
+  font-size: 20px;
+  color: var(--primary-green);
+}
+
+.user-info p {
+  margin: 5px 0 0;
+  font-size: 16px;
+  color: var(--primary-green);
+  font-weight: 500;
+}
+
+/* Language Button */
+.btn-container {
+  padding: 0 20px 20px;
+}
+
+.lang-btn {
+  background-color: var(--primary-green);
+  color: white;
+  border: none;
+  padding: 10px 25px;
+  border-radius: 25px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* Menu List */
+.menu-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  padding: 15px 20px;
+  border-top: 1px solid var(--border-color);
+  cursor: pointer;
+}
+
+.menu-item:hover {
+  background-color: #f9f9f9;
+}
+
+.icon-circle {
+  width: 45px;
+  height: 45px;
+  background-color: var(--primary-green);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20px;
+}
+
+.icon-circle svg {
+  width: 24px;
+  height: 24px;
+  fill: white;
+}
+
+.menu-text {
+  flex-grow: 1;
+  font-size: 18px;
+  color: var(--primary-green);
+  font-weight: 600;
+}
+
+/* Toggle Switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: var(--primary-green);
+}
+input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+/* =========================== Star line Code is here ======================================= */
+
+:root {
+  --primary-teal: #005c4b;
+  --bg-light: #f8f9fa;
+  --card-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  --red-accent: #ff0000;
+}
+
+body {
+  font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  margin: 0;
+  background-color: var(--bg-light);
+  color: #333;
+}
+
+/* --- Header Section --- */
+.header {
+  background-color: var(--primary-teal);
+  color: white;
+  padding: 15px 20px 25px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom-left-radius: 30px;
+  border-bottom-right-radius: 30px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header h1 {
+  font-size: 1.2rem;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 1.5rem;
+}
+
+/* --- Main Content Container --- */
+.container {
+  padding: 15px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+/* --- Info Card --- */
+.info-card {
+  background: white;
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: var(--card-shadow);
+  margin-bottom: 20px;
+}
+
+.info-card h2 {
+  text-align: center;
+  font-size: 1.3rem;
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+/* --- Action Buttons --- */
+.button-group {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.action-btn {
+  flex: 1;
+  background-color: var(--primary-teal);
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 15px;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+/* --- Time Cards --- */
+.time-card {
+  background: white;
+  border-radius: 15px;
+  padding: 15px;
+  box-shadow: var(--card-shadow);
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  text-align: center;
+}
+
+.time-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.time-label {
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.placeholder-text {
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.status-closed {
+  color: var(--red-accent);
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+/* --- Red Play Button --- */
+.play-btn {
+  position: absolute;
+  right: 20px;
+  width: 45px;
+  height: 45px;
+  background-color: #e31e24;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  border: none;
+  cursor: pointer;
+}
+
+.play-btn::after {
+  content: "";
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-left: 12px solid white;
+  margin-left: 4px;
+}
+
+/* ================= real code is here ================== */
+
+.hidden {
+  display: none !important;
+}
+
+/* Shared Styles */
+.starLine .header,
+.Jackpot .header,
+.withdrawHeader {
+  background-color: #065f46;
+  color: white;
+  padding: 15px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.starLine .container,
+.Jackpot .container {
+
+}
+
+.info-card {
+  background: white;
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+/* SIDEBAR STYLES */
+.sidebar {
+  background: white;
+  height: 100%;
+}
+.profile-header {
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+ 
+}
+.avatar {
+  width: 60px;
+  height: 60px;
+  background: #6fb2a0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+}
+.menu-item {
+  display: flex;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #065f46;
+  color: #065f46;
+  font-weight: 600;
+  
+}

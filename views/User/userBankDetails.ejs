@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Add Bank Details</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+</head>
+
+<body class="bg-gray-100 min-h-screen">
+  <!-- HEADER -->
+  <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
+    <div class="flex items-center gap-3">
+      <a href="/userdashboard"><i class="fa-solid fa-arrow-left text-xl cursor-pointer"></i></a>
+      <h1 class="text-lg font-semibold">Add Bank Details</h1>
+    </div>
+  </header>
+
+  <!-- FORM -->
+   <% if (flash) { %>
+  <div id="flashMessage"
+  style="width: 100%;"
+    class="fixed top-5 left-1/2 -translate-x-1/2 px-6 py-3 rounded-lg text-white text-sm shadow-lg
+    <%= flash.type === 'success' ? 'bg-green-600' : 'bg-red-600' %>">
+    <%= flash.message %>
+  </div>
+
+  <script>
+    setTimeout(() => {
+      const el = document.getElementById("flashMessage");
+      if (el) el.style.display = "none";
+    }, 1000); // ⏱ 1 second
+  </script>
+<% } %>
+
+  <main class="px-6 py-10 space-y-8">
+    <form action="/userbankdetails" method="POST">
+      <!-- Bank Name -->
+      <div>
+        <label class="block text-gray-600 mb-2">Bank Name</label>
+        <input type="text" placeholder="Enter bank name" name="bankName"
+          value="<%= oldInput.bankName || bankDetails?.bankName || '' %>"
+          class="w-full bg-transparent border-b-2 border-gray-400 focus:border-teal-700 outline-none py-2" required />
+      </div>
+
+      <!-- Branch Address -->
+      <div>
+        <label class="block text-gray-600 mb-2">Branch Address</label>
+        <input type="text" placeholder="Enter branch address" name="branchAddress"
+          value="<%= oldInput.branchAddress || bankDetails?.branchAddress || '' %>"
+          class="w-full bg-transparent border-b-2 border-gray-400 focus:border-teal-700 outline-none py-2" required />
+      </div>
+
+      <!-- Account Holder -->
+      <div>
+        <label class="block text-gray-600 mb-2">Account Holder</label>
+        <input type="text" placeholder="Enter account holder name" name="accountHolderName"
+          value="<%= oldInput.accountHolderName || bankDetails?.accountHolderName || '' %>"
+          class="w-full bg-transparent border-b-2 border-gray-400 focus:border-teal-700 outline-none py-2" required />
+      </div>
+
+      <!-- Account Number -->
+      <div>
+        <label class="block text-gray-600 mb-2">Account Number</label>
+        <input type="number" placeholder="Enter account number" name="accountNumber"
+          value="<%= oldInput.accountNumber || bankDetails?.accountNumber || '' %>"
+          class="w-full bg-transparent border-b-2 border-gray-400 focus:border-teal-700 outline-none py-2" required />
+      </div>
+
+      <!-- IFSC -->
+      <div>
+        <label class="block text-gray-600 mb-2">IFSC</label>
+        <input type="text" placeholder="Enter IFSC code" name="ifscCode"
+          value="<%= oldInput.ifscCode || bankDetails?.ifscCode || '' %>"
+          class="w-full bg-transparent border-b-2 border-gray-400 focus:border-teal-700 outline-none py-2 uppercase" required />
+      </div>
+
+      <!-- SUBMIT BUTTON -->
+      <button type="submit"
+        class="w-full bg-teal-800 text-white py-4 rounded-lg text-lg font-semibold shadow-lg hover:bg-teal-900 transition">
+        SUBMIT
+      </button>
+    </form>
+  </main>
+</body>
+
+</html>
