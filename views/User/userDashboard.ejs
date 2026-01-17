@@ -118,145 +118,53 @@
       </div>
       <!--  =========== cary section  =========================-->
       <!-- GAME CARDS -->
-      <div class="p-4 grid grid-cols-2 sm:grid-cols-2 gap-4 pt-[19rem]">
-        <!-- CARD -->
-        <div class="bg-white rounded-xl shadow p-4">
-          <div class="flex justify-between items-center mb-2">
-            <span
-              class="text-[x-small] text-gray-600 border-b border-green-500 pb-2"
-              >03:30 PM - 05:30 PM</span
-            >
-            <i class="fas fa-info-circle text-red-500"></i>
-          </div>
+<div class="p-4 grid grid-cols-2 sm:grid-cols-2 gap-4 pt-[19rem]">
 
-          <h2 class="font-bold text-lg">SUPREME DAY</h2>
-          <p class="text-emerald-700 font-semibold">155-1X-XXX</p>
-          <p class="text-green-600 mt-1">Market Running</p>
+  <% if (games.length === 0) { %>
+    <p class="col-span-2 text-center text-gray-500">
+      No Market Available Today
+    </p>
+  <% } %>
 
-          <a href="###">
-            <button
-              class="mt-4 w-full bg-green-700 text-white py-3 rounded-lg flex items-center justify-center gap-2 font-semibold"
-            >
-              <i class="fas fa-gamepad"></i> Play Game
-            </button>
-          </a>
-        </div>
+  <% games.forEach(game => { %>
 
-        <!-- CARD -->
-        <div class="bg-white rounded-xl shadow p-4">
-          <div class="flex justify-between items-center mb-2">
-            <span
-              class="text-[x-small] text-gray-600 border-b border-green-500 pb-2"
-              >03:45 PM - 05:45 PM</span
-            >
-            <i class="fas fa-info-circle text-red-500"></i>
-          </div>
-
-          <h2 class="font-bold text-lg">KALYAN</h2>
-          <p class="text-emerald-700 font-semibold">346-3X-XXX</p>
-          <p class="text-green-600 mt-1">Market Running</p>
-
-          <a href="###">
-            <button
-              class="mt-4 w-full bg-green-700 text-white py-3 rounded-lg flex items-center justify-center gap-2 font-semibold"
-            >
-              <i class="fas fa-gamepad"></i> Play Game
-            </button>
-          </a>
-        </div>
-
-        <!-- CARD -->
-        <div class="bg-white rounded-xl shadow p-4">
-          <div class="flex justify-between items-center mb-2">
-            <span
-              class="text-[x-small] text-gray-600 border-b border-green-500 pb-2"
-              >06:40 PM - 07:40 PM</span
-            >
-            <i class="fas fa-info-circle text-red-500"></i>
-          </div>
-
-          <h2 class="font-bold text-lg">SITA NIGHT</h2>
-          <p class="text-emerald-700 font-semibold">XXX-XX-XXX</p>
-          <p class="text-green-600 mt-1">Market Running</p>
-
-          <a href="###">
-            <button
-              class="mt-4 w-full bg-green-700 text-white py-3 rounded-lg flex items-center justify-center gap-2 font-semibold"
-            >
-              <i class="fas fa-gamepad"></i> Play Game
-            </button>
-          </a>
-        </div>
-
-        <!-- CARD -->
-        <div class="bg-white rounded-xl shadow p-4">
-          <div class="flex justify-between items-center mb-2">
-            <span
-              class="text-[x-small] text-gray-600 border-b border-green-500 pb-2"
-              >06:45 PM - 07:45 PM</span
-            >
-            <i class="fas fa-info-circle text-red-500"></i>
-          </div>
-
-          <h2 class="font-bold text-lg">KARNATAKA NIGHT</h2>
-          <p class="text-emerald-700 font-semibold">XXX-XX-XXX</p>
-          <p class="text-green-600 mt-1">Market Running</p>
-
-          <a href="###">
-            <button
-              class="mt-4 w-full bg-green-700 text-white py-3 rounded-lg flex items-center justify-center gap-2 font-semibold"
-            >
-              <i class="fas fa-gamepad"></i> Play Game
-            </button>
-          </a>
-        </div>
-
-        <!-- CARD -->
-        <div class="bg-white rounded-xl shadow p-4">
-          <div class="flex justify-between items-center mb-2">
-            <span
-              class="text-[x-small] text-gray-600 border-b border-green-500 pb-2"
-              >03:30 PM - 05:30 PM</span
-            >
-            <i class="fas fa-info-circle text-red-500"></i>
-          </div>
-
-          <h2 class="font-bold text-lg">SUPREME DAY</h2>
-          <p class="text-emerald-700 font-semibold">155-1X-XXX</p>
-          <p class="text-green-600 mt-1">Market Running</p>
-
-          <a href="###">
-            <button
-              class="mt-4 w-full bg-green-700 text-white py-3 rounded-lg flex items-center justify-center gap-2 font-semibold"
-            >
-              <i class="fas fa-gamepad"></i> Play Game
-            </button>
-          </a>
-        </div>
-
-        <!-- CARD -->
-        <div class="bg-white rounded-xl shadow p-4">
-          <div class="flex justify-between items-center mb-2">
-            <span
-              class="text-[x-small] text-gray-600 border-b border-green-500 pb-2"
-              >03:45 PM - 05:45 PM</span
-            >
-            <i class="fas fa-info-circle text-red-500"></i>
-          </div>
-
-          <h2 class="font-bold text-lg">KALYAN</h2>
-          <p class="text-emerald-700 font-semibold">346-3X-XXX</p>
-          <p class="text-green-600 mt-1">Market Running</p>
-
-          <a href="###">
-            <button
-              class="mt-4 w-full bg-green-700 text-white py-3 rounded-lg flex items-center justify-center gap-2 font-semibold"
-            >
-              <i class="fas fa-gamepad"></i> Play Game
-            </button>
-          </a>
-        </div>
+    <div class="bg-white rounded-xl shadow p-4">
+      <div class="flex justify-between items-center mb-2">
+        <span class="text-[x-small] text-gray-600 border-b pb-2
+          <%= game.isRunning ? 'border-green-500' : 'border-red-500' %>">
+          <%= game.openTime %> - <%= game.closeTime %>
+        </span>
+        <i class="fas fa-info-circle text-red-500"></i>
       </div>
+
+      <h2 class="font-bold text-lg"><%= game.gameName %></h2>
+
+      <p class="mt-1 font-semibold
+        <%= game.isRunning ? 'text-green-600' : 'text-red-600' %>">
+        <%= game.statusText %>
+      </p>
+
+      <% if (game.isRunning) { %>
+        <a href="/play/<%= game._id %>">
+          <button
+            class="mt-4 w-full bg-green-700 text-white py-3 rounded-lg flex items-center justify-center gap-2 font-semibold">
+            <i class="fas fa-gamepad"></i> Play Game
+          </button>
+        </a>
+      <% } else { %>
+        <button
+          disabled
+          class="mt-4 w-full bg-gray-400 text-white py-3 rounded-lg flex items-center justify-center gap-2 font-semibold cursor-not-allowed">
+          Market Closed
+        </button>
+      <% } %>
+
+    </div>
+
+  <% }) %>
+
+</div>
+
 
       <nav
         class="fixed bottom-0 left-0 right-0 bg-white shadow-xl flex justify-around items-center py-2 z-10"
@@ -316,7 +224,35 @@
             <p class="text-green-600 font-bold text-lg">+3</p>
           </div>
           <!-- Transaction Card End -->
+                   <% if (transactions.length === 0) { %>
+  <p class="text-center text-gray-500 mt-6">
+    No transactions found
+  </p>
+<% } %>
+
+<% transactions.forEach(tx => { %>
+  <div class="mt-6 bg-white rounded-xl shadow flex items-center justify-between p-4">
+    <div class="flex items-center gap-4">
+      <div class="w-12 h-12 rounded-full 
+        <%= tx.displayType === 'deposit' ? 'bg-green-500' : 'bg-red-500' %>
+        flex items-center justify-center">
+        <i class="fa-solid fa-wallet text-white text-xl"></i>
+      </div>
+
+      <div>
+        <p class="font-semibold text-gray-800"><%= tx.title %></p>
+        <p class="text-sm text-gray-500"><%= tx.createdAt %></p>
+      </div>
+    </div>
+
+    <p class="<%= tx.amountColor %> font-bold text-lg">
+      <%= tx.amountText %>
+    </p>
+  </div>
+<% }) %>
         </div>
+
+
       </section>
     </main>
     <!-- ============================================= Star line Body is Here ==================================== -->

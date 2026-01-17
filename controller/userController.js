@@ -1,3 +1,5 @@
+const moment = require("moment-timezone");
+const Game = require("../model/Game");
 const bcrypt = require("bcryptjs");
 const User = require("../model/userSchema");
 const WalletTransaction = require("../model/WalletTransaction");
@@ -25,8 +27,7 @@ exports.UserHomePage = async (req, res, next) => {
 
 exports.getUserDashboardPage = async (req, res, next) => {
   try {
-
-    // 🔐 User Security Check
+    // 🔐 Auth check
     if (
       !req.session.isLoggedIn ||
       !req.session.user ||
@@ -46,15 +47,120 @@ exports.getUserDashboardPage = async (req, res, next) => {
       return res.redirect("/login");
     }
 
-    // Optional: admin info (for header/support)
     const admin = await User.findOne({ role: "admin" }).select(
       "username phoneNo profilePhoto"
     );
 
+    // 🇮🇳 Indian Time
+    const now = moment().tz("Asia/Kolkata");
+
+    const days = [
+      "sunday",
+      "monday",
+      "tuesday",
+      "wednesday",
+      "thursday",
+      "friday",
+      "saturday"
+    ];
+
+    const todayKey = days[now.day()];
+    const currentMinutes = now.hours() * 60 + now.minutes();
+
+    const games = await Game.find({ isDeleted: false }).lean();
+
+    // 🔥 FINAL LOGIC
+    const formattedGames = games
+      // ❌ inactive / missing time wale remove
+      .filter(game => {
+        const d = game.schedule?.[todayKey];
+        return d && d.isActive && d.openTime && d.closeTime;
+      })
+      // ✅ process only active ones
+      .map(game => {
+        const d = game.schedule[todayKey];
+
+        const [oh, om] = d.openTime.split(":").map(Number);
+        const [ch, cm] = d.closeTime.split(":").map(Number);
+
+        const openMinutes = oh * 60 + om;
+        const closeMinutes = ch * 60 + cm;
+
+        const isRunning =
+          currentMinutes >= openMinutes &&
+          currentMinutes <= closeMinutes;
+
+        return {
+          _id: game._id,
+          gameName: game.gameName,
+          openTime: moment(d.openTime, "HH:mm").format("hh:mm A"),
+          closeTime: moment(d.closeTime, "HH:mm").format("hh:mm A"),
+          isRunning,
+          statusText: isRunning ? "Market Running" : "Market Off"
+        };
+      });
+
+const transactions = await WalletTransaction
+  .find({
+    user: user._id,
+    status: "success"
+  })
+  .sort({ createdAt: -1 })
+  .limit(20)
+  .lean();
+
+// 🔁 User-friendly mapping
+const formattedTransactions = transactions.map(tx => {
+  let title;
+  let displayType;
+  let amountSign;
+  let amountColor;
+
+  // ✅ CREDIT
+  if (tx.type === "credit") {
+    amountSign = "+";
+    amountColor = "text-green-600";
+    displayType = "deposit";
+
+    if (tx.source === "game_win") {
+      title = "Game Win";
+    } else {
+      // admin_credit OR online deposit OR refund
+      title = "Deposit";
+    }
+  }
+
+  // ❌ DEBIT
+  if (tx.type === "debit") {
+    amountSign = "-";
+    amountColor = "text-red-600";
+    displayType = "withdraw";
+
+    if (tx.source === "game_loss") {
+      title = "Game Loss";
+    } else {
+      // admin_debit OR user withdraw
+      title = "Withdrawal";
+    }
+  }
+
+  return {
+    title,
+    displayType,
+    amountText: `${amountSign}${tx.amount}`,
+    amountColor,
+    createdAt: moment(tx.createdAt)
+      .tz("Asia/Kolkata")
+      .format("DD MMM YYYY hh:mm:ss A")
+  };
+});
+
     res.render("User/userDashboard", {
       user,
       admin,
-      isLoggedIn: req.session.isLoggedIn
+      games: formattedGames,
+      transactions: formattedTransactions,
+      isLoggedIn: req.session.isLoggedIn,
     });
 
   } catch (err) {
@@ -62,6 +168,7 @@ exports.getUserDashboardPage = async (req, res, next) => {
     next(err);
   }
 };
+
 
 exports.getUserProfilePage = async (req, res, next) => {
   try {
