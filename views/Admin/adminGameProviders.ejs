@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+  </head>
+  <body class="flex min-h-screen">
+    <aside
+      id="sidebar"
+      class="sidebar border-r border-gray-200 fixed inset-y-0 left-0 z-50 lg:relative lg:translate-x-0 transform -translate-x-full lg:block"
+    >
+      <div class="p-4">
+        <div class="relative mb-4">
+          <input
+            type="text"
+            placeholder="Search"
+            class="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
+          <button
+            class="absolute right-0 top-0 bottom-0 px-3 bg-neutral-800 text-white rounded-r"
+          >
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- ============================= Nav is here ============================ -->
+       <%- include('../partials/adminNav') %>
+      
+    </aside>
+
+
+    <!-- Game file code starts from here -->
+    <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+  <!-- HEADER -->
+  <header style="z-index:50000;position:fixed;width:100%"
+    class="bg-white h-14 flex items-center justify-between px-4 border-b">
+    <button id="menuBtn"><i class="fas fa-bars text-xl"></i></button>
+    <button><i class="fas fa-power-off text-xl"></i></button>
+  </header>
+
+  <header class="h-14"></header>
+
+  <!-- BODY -->
+  <section class="bg-gray-100 p-4">
+    <div class="bg-white rounded-lg shadow-lg p-4">
+
+      <!-- TOP BAR -->
+      <div class="flex justify-between items-center mb-4">
+        <button onclick="openModal()"
+          class="bg-yellow-500 hover:bg-yellow-600 text-white px-5 py-2 rounded">
+          Add Market
+        </button>
+      </div>
+<!-- PAGINATION (ADD HERE) -->
+<div class="flex justify-between items-center mb-4">
+  <div>
+    Show 
+    <select id="pageLimit" onchange="changeLimit()">
+      <option value="10" <%= limit == 10 ? "selected" : "" %>>10</option>
+      <option value="50" <%= limit == 50 ? "selected" : "" %>>50</option>
+      <option value="80" <%= limit == 80 ? "selected" : "" %>>80</option>
+    </select> entries
+  </div>
+
+  <div class="flex gap-2">
+    <% if (page > 1) { %>
+      <a href="?page=<%= page-1 %>&limit=<%= limit %>" class="px-3 py-1 bg-gray-200 rounded">
+        Previous
+      </a>
+    <% } %>
+
+    <span class="px-3 py-1">
+      Page <%= page %> of <%= totalPages %>
+    </span>
+
+    <% if (page < totalPages) { %>
+      <a href="?page=<%= page+1 %>&limit=<%= limit %>" class="px-3 py-1 bg-gray-200 rounded">
+        Next
+      </a>
+    <% } %>
+  </div>
+</div>
+      <!-- TABLE -->
+      <div class="overflow-x-auto">
+        <table class="min-w-[1200px] w-full border text-sm">
+          <thead class="bg-gray-200">
+            <tr>
+              <th class="border px-4 py-2 text-left">Market</th>
+              <% ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"].forEach(d => { %>
+                <th class="border px-4 py-2"><%= d %></th>
+              <% }) %>
+            </tr>
+          </thead>
+
+          <tbody>
+            <% if (games.length === 0) { %>
+              <tr>
+                <td colspan="8" class="text-center p-6 text-gray-500">
+                  No Games Found
+                </td>
+              </tr>
+            <% } %>
+
+            <% games.forEach(game => { %>
+              <tr class="bg-gray-50">
+
+                <!-- MARKET NAME -->
+                <td class="border p-3 space-y-2">
+                  <p class="font-semibold"><%= game.gameName %></p>
+
+                  <div class="flex gap-2">
+                    <button
+                      onclick="openEditModal('<%= game._id %>','all')"
+                      class="bg-blue-500 text-white px-3 py-1 rounded text-xs">
+                      Edit All
+                    </button>
+
+                    <form action="/admin/game/delete/<%= game._id %>" method="POST">
+                      <button class="bg-red-500 text-white px-3 py-1 rounded text-xs">
+                        Delete
+                      </button>
+                    </form>
+                  </div>
+                </td>
+
+                <% ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"].forEach(day => { 
+                    const d = game.schedule[day] || {};
+                %>
+                  <td class="border p-3 text-center space-y-1">
+
+                    <% if (d.isActive) { %>
+                      <span class="bg-green-500 text-white px-2 py-1 text-xs rounded">Active</span>
+                    <% } else { %>
+                      <span class="bg-red-500 text-white px-2 py-1 text-xs rounded">Inactive</span>
+                    <% } %>
+
+                    <p>Open: <%= d.openTime || "--" %></p>
+                    <p>Close: <%= d.closeTime || "--" %></p>
+
+                    <button
+                      onclick="openEditModal('<%= game._id %>','<%= day %>')"
+                      class="bg-yellow-500 text-white px-2 py-1 rounded">
+                      ✏️
+                    </button>
+
+                  </td>
+                <% }) %>
+
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ADD GAME MODAL -->
+  <div id="addModal" class="fixed inset-0 hidden bg-black/40 flex items-center justify-center z-50">
+    <form action="/admin/game/add" method="POST"
+      class="bg-white w-full max-w-xl rounded shadow">
+
+      <div class="px-6 py-4 border-b flex justify-between">
+        <h2 class="text-xl font-semibold">Add Game</h2>
+        <button type="button" onclick="closeModal()">&times;</button>
+      </div>
+
+      <div class="p-6 space-y-4">
+        <input name="gameName" required placeholder="Game Name"
+          class="w-full border px-4 py-2 rounded">
+
+        <input type="time" name="openTime" 
+          class="w-full border px-4 py-2 rounded" required>
+
+        <input type="time" name="closeTime"
+          class="w-full border px-4 py-2 rounded" required>
+      </div>
+
+      <div class="px-6 py-4 border-t text-right">
+        <button class="bg-green-500 text-white px-6 py-2 rounded">
+          Add Game
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- EDIT MODAL -->
+  <div id="editModal" class="fixed inset-0 hidden bg-black/40 flex items-center justify-center z-50">
+    <form id="editForm" method="POST"
+      class="bg-white w-full max-w-xl rounded shadow">
+
+      <div class="px-6 py-4 border-b flex justify-between">
+        <h2 class="text-xl font-semibold">Edit Game</h2>
+        <button type="button" onclick="closeEditModal()">&times;</button>
+      </div>
+
+      <div class="p-6 space-y-4">
+        <input type="time" name="openTime" class="w-full border px-4 py-2 rounded">
+        <input type="time" name="closeTime" class="w-full border px-4 py-2 rounded">
+
+        <select name="isActive" class="w-full border px-4 py-2 rounded">
+          <option value="Yes">Active</option>
+          <option value="No">Inactive</option>
+        </select>
+      </div>
+
+      <div class="px-6 py-4 border-t text-right">
+        <button class="bg-green-600 text-white px-6 py-2 rounded">
+          Update Game
+        </button>
+      </div>
+    </form>
+  </div>
+</main>
+<script>
+function changeLimit() {
+  const limit = document.getElementById("pageLimit").value;
+  window.location.href = `?page=1&limit=${limit}`; // reload first page with new limit
+}
+</script>
+
+    <script src="/js/sidebar.js"></script>
+    <script src="/js/dateTime.js"></script>
+  </body>
+</html>

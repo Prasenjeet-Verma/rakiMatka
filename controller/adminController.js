@@ -3,6 +3,10 @@ const bcrypt = require("bcryptjs");
 const User = require("../model/userSchema");
 const WalletTransaction = require("../model/WalletTransaction");
 const UserBankDetails = require("../model/UserBankDetails");
+const moment = require("moment-timezone");
+const Game = require("../model/Game");
+const { isGameOpenNow } = require("../utils/gameStatus");
+
 exports.getAdminLoginPage = async (req, res, next) => {
   res.render("Admin/adminLogin", {
     pageTitle: "Admin Login",
@@ -115,20 +119,21 @@ exports.getAdminDashboard = async (req, res) => {
 
 exports.toggleUserStatus = async (req, res) => {
   try {
-    if (!req.session.isLoggedIn || req.session.admin.role !== "admin") {
-      return res.status(403).json({ success: false });
+    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
+      return res.redirect("/admin/login");
     }
-    // 🧠 Admin verify
+
     const admin = await User.findOne({
       _id: req.session.admin._id,
       role: "admin",
-      userStatus: "active",
+      userStatus: "active"
     });
 
     if (!admin) {
       req.session.destroy();
       return res.redirect("/admin/login");
     }
+
     const user = await User.findById(req.params.userId);
     if (!user) return res.status(404).json({ success: false });
 
@@ -149,14 +154,19 @@ exports.toggleUserStatus = async (req, res) => {
 exports.updateWallet = async (req, res) => {
   try {
     // 1️⃣ Check if admin is logged in
-    if (!req.session.isLoggedIn || req.session.admin.role !== "admin") {
-      return res.status(403).json({ success: false, message: "Unauthorized" });
+    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
+      return res.redirect("/admin/login");
     }
 
-    const admin = await User.findById(req.session.admin._id);
-    if (!admin || admin.userStatus !== "active") {
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active"
+    });
+
+    if (!admin) {
       req.session.destroy();
-      return res.status(403).json({ success: false });
+      return res.redirect("/admin/login");
     }
 
     const { userId, amount, type, action } = req.body;
@@ -230,7 +240,7 @@ exports.updateWallet = async (req, res) => {
     return res.json({ success: true, message: "Wallet updated successfully" });
   } catch (err) {
     console.error("Wallet update failed:", err);
-    return res.json({ success: false, message: "Update failed, try again" });
+     res.json({ success: false, message: "Update failed, try again" });
   }
 };
 
@@ -323,8 +333,13 @@ exports.adminCreateUser = async (req, res) => {
       return res.redirect("/admin/login");
     }
 
-    const admin = await User.findById(req.session.admin._id);
-    if (!admin || admin.userStatus !== "active") {
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active"
+    });
+
+    if (!admin) {
       req.session.destroy();
       return res.redirect("/admin/login");
     }
@@ -412,7 +427,7 @@ exports.adminCreateUser = async (req, res) => {
     }).save();
 
     // 🔥 redirect with search preserved
-    res.redirect(`/admin/allUsers?page=${page}&limit=${limit === 0 ? "all" : limit}&search=${search}`);
+   return res.redirect(`/admin/allUsers?page=${page}&limit=${limit === 0 ? "all" : limit}&search=${search}`);
 
   } catch (err) {
     console.error("Admin Create Error:", err);
@@ -515,9 +530,21 @@ const bankDetails = await UserBankDetails.findOne({ user: user._id });
   }
 };
 
-exports.changeUserPassword = async (req, res) => {
+exports.changeUserPassword = async (req, res, next) => {
   try {
-    if (!req.session.isLoggedIn || req.session.admin.role !== "admin") {
+
+    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active"
+    });
+
+    if (!admin) {
+      req.session.destroy();
       return res.redirect("/admin/login");
     }
 
@@ -533,10 +560,223 @@ exports.changeUserPassword = async (req, res) => {
       password: hashed
     });
 
-    res.redirect("/admin/singleuser-details/" + userId);
+   return res.redirect("/admin/singleuser-details/" + userId);
 
   } catch (err) {
     console.log("Password change error:", err);
     res.redirect("/admin/singleuser-details/" + userId);
+  }
+};
+
+// Game Controller Related Codes Start Here
+exports.getAdminCreateGamePage = async (req, res) => {
+  try {
+    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active"
+    });
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    // Pagination params
+    const page = parseInt(req.query.page) || 1;       // current page
+    const limit = parseInt(req.query.limit) || 10;    // rows per page
+    const skip = (page - 1) * limit;
+
+    const totalGames = await Game.countDocuments({ isDeleted: false });
+    const totalPages = Math.ceil(totalGames / limit);
+
+    const games = await Game.find({ isDeleted: false })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const gamesWithStatus = games.map(game => ({
+      ...game,
+      isOpenNow: isGameOpenNow(game)
+    }));
+
+    res.render("Admin/adminGameProviders", {
+      pageTitle: "Create Game Provider",
+      admin,
+      games: gamesWithStatus,
+      page,
+      totalPages,
+      limit
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.redirect("/admin/dashboard");
+  }
+};
+
+
+exports.postAddGame = async (req, res, next) => {
+  try {
+
+    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active"
+    });
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    const { gameName, openTime, closeTime } = req.body;
+
+    // IST day
+    const istDay = moment().tz("Asia/Kolkata").format("dddd");
+
+    const defaultSchedule = {
+  openTime,
+  closeTime,
+  isActive: true
+};
+
+const game = new Game({
+  gameName,
+  createdDay: istDay,
+  schedule: {
+    monday: { ...defaultSchedule },
+    tuesday: { ...defaultSchedule },
+    wednesday: { ...defaultSchedule },
+    thursday: { ...defaultSchedule },
+    friday: { ...defaultSchedule },
+    saturday: { ...defaultSchedule },
+    sunday: { ...defaultSchedule }
+  }
+});
+
+    await game.save();
+
+   return res.redirect("/admin/CreateGame");
+  } catch (err) {
+    console.error(err);
+   return res.redirect("/admin/CreateGame");
+  }
+};
+
+// ====================== UPDATE SINGLE DAY ======================
+exports.updateSingleDay = async (req, res) => {
+  try {
+    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active"
+    });
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    const { gameId } = req.params;
+    const { day, openTime, closeTime, isActive } = req.body;
+
+    const game = await Game.findById(gameId);
+    if (!game || !day || !game.schedule[day]) {
+      return res.redirect("/admin/CreateGame");
+    }
+
+    // Update fields safely
+    if (openTime) game.schedule[day].openTime = openTime;
+    if (closeTime) game.schedule[day].closeTime = closeTime;
+    game.schedule[day].isActive = isActive === "Yes";
+
+    await game.save();
+    return res.redirect("/admin/CreateGame");
+
+  } catch (error) {
+    console.error(error);
+    return res.redirect("/admin/CreateGame");
+  }
+};
+
+// ====================== UPDATE ALL DAYS ======================
+exports.updateAllDays = async (req, res) => {
+  try {
+    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active"
+    });
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    const { gameId } = req.params;
+    const { openTime, closeTime, isActive } = req.body;
+
+    const game = await Game.findById(gameId);
+    if (!game) return res.redirect("/admin/CreateGame");
+
+    const days = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"];
+
+    days.forEach(day => {
+      if (openTime) game.schedule[day].openTime = openTime;
+      if (closeTime) game.schedule[day].closeTime = closeTime;
+      game.schedule[day].isActive = isActive === "Yes";
+    });
+
+    await game.save();
+    return res.redirect("/admin/CreateGame");
+
+  } catch (err) {
+    console.error(err);
+    return res.redirect("/admin/CreateGame");
+  }
+};
+
+
+exports.deleteGame = async (req, res) => {
+  try {
+
+    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active"
+    });
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    const { gameId } = req.params;
+    await Game.findByIdAndUpdate(gameId, { isDeleted: true });
+    return res.redirect("/admin/CreateGame");
+  } catch (err) {
+    console.error(err);
+    return res.redirect("/admin/CreateGame");
   }
 };
