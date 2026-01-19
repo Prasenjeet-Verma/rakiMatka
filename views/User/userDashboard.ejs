@@ -837,31 +837,6 @@
     animation-play-state: paused;
   }
 </style>
-<script>
-  async function fetchWithTimeout(url, timeout = 10000) { // 10 sec timeout
-  return Promise.race([
-    fetch(url),
-    new Promise((_, reject) =>
-      setTimeout(() => reject(new Error("Request timed out")), timeout)
-    )
-  ]);
-}
-
-async function fetchUserDashboard() {
-  try {
-    const response = await fetchWithTimeout("/userdashboard");
-    const data = await response.json();
-    console.log("Data received:", data);
-  } catch (err) {
-    console.error("Fetch error:", err.message);
-  }
-}
-
-// Call immediately and every 30 sec
-fetchUserDashboard();
-setInterval(fetchUserDashboard, 30000);
-
-</script>
 
     <script src="/js/user.js"></script>
   </body>

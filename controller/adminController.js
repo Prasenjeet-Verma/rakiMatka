@@ -511,6 +511,85 @@ const bankDetails = await UserBankDetails.findOne({ user: user._id });
       .sort({ createdAt: -1 })
       .limit(50);
 
+
+// ===================== WITHDRAW LIST PAGINATION =====================
+
+// query params
+const withdrawPage = parseInt(req.query.withdrawPage) || 1;
+const withdrawLimit =
+  req.query.withdrawLimit === "all"
+    ? null
+    : parseInt(req.query.withdrawLimit) || 10;
+
+const withdrawSearch = req.query.withdrawSearch || "";
+const withdrawStatus = req.query.withdrawStatus || "all";
+
+// withdraw condition (USER VIEW)
+const withdrawBaseMatch = {
+  user: user._id,
+  source: { $in: ["withdraw", "admin_debit"] },
+};
+
+// ✅ STATUS FILTER
+if (withdrawStatus !== "all") {
+  withdrawBaseMatch.status = withdrawStatus;
+}
+
+// 🔍 username / mobile search
+let withdrawUserFilter = {};
+if (withdrawSearch) {
+  withdrawUserFilter = {
+    $or: [
+      { "userData.username": { $regex: withdrawSearch, $options: "i" } },
+      { "userData.phoneNo": { $regex: withdrawSearch, $options: "i" } },
+    ],
+  };
+}
+
+// aggregation
+const withdrawAggPipeline = [
+  { $match: withdrawBaseMatch },
+  {
+    $lookup: {
+      from: "users",
+      localField: "user",
+      foreignField: "_id",
+      as: "userData",
+    },
+  },
+  { $unwind: "$userData" },
+  ...(withdrawSearch ? [{ $match: withdrawUserFilter }] : []),
+  { $sort: { createdAt: -1 } },
+];
+
+// total count
+const withdrawCountAgg = await WalletTransaction.aggregate([
+  ...withdrawAggPipeline,
+  { $count: "total" },
+]);
+
+const withdrawTotalRecords = withdrawCountAgg[0]?.total || 0;
+
+// pagination
+if (withdrawLimit) {
+  withdrawAggPipeline.push(
+    { $skip: (withdrawPage - 1) * withdrawLimit },
+    { $limit: withdrawLimit }
+  );
+}
+
+const withdrawTransactions = await WalletTransaction.aggregate(
+  withdrawAggPipeline
+);
+
+const withdrawTotalPages = withdrawLimit
+  ? Math.ceil(withdrawTotalRecords / withdrawLimit)
+  : 1;
+
+  
+// ====================================================================End
+
+
     // 📤 Send to page
     res.render("Admin/singleUserDetails", {
       pageTitle: "User Details",
@@ -521,7 +600,15 @@ const bankDetails = await UserBankDetails.findOne({ user: user._id });
       totalDeposit,
       totalWithdraw,
       transactions,
-      isLoggedIn: req.session.isLoggedIn
+        // 🔽 NEW (withdraw table only)
+  withdrawTransactions,
+  withdrawPage,
+  withdrawLimit: withdrawLimit || "all",
+  withdrawSearch,
+  withdrawTotalPages,
+  withdrawTotalRecords,
+  withdrawStatus,
+  isLoggedIn: req.session.isLoggedIn
     });
 
   } catch (error) {
