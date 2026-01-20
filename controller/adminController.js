@@ -697,7 +697,8 @@ exports.getAdminCreateGamePage = async (req, res) => {
       games: gamesWithStatus,
       page,
       totalPages,
-      limit
+      limit,
+      isLoggedIn: req.session.isLoggedIn,
     });
 
   } catch (err) {
@@ -707,9 +708,134 @@ exports.getAdminCreateGamePage = async (req, res) => {
 };
 
 
-exports.postAddGame = async (req, res, next) => {
-  try {
 
+exports.getAdminCreateMainStarlineGamePage = async (req, res) => {
+  try {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active"
+    });
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    // Pagination
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // ⭐ ONLY STARLINE GAMES
+    const totalGames = await Game.countDocuments({
+      isDeleted: false,
+      isStarline: true
+    });
+
+    const totalPages = Math.ceil(totalGames / limit);
+
+    const games = await Game.find({
+      isDeleted: false,
+      isStarline: true
+    })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const gamesWithStatus = games.map(game => ({
+      ...game,
+      isOpenNow: isGameOpenNow(game)
+    }));
+
+    res.render("Admin/MainStarlineGame", {
+      pageTitle: "Create Starline Game",
+      admin,
+      games: gamesWithStatus,
+      page,
+      totalPages,
+      limit,
+      isLoggedIn: req.session.isLoggedIn
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.redirect("/admin/dashboard");
+  }
+};
+
+exports.getAdminCreateMainJackpotGamePage = async (req, res) => {
+  try {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active"
+    });
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    // Pagination
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // 🎰 ONLY JACKPOT GAMES
+    const filter = {
+      isDeleted: false,
+      isJackpot: true
+    };
+
+    const totalGames = await Game.countDocuments(filter);
+    const totalPages = Math.ceil(totalGames / limit);
+
+    const games = await Game.find(filter)
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const gamesWithStatus = games.map(game => ({
+      ...game,
+      isOpenNow: isGameOpenNow(game)
+    }));
+
+    res.render("Admin/MainJackpotGame", {
+      pageTitle: "Create Jackpot Game",
+      admin,
+      games: gamesWithStatus,
+      page,
+      totalPages,
+      limit,
+      isLoggedIn: req.session.isLoggedIn
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.redirect("/admin/dashboard");
+  }
+};
+
+
+exports.postAddGame = async (req, res) => {
+  try {
     if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
       return res.redirect("/admin/login");
     }
@@ -725,37 +851,49 @@ exports.postAddGame = async (req, res, next) => {
       return res.redirect("/admin/login");
     }
 
+    const { type } = req.params; // normal | starline | jackpot
     const { gameName, openTime, closeTime } = req.body;
 
-    // IST day
     const istDay = moment().tz("Asia/Kolkata").format("dddd");
 
     const defaultSchedule = {
-  openTime,
-  closeTime,
-  isActive: true
-};
+      openTime,
+      closeTime,
+      isActive: true
+    };
 
-const game = new Game({
-  gameName,
-  createdDay: istDay,
-  schedule: {
-    monday: { ...defaultSchedule },
-    tuesday: { ...defaultSchedule },
-    wednesday: { ...defaultSchedule },
-    thursday: { ...defaultSchedule },
-    friday: { ...defaultSchedule },
-    saturday: { ...defaultSchedule },
-    sunday: { ...defaultSchedule }
-  }
-});
+    const game = new Game({
+      gameName,
+      isStarline: type === "starline",   // ⭐ Starline
+      isJackpot: type === "jackpot",     // 🎰 Jackpot
+      createdDay: istDay,
+      schedule: {
+        monday: { ...defaultSchedule },
+        tuesday: { ...defaultSchedule },
+        wednesday: { ...defaultSchedule },
+        thursday: { ...defaultSchedule },
+        friday: { ...defaultSchedule },
+        saturday: { ...defaultSchedule },
+        sunday: { ...defaultSchedule }
+      }
+    });
 
     await game.save();
 
-   return res.redirect("/admin/CreateGame");
+    // 🔁 Redirect based on type
+    if (type === "starline") {
+      return res.redirect("/admin/CreateMainStarlineGame");
+    }
+
+    if (type === "jackpot") {
+      return res.redirect("/admin/CreateMainJackpotGame");
+    }
+
+    return res.redirect("/admin/CreateGame"); // normal
+
   } catch (err) {
     console.error(err);
-   return res.redirect("/admin/CreateGame");
+    return res.redirect("/admin/CreateGame");
   }
 };
 
@@ -777,27 +915,39 @@ exports.updateSingleDay = async (req, res) => {
       return res.redirect("/admin/login");
     }
 
-    const { gameId } = req.params;
+    const { gameId, type } = req.params; // normal | starline | jackpot
     const { day, openTime, closeTime, isActive } = req.body;
 
     const game = await Game.findById(gameId);
-    if (!game || !day || !game.schedule[day]) {
+    if (!game || !day || !game.schedule?.[day]) {
       return res.redirect("/admin/CreateGame");
     }
 
-    // Update fields safely
+    // 🔄 Update only provided fields
     if (openTime) game.schedule[day].openTime = openTime;
     if (closeTime) game.schedule[day].closeTime = closeTime;
     game.schedule[day].isActive = isActive === "Yes";
 
     await game.save();
-    return res.redirect("/admin/CreateGame");
+
+    // 🔁 Redirect based on game type
+    if (type === "starline") {
+      return res.redirect("/admin/CreateMainStarlineGame");
+    }
+
+    if (type === "jackpot") {
+      return res.redirect("/admin/CreateMainJackpotGame");
+    }
+
+    return res.redirect("/admin/CreateGame"); // normal
 
   } catch (error) {
     console.error(error);
     return res.redirect("/admin/CreateGame");
   }
 };
+
+
 
 // ====================== UPDATE ALL DAYS ======================
 exports.updateAllDays = async (req, res) => {
@@ -817,22 +967,44 @@ exports.updateAllDays = async (req, res) => {
       return res.redirect("/admin/login");
     }
 
-    const { gameId } = req.params;
+    const { gameId, type } = req.params; // normal | starline | jackpot
     const { openTime, closeTime, isActive } = req.body;
 
     const game = await Game.findById(gameId);
-    if (!game) return res.redirect("/admin/CreateGame");
+    if (!game || !game.schedule) {
+      return res.redirect("/admin/CreateGame");
+    }
 
-    const days = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"];
+    const days = [
+      "monday",
+      "tuesday",
+      "wednesday",
+      "thursday",
+      "friday",
+      "saturday",
+      "sunday"
+    ];
 
     days.forEach(day => {
+      if (!game.schedule[day]) return;
+
       if (openTime) game.schedule[day].openTime = openTime;
       if (closeTime) game.schedule[day].closeTime = closeTime;
       game.schedule[day].isActive = isActive === "Yes";
     });
 
     await game.save();
-    return res.redirect("/admin/CreateGame");
+
+    // 🔁 Redirect based on game type
+    if (type === "starline") {
+      return res.redirect("/admin/CreateMainStarlineGame");
+    }
+
+    if (type === "jackpot") {
+      return res.redirect("/admin/CreateMainJackpotGame");
+    }
+
+    return res.redirect("/admin/CreateGame"); // normal
 
   } catch (err) {
     console.error(err);
@@ -841,9 +1013,9 @@ exports.updateAllDays = async (req, res) => {
 };
 
 
+
 exports.deleteGame = async (req, res) => {
   try {
-
     if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
       return res.redirect("/admin/login");
     }
@@ -859,9 +1031,21 @@ exports.deleteGame = async (req, res) => {
       return res.redirect("/admin/login");
     }
 
-    const { gameId } = req.params;
+    const { gameId, type } = req.params; // normal | starline | jackpot
+
     await Game.findByIdAndUpdate(gameId, { isDeleted: true });
-    return res.redirect("/admin/CreateGame");
+
+    // 🔁 Redirect based on game type
+    if (type === "starline") {
+      return res.redirect("/admin/CreateMainStarlineGame");
+    }
+
+    if (type === "jackpot") {
+      return res.redirect("/admin/CreateMainJackpotGame");
+    }
+
+    return res.redirect("/admin/CreateGame"); // normal
+
   } catch (err) {
     console.error(err);
     return res.redirect("/admin/CreateGame");

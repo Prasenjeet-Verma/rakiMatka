@@ -69,98 +69,98 @@ exports.getUserDashboardPage = async (req, res, next) => {
 
     const games = await Game.find({ isDeleted: false }).lean();
 
-    // 🔥 FINAL LOGIC
-    const formattedGames = games
-      // ❌ inactive / missing time wale remove
-      .filter(game => {
-        const d = game.schedule?.[todayKey];
-        return d && d.isActive && d.openTime && d.closeTime;
-      })
-      // ✅ process only active ones
-      .map(game => {
-        const d = game.schedule[todayKey];
-
-        const [oh, om] = d.openTime.split(":").map(Number);
-        const [ch, cm] = d.closeTime.split(":").map(Number);
-
-        const openMinutes = oh * 60 + om;
-        const closeMinutes = ch * 60 + cm;
-
-        const isRunning =
-          currentMinutes >= openMinutes &&
-          currentMinutes <= closeMinutes;
-
-        return {
-          _id: game._id,
-          gameName: game.gameName,
-          openTime: moment(d.openTime, "HH:mm").format("hh:mm A"),
-          closeTime: moment(d.closeTime, "HH:mm").format("hh:mm A"),
-          isRunning,
-          statusText: isRunning ? "Market Running" : "Market Off"
-        };
-      });
-
-const transactions = await WalletTransaction
-  .find({
-    user: user._id,
-    status: "success"
+    // 🔥 COMMON FORMATTER
+const processedGames = games
+  .filter(game => {
+    const d = game.schedule?.[todayKey];
+    return d && d.isActive && d.openTime && d.closeTime;
   })
-  .sort({ createdAt: -1 })
-  .limit(20)
-  .lean();
+  .map(game => {
+    const d = game.schedule[todayKey];
 
-// 🔁 User-friendly mapping
-const formattedTransactions = transactions.map(tx => {
-  let title;
-  let displayType;
-  let amountSign;
-  let amountColor;
+    // Parse the original admin times
+    const [oh, om] = d.openTime.split(":").map(Number);  // for display
+    const [ch, cm] = d.closeTime.split(":").map(Number);
 
-  // ✅ CREDIT
-  if (tx.type === "credit") {
-    amountSign = "+";
-    amountColor = "text-green-600";
-    displayType = "deposit";
+    const closeMinutes = ch * 60 + cm;
+    const currentMinutes = now.hours() * 60 + now.minutes();
 
-    if (tx.source === "game_win") {
-      title = "Game Win";
-    } else {
-      // admin_credit OR online deposit OR refund
-      title = "Deposit";
-    }
-  }
+    // ✅ Open automatically at 12:00 AM, ignore admin openTime for running
+    const isRunning = currentMinutes >= 0 && currentMinutes <= closeMinutes;
 
-  // ❌ DEBIT
-  if (tx.type === "debit") {
-    amountSign = "-";
-    amountColor = "text-red-600";
-    displayType = "withdraw";
+    return {
+      _id: game._id,
+      gameName: game.gameName,
+      openTime: moment(d.openTime, "HH:mm").format("hh:mm A"), // Show admin openTime
+      closeTime: moment(d.closeTime, "HH:mm").format("hh:mm A"),
+      isRunning,
+      statusText: isRunning ? "Market Running" : "Market Closed",
+      isStarline: game.isStarline || false,
+      isJackpot: game.isJackpot || false
+    };
+  });
 
-    if (tx.source === "game_loss") {
-      title = "Game Loss";
-    } else {
-      // admin_debit OR user withdraw
-      title = "Withdrawal";
-    }
-  }
 
-  return {
-    title,
-    displayType,
-    amountText: `${amountSign}${tx.amount}`,
-    amountColor,
-    createdAt: moment(tx.createdAt)
-      .tz("Asia/Kolkata")
-      .format("DD MMM YYYY hh:mm:ss A")
-  };
-});
 
+    // ===================== 🎯 SEPARATION =====================
+    const normalGames = processedGames.filter(
+      g => !g.isStarline && !g.isJackpot
+    );
+
+    const starlineGames = processedGames.filter(
+      g => g.isStarline
+    );
+
+    const jackpotGames = processedGames.filter(
+      g => g.isJackpot
+    );
+
+    // ===================== TRANSACTIONS =====================
+    const transactions = await WalletTransaction
+      .find({ user: user._id, status: "success" })
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .lean();
+
+    const formattedTransactions = transactions.map(tx => {
+      let title, displayType, amountSign, amountColor;
+
+      if (tx.type === "credit") {
+        amountSign = "+";
+        amountColor = "text-green-600";
+        displayType = "deposit";
+        title = tx.source === "game_win" ? "Game Win" : "Deposit";
+      }
+
+      if (tx.type === "debit") {
+        amountSign = "-";
+        amountColor = "text-red-600";
+        displayType = "withdraw";
+        title = tx.source === "game_loss" ? "Game Loss" : "Withdrawal";
+      }
+
+      return {
+        title,
+        displayType,
+        amountText: `${amountSign}${tx.amount}`,
+        amountColor,
+        createdAt: moment(tx.createdAt)
+          .tz("Asia/Kolkata")
+          .format("DD MMM YYYY hh:mm:ss A")
+      };
+    });
+
+    // ===================== RENDER =====================
     res.render("User/userDashboard", {
       user,
       admin,
-      games: formattedGames,
+
+      normalGames,     // ✅ NORMAL
+      starlineGames,   // ⭐ STARLINE
+      jackpotGames,    // 💰 JACKPOT
+
       transactions: formattedTransactions,
-      isLoggedIn: req.session.isLoggedIn,
+      isLoggedIn: req.session.isLoggedIn
     });
 
   } catch (err) {

@@ -120,13 +120,13 @@
       <!-- GAME CARDS -->
 <div class="p-4 grid grid-cols-2 sm:grid-cols-2 gap-4 pt-[19rem]">
 
-  <% if (games.length === 0) { %>
+  <% if (normalGames.length === 0) { %>
     <p class="col-span-2 text-center text-gray-500">
       No Market Available Today
     </p>
   <% } %>
 
-  <% games.forEach(game => { %>
+  <% normalGames.forEach(game => { %>
 
     <div class="bg-white rounded-xl shadow p-4">
       <div class="flex justify-between items-center mb-2">
@@ -294,29 +294,53 @@
           </div>
         </div>
 
-        <a href="#">
-          <div class="time-card">
-            <div class="time-content">
-              <div class="time-label">10:00 AM</div>
-              <div class="placeholder-text">XXX-X</div>
-              <div class="status-closed">Market Closed</div>
-              <div class="time-label">10:00 AM</div>
-            </div>
-            <button class="play-btn"></button>
-          </div>
-        </a>
+     <div class="p-4 grid grid-cols-2 sm:grid-cols-2 gap-4 pt-[19rem]">
 
-        <a href="#">
-          <div class="time-card">
-            <div class="time-content">
-              <div class="time-label">11:00 AM</div>
-              <div class="placeholder-text">XXX-X</div>
-              <div class="status-closed">Market Closed</div>
-              <div class="time-label">10:00 AM</div>
-            </div>
-            <button class="play-btn"></button>
-          </div>
+  <% if (starlineGames.length === 0) { %>
+    <p class="col-span-2 text-center text-gray-500">
+      No Market Available Today
+    </p>
+  <% } %>
+
+  <% starlineGames.forEach(game => { %>
+
+    <div class="bg-white rounded-xl shadow p-4">
+      <div class="flex justify-between items-center mb-2">
+        <span class="text-[x-small] text-gray-600 border-b pb-2
+          <%= game.isRunning ? 'border-green-500' : 'border-red-500' %>">
+          <%= game.openTime %> - <%= game.closeTime %>
+        </span>
+        <i class="fas fa-info-circle text-red-500"></i>
+      </div>
+
+      <h2 class="font-bold text-lg"><%= game.gameName %></h2>
+
+      <p class="mt-1 font-semibold
+        <%= game.isRunning ? 'text-green-600' : 'text-red-600' %>">
+        <%= game.statusText %>
+      </p>
+
+      <% if (game.isRunning) { %>
+        <a href="/play/<%= game._id %>">
+          <button
+            class="mt-4 w-full bg-green-700 text-white py-3 rounded-lg flex items-center justify-center gap-2 font-semibold">
+            <i class="fas fa-gamepad"></i> Play Game
+          </button>
         </a>
+      <% } else { %>
+        <button
+          disabled
+          class="mt-4 w-full bg-gray-400 text-white py-3 rounded-lg flex items-center justify-center gap-2 font-semibold cursor-not-allowed">
+          Market Closed
+        </button>
+      <% } %>
+
+    </div>
+
+  <% }) %>
+
+</div>
+
       </div>
     </main>
     <!-- ============================================= Jackpot Body is Here ==================================== -->
@@ -354,29 +378,52 @@
           </div>
         </div>
 
-        <a href="#">
-          <div class="time-card">
-            <div class="time-content">
-              <div class="time-label">10:00 AM</div>
-              <div class="placeholder-text">XX</div>
-              <div class="status-closed">Market Closed</div>
-              <div class="time-label">10:00 AM</div>
-            </div>
-            <button class="play-btn"></button>
-          </div>
-        </a>
+           <div class="p-4 grid grid-cols-2 sm:grid-cols-2 gap-4 pt-[19rem]">
 
-        <a href="#">
-          <div class="time-card">
-            <div class="time-content">
-              <div class="time-label">11:00 AM</div>
-              <div class="placeholder-text">XX</div>
-              <div class="status-closed">Market Closed</div>
-              <div class="time-label">10:00 AM</div>
-            </div>
-            <button class="play-btn"></button>
-          </div>
+  <% if (jackpotGames.length === 0) { %>
+    <p class="col-span-2 text-center text-gray-500">
+      No Market Available Today
+    </p>
+  <% } %>
+
+  <% jackpotGames.forEach(game => { %>
+
+    <div class="bg-white rounded-xl shadow p-4">
+      <div class="flex justify-between items-center mb-2">
+        <span class="text-[x-small] text-gray-600 border-b pb-2
+          <%= game.isRunning ? 'border-green-500' : 'border-red-500' %>">
+          <%= game.openTime %> - <%= game.closeTime %>
+        </span>
+        <i class="fas fa-info-circle text-red-500"></i>
+      </div>
+
+      <h2 class="font-bold text-lg"><%= game.gameName %></h2>
+
+      <p class="mt-1 font-semibold
+        <%= game.isRunning ? 'text-green-600' : 'text-red-600' %>">
+        <%= game.statusText %>
+      </p>
+
+      <% if (game.isRunning) { %>
+        <a href="/play/<%= game._id %>">
+          <button
+            class="mt-4 w-full bg-green-700 text-white py-3 rounded-lg flex items-center justify-center gap-2 font-semibold">
+            <i class="fas fa-gamepad"></i> Play Game
+          </button>
         </a>
+      <% } else { %>
+        <button
+          disabled
+          class="mt-4 w-full bg-gray-400 text-white py-3 rounded-lg flex items-center justify-center gap-2 font-semibold cursor-not-allowed">
+          Market Closed
+        </button>
+      <% } %>
+
+    </div>
+
+  <% }) %>
+
+</div>
       </div>
     </main>
     <!-- ============================================= Add Money Body is Here ==================================== -->

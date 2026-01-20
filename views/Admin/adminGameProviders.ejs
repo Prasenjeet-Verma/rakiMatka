@@ -111,12 +111,12 @@
 
                   <div class="flex gap-2">
                     <button
-                      onclick="openEditModal('<%= game._id %>','all')"
+                      onclick="openEditModal('<%= game._id %>','all','normal')"
                       class="bg-blue-500 text-white px-3 py-1 rounded text-xs">
                       Edit All
                     </button>
 
-                    <form action="/admin/game/delete/<%= game._id %>" method="POST">
+                    <form action="/admin/game/delete/<%= game._id %>/normal" method="POST">
                       <button class="bg-red-500 text-white px-3 py-1 rounded text-xs">
                         Delete
                       </button>
@@ -139,7 +139,7 @@
                     <p>Close: <%= d.closeTime || "--" %></p>
 
                     <button
-                      onclick="openEditModal('<%= game._id %>','<%= day %>')"
+                      onclick="openEditModal('<%= game._id %>','<%= day %>','normal')"
                       class="bg-yellow-500 text-white px-2 py-1 rounded">
                       ✏️
                     </button>
@@ -157,7 +157,7 @@
 
   <!-- ADD GAME MODAL -->
   <div id="addModal" class="fixed inset-0 hidden bg-black/40 flex items-center justify-center z-50">
-    <form action="/admin/game/add" method="POST"
+    <form action="/admin/game/add/normal" method="POST"
       class="bg-white w-full max-w-xl rounded shadow">
 
       <div class="px-6 py-4 border-b flex justify-between">

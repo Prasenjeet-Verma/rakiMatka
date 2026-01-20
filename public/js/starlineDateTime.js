@@ -1,34 +1,30 @@
-// dateTime.js
+// starlineDateTime.js
 
 // ====================== ADD MODAL ======================
 function openModal() {
   const modal = document.getElementById("addModal");
-  if (!modal) return;
   modal.classList.remove("hidden");
   modal.classList.add("flex");
 }
 
 function closeModal() {
   const modal = document.getElementById("addModal");
-  if (!modal) return;
   modal.classList.add("hidden");
   modal.classList.remove("flex");
 }
 
 // ====================== EDIT MODAL ======================
-function openEditModal(gameId, day, type = "normal") {
+function openEditModal(gameId, day, type = "starline") {
   const form = document.getElementById("editForm");
-  if (!form) return;
 
   // Edit ALL days
   if (day === "all") {
     form.action = `/admin/game/update-all/${gameId}/${type}`;
-  }
+  } 
   // Edit single day
   else {
     form.action = `/admin/game/update-day/${gameId}/${type}`;
 
-    // hidden input for day
     let dayInput = form.querySelector('input[name="day"]');
     if (!dayInput) {
       dayInput = document.createElement("input");
@@ -37,24 +33,6 @@ function openEditModal(gameId, day, type = "normal") {
       form.appendChild(dayInput);
     }
     dayInput.value = day;
-
-    // Optional: pre-fill values from table
-    const cell = document.querySelector(
-      `button[onclick*="${gameId}"][onclick*="${day}"]`
-    ).closest("td");
-
-    if (cell) {
-      const openTimeP = cell.querySelector("p:nth-of-type(1)");
-      const closeTimeP = cell.querySelector("p:nth-of-type(2)");
-      const isActiveSpan = cell.querySelector("span");
-
-      form.querySelector('input[name="openTime"]').value =
-        openTimeP?.textContent.replace("Open: ", "") || "";
-      form.querySelector('input[name="closeTime"]').value =
-        closeTimeP?.textContent.replace("Close: ", "") || "";
-      form.querySelector('select[name="isActive"]').value =
-        isActiveSpan?.textContent === "Active" ? "Yes" : "No";
-    }
   }
 
   const modal = document.getElementById("editModal");
@@ -64,11 +42,6 @@ function openEditModal(gameId, day, type = "normal") {
 
 function closeEditModal() {
   const modal = document.getElementById("editModal");
-  if (!modal) return;
   modal.classList.add("hidden");
   modal.classList.remove("flex");
-
-  // reset form
-  const form = document.getElementById("editForm");
-  if (form) form.reset();
 }

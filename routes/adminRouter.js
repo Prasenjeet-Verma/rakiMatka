@@ -12,9 +12,14 @@ adminRouter.post("/admin/createuser", adminController.adminCreateUser);
 adminRouter.get('/admin/singleuser-details/:userId', adminController.getSingleUserDetails);
 adminRouter.post("/admin/change-user-password", adminController.changeUserPassword);
 adminRouter.get('/admin/CreateGame', adminController.getAdminCreateGamePage);
-adminRouter.post("/admin/game/add", adminController.postAddGame);
-adminRouter.post("/admin/game/update-day/:gameId", adminController.updateSingleDay);
-adminRouter.post("/admin/game/update-all/:gameId", adminController.updateAllDays);
-adminRouter.post("/admin/game/delete/:gameId", adminController.deleteGame);
+adminRouter.get('/admin/CreateMainStarlineGame', adminController.getAdminCreateMainStarlineGamePage);
+adminRouter.get('/admin/CreateMainJackpotGame', adminController.getAdminCreateMainJackpotGamePage);
+adminRouter.post("/admin/game/add/:type", adminController.postAddGame);
+adminRouter.post("/admin/game/update-day/:gameId/:type", adminController.updateSingleDay);
+adminRouter.post("/admin/game/update-all/:gameId/:type", adminController.updateAllDays);
+adminRouter.post("/admin/game/delete/:gameId/:type", adminController.deleteGame);
+
+
+
 
 module.exports = adminRouter;

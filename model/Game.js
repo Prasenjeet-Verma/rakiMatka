@@ -11,9 +11,20 @@ const gameSchema = new mongoose.Schema(
     gameName: {
       type: String,
       required: true,
-      unique: true,
       uppercase: true,
       trim: true
+    },
+
+    isStarline: {
+      type: Boolean,
+      default: false, // 👈 NORMAL GAME
+      index: true
+    },
+
+    isJackpot: {
+      type: Boolean,
+      default: false, // 👈 NORMAL GAME
+      index: true
     },
 
     schedule: {
