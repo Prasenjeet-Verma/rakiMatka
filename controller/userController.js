@@ -4,6 +4,7 @@ const bcrypt = require("bcryptjs");
 const User = require("../model/userSchema");
 const WalletTransaction = require("../model/WalletTransaction");
 const UserBankDetails = require("../model/UserBankDetails");
+const GameRate = require("../model/GameRate");
 
 exports.UserHomePage = async (req, res, next) => {
   try {
@@ -733,10 +734,13 @@ exports.getUserGameRatesPage = async (req, res, next) => {
     const admin = await User.findOne({ role: "admin" }).select(
       "username phoneNo profilePhoto"
     );
-
+    // Fetch all game rates
+       const gameRates = await GameRate.find({ isActive: true })
+      .sort({ gameType: 1 });
     res.render("User/userGameRates", {
       user,
       admin,
+      gameRates,
       isLoggedIn: req.session.isLoggedIn
     });
 

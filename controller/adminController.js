@@ -5,6 +5,7 @@ const WalletTransaction = require("../model/WalletTransaction");
 const UserBankDetails = require("../model/UserBankDetails");
 const moment = require("moment-timezone");
 const Game = require("../model/Game");
+const GameRate = require("../model/GameRate");
 const { isGameOpenNow } = require("../utils/gameStatus");
 
 exports.getAdminLoginPage = async (req, res, next) => {
@@ -240,7 +241,7 @@ exports.updateWallet = async (req, res) => {
     return res.json({ success: true, message: "Wallet updated successfully" });
   } catch (err) {
     console.error("Wallet update failed:", err);
-     res.json({ success: false, message: "Update failed, try again" });
+    res.json({ success: false, message: "Update failed, try again" });
   }
 };
 
@@ -427,7 +428,7 @@ exports.adminCreateUser = async (req, res) => {
     }).save();
 
     // 🔥 redirect with search preserved
-   return res.redirect(`/admin/allUsers?page=${page}&limit=${limit === 0 ? "all" : limit}&search=${search}`);
+    return res.redirect(`/admin/allUsers?page=${page}&limit=${limit === 0 ? "all" : limit}&search=${search}`);
 
   } catch (err) {
     console.error("Admin Create Error:", err);
@@ -464,7 +465,7 @@ exports.getSingleUserDetails = async (req, res) => {
     }
 
     // 🏦 Get bank details
-const bankDetails = await UserBankDetails.findOne({ user: user._id });
+    const bankDetails = await UserBankDetails.findOne({ user: user._id });
 
     // 💰 TOTAL DEPOSIT (all money coming into user wallet)
     const depositAgg = await WalletTransaction.aggregate([
@@ -512,82 +513,82 @@ const bankDetails = await UserBankDetails.findOne({ user: user._id });
       .limit(50);
 
 
-// ===================== WITHDRAW LIST PAGINATION =====================
+    // ===================== WITHDRAW LIST PAGINATION =====================
 
-// query params
-const withdrawPage = parseInt(req.query.withdrawPage) || 1;
-const withdrawLimit =
-  req.query.withdrawLimit === "all"
-    ? null
-    : parseInt(req.query.withdrawLimit) || 10;
+    // query params
+    const withdrawPage = parseInt(req.query.withdrawPage) || 1;
+    const withdrawLimit =
+      req.query.withdrawLimit === "all"
+        ? null
+        : parseInt(req.query.withdrawLimit) || 10;
 
-const withdrawSearch = req.query.withdrawSearch || "";
-const withdrawStatus = req.query.withdrawStatus || "all";
+    const withdrawSearch = req.query.withdrawSearch || "";
+    const withdrawStatus = req.query.withdrawStatus || "all";
 
-// withdraw condition (USER VIEW)
-const withdrawBaseMatch = {
-  user: user._id,
-  source: { $in: ["withdraw", "admin_debit"] },
-};
+    // withdraw condition (USER VIEW)
+    const withdrawBaseMatch = {
+      user: user._id,
+      source: { $in: ["withdraw", "admin_debit"] },
+    };
 
-// ✅ STATUS FILTER
-if (withdrawStatus !== "all") {
-  withdrawBaseMatch.status = withdrawStatus;
-}
+    // ✅ STATUS FILTER
+    if (withdrawStatus !== "all") {
+      withdrawBaseMatch.status = withdrawStatus;
+    }
 
-// 🔍 username / mobile search
-let withdrawUserFilter = {};
-if (withdrawSearch) {
-  withdrawUserFilter = {
-    $or: [
-      { "userData.username": { $regex: withdrawSearch, $options: "i" } },
-      { "userData.phoneNo": { $regex: withdrawSearch, $options: "i" } },
-    ],
-  };
-}
+    // 🔍 username / mobile search
+    let withdrawUserFilter = {};
+    if (withdrawSearch) {
+      withdrawUserFilter = {
+        $or: [
+          { "userData.username": { $regex: withdrawSearch, $options: "i" } },
+          { "userData.phoneNo": { $regex: withdrawSearch, $options: "i" } },
+        ],
+      };
+    }
 
-// aggregation
-const withdrawAggPipeline = [
-  { $match: withdrawBaseMatch },
-  {
-    $lookup: {
-      from: "users",
-      localField: "user",
-      foreignField: "_id",
-      as: "userData",
-    },
-  },
-  { $unwind: "$userData" },
-  ...(withdrawSearch ? [{ $match: withdrawUserFilter }] : []),
-  { $sort: { createdAt: -1 } },
-];
+    // aggregation
+    const withdrawAggPipeline = [
+      { $match: withdrawBaseMatch },
+      {
+        $lookup: {
+          from: "users",
+          localField: "user",
+          foreignField: "_id",
+          as: "userData",
+        },
+      },
+      { $unwind: "$userData" },
+      ...(withdrawSearch ? [{ $match: withdrawUserFilter }] : []),
+      { $sort: { createdAt: -1 } },
+    ];
 
-// total count
-const withdrawCountAgg = await WalletTransaction.aggregate([
-  ...withdrawAggPipeline,
-  { $count: "total" },
-]);
+    // total count
+    const withdrawCountAgg = await WalletTransaction.aggregate([
+      ...withdrawAggPipeline,
+      { $count: "total" },
+    ]);
 
-const withdrawTotalRecords = withdrawCountAgg[0]?.total || 0;
+    const withdrawTotalRecords = withdrawCountAgg[0]?.total || 0;
 
-// pagination
-if (withdrawLimit) {
-  withdrawAggPipeline.push(
-    { $skip: (withdrawPage - 1) * withdrawLimit },
-    { $limit: withdrawLimit }
-  );
-}
+    // pagination
+    if (withdrawLimit) {
+      withdrawAggPipeline.push(
+        { $skip: (withdrawPage - 1) * withdrawLimit },
+        { $limit: withdrawLimit }
+      );
+    }
 
-const withdrawTransactions = await WalletTransaction.aggregate(
-  withdrawAggPipeline
-);
+    const withdrawTransactions = await WalletTransaction.aggregate(
+      withdrawAggPipeline
+    );
 
-const withdrawTotalPages = withdrawLimit
-  ? Math.ceil(withdrawTotalRecords / withdrawLimit)
-  : 1;
+    const withdrawTotalPages = withdrawLimit
+      ? Math.ceil(withdrawTotalRecords / withdrawLimit)
+      : 1;
 
-  
-// ====================================================================End
+
+    // ====================================================================End
 
 
     // 📤 Send to page
@@ -600,15 +601,15 @@ const withdrawTotalPages = withdrawLimit
       totalDeposit,
       totalWithdraw,
       transactions,
-        // 🔽 NEW (withdraw table only)
-  withdrawTransactions,
-  withdrawPage,
-  withdrawLimit: withdrawLimit || "all",
-  withdrawSearch,
-  withdrawTotalPages,
-  withdrawTotalRecords,
-  withdrawStatus,
-  isLoggedIn: req.session.isLoggedIn
+      // 🔽 NEW (withdraw table only)
+      withdrawTransactions,
+      withdrawPage,
+      withdrawLimit: withdrawLimit || "all",
+      withdrawSearch,
+      withdrawTotalPages,
+      withdrawTotalRecords,
+      withdrawStatus,
+      isLoggedIn: req.session.isLoggedIn
     });
 
   } catch (error) {
@@ -647,7 +648,7 @@ exports.changeUserPassword = async (req, res, next) => {
       password: hashed
     });
 
-   return res.redirect("/admin/singleuser-details/" + userId);
+    return res.redirect("/admin/singleuser-details/" + userId);
 
   } catch (err) {
     console.log("Password change error:", err);
@@ -1050,4 +1051,115 @@ exports.deleteGame = async (req, res) => {
     console.error(err);
     return res.redirect("/admin/CreateGame");
   }
+};
+
+exports.getAdminGameRatesPage = async (req, res, next) => {
+  try {
+    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active"
+    });
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    // Fetch all game rates
+    const gameRates = await GameRate.find();
+
+    // Render the game rates page
+    res.render("Admin/gameRates", { admin, gameRates, isLoggedIn: req.session.isLoggedIn, pageTitle: "Game Rates" });
+  } catch (err) {
+    console.error(err);
+    return res.redirect("/admin/dashboard");
+  }
+};
+
+exports.postGameRates = async (req, res, next) => {
+  try {
+    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
+      return res.redirect("/admin/login");
+    }
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active"
+    });
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+    const { gameType, betAmount, profitAmount } = req.body;
+    // Create and save new game rate
+    const newGameRate = new GameRate({
+      gameType,
+      betAmount,
+      profitAmount
+    });
+    await newGameRate.save();
+    return res.redirect("/admin/GameRates");
+
+  } catch (err) {
+    console.error(err);
+    return res.redirect("/admin/dashboard");
+  }
+};
+
+exports.toggleGameRate = async (req, res) => {
+  try {
+    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active"
+    });
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    const rate = await GameRate.findById(req.params.id);
+    rate.isActive = !rate.isActive;
+    await rate.save();
+    return res.redirect("/admin/GameRates");
+  } catch (err) {
+    console.error(err);
+    return res.redirect("/admin/dashboard");
+  }
+
+};
+
+exports.deleteGameRate = async (req, res) => {
+  try {
+    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active"
+    });
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+    await GameRate.findByIdAndDelete(req.params.id);
+    return res.redirect("/admin/GameRates");
+  } catch (err) {
+    console.error(err);
+    return res.redirect("/admin/dashboard");
+  }
+
 };

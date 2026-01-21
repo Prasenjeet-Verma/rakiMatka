@@ -20,56 +20,29 @@
     </header>
 
     <!-- CONTENT -->
-    <div class="p-4 space-y-4">
-      <!-- CARD -->
-      <div
-        class="flex justify-between items-center bg-emerald-800 text-white px-5 py-4 rounded-xl shadow-md"
-      >
-        <span class="font-semibold">Single Digit</span>
-        <span class="font-semibold">10-100</span>
-      </div>
+   <div class="p-4 space-y-4">
 
-      <div
-        class="flex justify-between items-center bg-emerald-800 text-white px-5 py-4 rounded-xl shadow-md"
-      >
-        <span class="font-semibold">Jodi Digit</span>
-        <span class="font-semibold">10-1000</span>
-      </div>
+  <% if (gameRates.length === 0) { %>
+    <p class="text-center text-gray-500">
+      Rates not available right now
+    </p>
+  <% } %>
 
-      <div
-        class="flex justify-between items-center bg-emerald-800 text-white px-5 py-4 rounded-xl shadow-md"
-      >
-        <span class="font-semibold">Single Panna</span>
-        <span class="font-semibold">10-1500</span>
-      </div>
+  <% gameRates.forEach(rate => { %>
+    <div
+      class="flex justify-between items-center bg-emerald-800 text-white px-5 py-4 rounded-xl shadow-md"
+    >
+      <span class="font-semibold">
+        <%= rate.gameType %>
+      </span>
 
-      <div
-        class="flex justify-between items-center bg-emerald-800 text-white px-5 py-4 rounded-xl shadow-md"
-      >
-        <span class="font-semibold">Double Panna</span>
-        <span class="font-semibold">10-3000</span>
-      </div>
-
-      <div
-        class="flex justify-between items-center bg-emerald-800 text-white px-5 py-4 rounded-xl shadow-md"
-      >
-        <span class="font-semibold">Tripple Panna</span>
-        <span class="font-semibold">10-9000</span>
-      </div>
-
-      <div
-        class="flex justify-between items-center bg-emerald-800 text-white px-5 py-4 rounded-xl shadow-md"
-      >
-        <span class="font-semibold">Half Sangam</span>
-        <span class="font-semibold">10-12000</span>
-      </div>
-
-      <div
-        class="flex justify-between items-center bg-emerald-800 text-white px-5 py-4 rounded-xl shadow-md"
-      >
-        <span class="font-semibold">Full Sangam</span>
-        <span class="font-semibold">10-120000</span>
-      </div>
+      <span class="font-semibold">
+        ₹<%= rate.betAmount %> - ₹<%= rate.profitAmount %>
+      </span>
     </div>
+  <% }) %>
+
+</div>
+
   </body>
 </html>

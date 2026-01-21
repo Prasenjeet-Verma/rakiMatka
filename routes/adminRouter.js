@@ -18,8 +18,9 @@ adminRouter.post("/admin/game/add/:type", adminController.postAddGame);
 adminRouter.post("/admin/game/update-day/:gameId/:type", adminController.updateSingleDay);
 adminRouter.post("/admin/game/update-all/:gameId/:type", adminController.updateAllDays);
 adminRouter.post("/admin/game/delete/:gameId/:type", adminController.deleteGame);
-
-
-
+adminRouter.get('/admin/GameRates', adminController.getAdminGameRatesPage);
+adminRouter.post('/admin/GameRates', adminController.postGameRates);
+adminRouter.post("/admin/game-rates/toggle/:id", adminController.toggleGameRate);
+adminRouter.post("/admin/game-rates/delete/:id", adminController.deleteGameRate);
 
 module.exports = adminRouter;
