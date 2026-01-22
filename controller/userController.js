@@ -8,7 +8,7 @@ const GameRate = require("../model/GameRate");
 const SingleDigitBet = require("../model/SingleDigitBet");
 const SingleBulkDigitBet = require("../model/SingleBulkDigitBet");
 const JodiDigitBet = require("../model/JodiDigitBet");
-
+const JodiDigitBulkBet = require("../model/JodiDigitBulkBet");
 exports.UserHomePage = async (req, res, next) => {
   try {
     // This will be either the user object or undefined
@@ -826,10 +826,24 @@ exports.placeSingleDigitBet = async (req, res) => {
   let user;
 
   try {
-    if (!req.session?.user) return res.redirect("/login");
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.user ||
+      req.session.user.role !== "user"
+    ) {
+      return res.redirect("/login");
+    }
 
-    user = await User.findById(req.session.user._id);
-    if (!user) return res.redirect("/login");
+    const user = await User.findOne({
+      _id: req.session.user._id,
+      role: "user",
+      userStatus: "active",
+    }).select("-password");
+
+    if (!user) {
+      req.session.destroy();
+      return res.redirect("/login");
+    }
 
     const { gameId, betType, bets } = req.body;
 
@@ -918,7 +932,7 @@ exports.placeSingleDigitBet = async (req, res) => {
 
     return res.json({
       success: true,
-      message: `Bet placed successfully ₹${total}`
+      message: `SINGLE DIGIT Bet placed successfully ₹${total}`
     });
 
   } catch (err) {
@@ -936,13 +950,23 @@ exports.placeSingleDigitBet = async (req, res) => {
 exports.placeSingleBulkDigitBet = async (req, res) => {
   try {
     /* ================= AUTH ================= */
-    if (!req.session?.user) {
-      return res.json({ success: false, message: "Login required" });
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.user ||
+      req.session.user.role !== "user"
+    ) {
+      return res.redirect("/login");
     }
 
-    const user = await User.findById(req.session.user._id);
+    const user = await User.findOne({
+      _id: req.session.user._id,
+      role: "user",
+      userStatus: "active",
+    }).select("-password");
+
     if (!user) {
-      return res.json({ success: false, message: "User not found" });
+      req.session.destroy();
+      return res.redirect("/login");
     }
 
     const { gameId, session, bets, totalAmount } = req.body;
@@ -1032,7 +1056,7 @@ exports.placeSingleBulkDigitBet = async (req, res) => {
     /* ================= SUCCESS ================= */
     res.json({
       success: true,
-      message: `Bet placed ₹${totalAmount} ✅`
+      message: `Single Bulk Digit Bet placed ₹${totalAmount} ✅`
     });
 
   } catch (err) {
@@ -1109,5 +1133,69 @@ exports.placeJodiDigitBet = async (req, res) => {
       await user.save();
     }
     res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+
+exports.placeJodiDigitBulkBet = async (req, res) => {
+  try {
+    
+       /* ================= AUTH ================= */
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.user ||
+      req.session.user.role !== "user"
+    ) {
+      return res.redirect("/login");
+    }
+
+    const user = await User.findOne({
+      _id: req.session.user._id,
+      role: "user",
+      userStatus: "active",
+    }).select("-password");
+
+    if (!user) {
+      req.session.destroy();
+      return res.redirect("/login");
+    }
+     const { gameId, bets } = req.body;
+    if (!gameId || !bets || !bets.length) {
+      return res.json({ success: false, message: "Invalid bet data ❌" });
+    }
+
+    /* ================= GAME CHECK ================= */
+    const game = await Game.findById(gameId);
+    if (!game || game.isDeleted) {
+      return res.json({ success: false, message: "Invalid game ❌" });
+    }
+
+    /* ================= TOTAL AMOUNT ================= */
+    const totalAmount = bets.reduce((sum, b) => sum + Number(b.amount || 0), 0);
+    if (user.wallet < totalAmount) {
+      return res.json({ success: false, message: "Insufficient balance ❌" });
+    }
+
+    /* ================= DEDUCT WALLET ================= */
+    user.wallet -= totalAmount;
+    await user.save();
+
+    /* ================= SAVE BET ================= */
+    const now = moment().tz("Asia/Kolkata");
+    await JodiDigitBulkBet.create({
+      userId: user._id,
+      gameId,
+      gameName: game.gameName,
+      bets,
+      totalAmount,
+      playedDate: now.format("YYYY-MM-DD"),
+      playedTime: now.format("HH:mm"),
+      playedWeekday: now.format("dddd")
+    });
+
+    return res.json({ success: true, message: `Bet placed ₹${totalAmount} ✅` });
+  } catch (err) {
+    console.error("JodiDigitBulkBet Error:", err);
+    res.json({ success: false, message: "Server error ❌" });
   }
 };
