@@ -120,19 +120,6 @@
 
   <!-- CONTENT -->
   <div class="p-4 grid grid-cols-2 gap-4 pt-[5.5rem]">
-    <!-- msg box here -->
-    <% if (success && success.length) { %>
-      <div class="bg-green-100 text-green-700 p-3 rounded mb-3">
-        <%= success[0] %>
-      </div>
-      <% } %>
-
-        <% if (error && error.length) { %>
-          <div class="bg-red-100 text-red-700 p-3 rounded mb-3">
-            <%= error[0] %>
-          </div>
-          <% } %>
-            <!-- msg box end here -->
             <!-- CARD -->
             <div id="btnSingleDigit"
               class="bg-white rounded-2xl shadow-lg p-4 flex flex-col items-center cursor-pointer">
@@ -144,12 +131,13 @@
 
 
             <!-- CARD -->
-            <div id="btnBulkDigit" class="bg-white rounded-2xl shadow-lg p-4 flex flex-col items-center">
+            <div id="btnBulkDigit" class="bg-white rounded-2xl shadow-lg p-4 flex flex-col items-center cursor-pointer">
               <div class="w-24 h-24 bg-teal-800 rounded-full flex items-center justify-center shadow-md">
                 <img src="/svg/dice.svg" class="w-12" />
               </div>
               <p class="mt-4 font-semibold text-gray-800">Single Bulk Digit</p>
             </div>
+
 
             <!-- CARD -->
             <div id="btnJodiDigit" class="bg-white rounded-2xl shadow-lg p-4 flex flex-col items-center">
@@ -269,7 +257,8 @@
     <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
       <div class="flex items-center gap-3">
         <i id="closeSingle" class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
-        <h1 class="text-lg font-semibold">Single Digit - <%= game.gameName %></h1>
+        <h1 class="text-lg font-semibold">Single Digit - <%= game.gameName %>
+        </h1>
       </div>
     </header>
 
@@ -306,66 +295,78 @@
 
   <!-- ===================================== Single Bulk Digit ================================ -->
 
-  <main id="SingleBulkDigit" class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
-    <!-- HEADER -->
+  <main
+  id="SingleBulkDigit"
+  data-game-id="<%= game._id %>"
+  data-game-name="<%= game.gameName %>"
+  data-game-type="SINGLE_BULK_DIGIT"
+  class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full z-50"
+>
+  <!-- HEADER -->
+  <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
+    <div class="flex items-center gap-3">
+      <i id="closeBulk" class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
+      <h1 class="text-lg font-semibold">Single Bulk Digit - <%= game.gameName %></h1>
+    </div>
+  </header>
 
-    <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
-      <div class="flex items-center gap-3">
-        <i id="closeBulk" class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
-        <h1 class="text-lg font-semibold">Single Bulk Digit</h1>
+  <div class="px-5 pt-6 space-y-6 flex-1 overflow-x-scroll">
+    <!-- SESSION -->
+    <div class="flex justify-between items-center">
+      <div class="text-xl font-bold">Choose<br />Session</div>
+      <div class="flex space-x-6">
+        <label class="flex items-center space-x-2">
+          <input type="radio" name="session" value="OPEN" checked />
+          <span class="font-bold">Open</span>
+        </label>
+        <label class="flex items-center space-x-2">
+          <input type="radio" name="session" value="CLOSE" />
+          <span class="font-bold">Close</span>
+        </label>
       </div>
-    </header>
-
-    <div class="px-5 pt-6 space-y-6 flex-1 overflow-x-scroll">
-      <div class="flex justify-between items-center">
-        <div class="text-xl font-bold leading-tight">Choose<br />Session</div>
-        <div class="flex space-x-6">
-          <label class="flex items-center space-x-2 cursor-pointer">
-            <input type="radio" name="session" checked class="accent-[#065f56] w-5 h-5" />
-            <span class="font-bold text-gray-800">Open</span>
-          </label>
-          <label class="flex items-center space-x-2 cursor-pointer">
-            <input type="radio" name="session" class="accent-gray-400 w-5 h-5" />
-            <span class="font-bold text-gray-600">Close</span>
-          </label>
-        </div>
-      </div>
-
-      <div class="flex justify-between items-center">
-        <span class="text-xl font-bold">Points</span>
-        <input id="pointsInput" placeholder="Enter Point" type="number" value=""
-          class="w-48 py-3 px-4 rounded-xl shadow-md border border-gray-200 text-lg font-bold text-center focus:outline-none focus:ring-2 focus:ring-[#065f56]" />
-      </div>
-
-      <div id="gridContainer" class="flex flex-wrap justify-center gap-3 w-full max-w-md mx-auto pb-10"></div>
     </div>
 
-    <div class="border-t border-gray-200 bg-white py-4 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] sticky bottom-0">
-      <div class="flex justify-between items-center px-6">
-        <div>
-          <div class="text-xs text-gray-400 uppercase font-bold tracking-wider">
-            Bids
-          </div>
-          <div id="totalBids" class="text-gray-800 font-black text-xl">0</div>
-        </div>
-        <div>
-          <div class="text-xs text-gray-400 uppercase font-bold tracking-wider">
-            Total Amount
-          </div>
-          <div id="totalAmount" class="text-gray-800 font-black text-xl">
-            0
-          </div>
-        </div>
-        <button onclick="submitBids()"
-          class="bg-[#065f56] text-white px-10 py-3 rounded-xl shadow-lg font-bold active:scale-95 transition-transform">
-          Submit
-        </button>
-      </div>
+    <!-- POINTS -->
+    <div class="flex justify-between items-center">
+      <span class="text-xl font-bold">Points</span>
+      <input
+        id="pointsInput"
+        type="number"
+        placeholder="Enter Point"
+        class="w-48 py-3 px-4 rounded-xl text-center font-bold"
+      />
     </div>
-  </main>
+
+    <!-- GRID -->
+    <div
+      id="gridContainer"
+      class="flex flex-wrap justify-center gap-3 w-full max-w-md mx-auto pb-10"
+    ></div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="border-t bg-white py-4 sticky bottom-0">
+    <div class="flex justify-between items-center px-6">
+      <div>
+        <div class="text-xs uppercase">Bids</div>
+        <div id="totalBids" class="text-xl font-black">0</div>
+      </div>
+      <div>
+        <div class="text-xs uppercase">Total Amount</div>
+        <div id="totalAmount" class="text-xl font-black">0</div>
+      </div>
+      <button
+        onclick="submitBids()"
+        class="bg-[#065f56] text-white px-10 py-3 rounded-xl font-bold"
+      >
+        Submit
+      </button>
+    </div>
+  </div>
+</main>
   <!-- ===================================== Jodi Digit ================================ -->
 
-  <main id="jodiDigit" class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
+  <main id="jodiDigit" data-game-id="<%= game._id %>" data-game-name="<%= game.gameName %>" class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
     <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl shadow-md">
       <div class="flex items-center gap-3">
         <i id="closeJodiDigit" class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>

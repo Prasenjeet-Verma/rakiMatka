@@ -16,4 +16,7 @@ userRouter.post('/forgetuserpassword', userController.postForgetUserPassword);
 //Play Game Route Start Here
 userRouter.get("/play/:id", userController.getPlayGamePage);
 userRouter.post("/single-digit/place-bet", userController.placeSingleDigitBet);
+userRouter.post("/single-bulk-digit/place-bet", userController.placeSingleBulkDigitBet);
+userRouter.post("/jodi-digit/place-bet", userController.placeJodiDigitBet);
+
 module.exports = userRouter;

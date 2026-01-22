@@ -6,6 +6,9 @@ const WalletTransaction = require("../model/WalletTransaction");
 const UserBankDetails = require("../model/UserBankDetails");
 const GameRate = require("../model/GameRate");
 const SingleDigitBet = require("../model/SingleDigitBet");
+const SingleBulkDigitBet = require("../model/SingleBulkDigitBet");
+const JodiDigitBet = require("../model/JodiDigitBet");
+
 exports.UserHomePage = async (req, res, next) => {
   try {
     // This will be either the user object or undefined
@@ -808,7 +811,6 @@ exports.getPlayGamePage = async (req, res, next) => {
   }
 };
 
-
 //Game Betting Logic Start Here
 /* ================= PLACE SINGLE DIGIT BET ================= */
 exports.placeSingleDigitBet = async (req, res) => {
@@ -820,10 +822,7 @@ exports.placeSingleDigitBet = async (req, res) => {
       !req.session.user ||
       req.session.user.role !== "user"
     ) {
-      return res.status(401).json({
-        success: false,
-        message: "Please login to place bet",
-      });
+      return res.redirect("/login");
     }
 
     user = await User.findOne({
@@ -834,12 +833,13 @@ exports.placeSingleDigitBet = async (req, res) => {
 
     if (!user) {
       req.session.destroy();
-      return res.status(401).json({
-        success: false,
-        message: "Session expired. Login again",
-      });
+      return res.redirect("/login");
     }
 
+    // Optional: admin info (for header/support)
+    const admin = await User.findOne({ role: "admin" }).select(
+      "username phoneNo profilePhoto",
+    );
     const { gameId, gameName, betType, bets } = req.body;
 
     if (!gameId || !betType || !Array.isArray(bets) || bets.length === 0) {
@@ -919,7 +919,7 @@ exports.placeSingleDigitBet = async (req, res) => {
     if (user && req.body?.bets) {
       const refund = req.body.bets.reduce(
         (s, b) => s + (Number(b.amount) || 0),
-        0
+        0,
       );
       user.wallet += refund;
       await user.save();
@@ -932,3 +932,202 @@ exports.placeSingleDigitBet = async (req, res) => {
   }
 };
 
+/* ================= PLACE SINGLE BULK DIGIT BET ================= */
+exports.placeSingleBulkDigitBet = async (req, res) => {
+  let user;
+
+  try {
+    /* ========== AUTH CHECK ========== */
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.user ||
+      req.session.user.role !== "user"
+    ) {
+      return res.redirect("/login");
+    }
+
+    user = await User.findOne({
+      _id: req.session.user._id,
+      role: "user",
+      userStatus: "active",
+    });
+
+    if (!user) {
+      req.session.destroy();
+      return res.redirect("/login");
+    }
+
+    // Optional: admin info (for header/support)
+    const admin = await User.findOne({ role: "admin" }).select(
+      "username phoneNo profilePhoto",
+    );
+
+    /* ========== BODY DATA ========== */
+    const { gameId, gameName, session, bets } = req.body;
+
+    if (!gameId || !session || !Array.isArray(bets) || bets.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid bet data",
+      });
+    }
+
+    if (!["OPEN", "CLOSE"].includes(session)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid session selected",
+      });
+    }
+
+    /* ========== BET VALIDATION ========== */
+    let calculatedTotal = 0;
+
+    for (const bet of bets) {
+      if (
+        typeof bet.number !== "number" ||
+        bet.number < 0 ||
+        bet.number > 9 ||
+        typeof bet.amount !== "number" ||
+        bet.amount <= 0
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid digit or amount",
+        });
+      }
+
+      calculatedTotal += bet.amount;
+    }
+
+    /* ========== GAME CHECK ========== */
+    const game = await Game.findById(gameId);
+    if (!game || game.isDeleted || game.isJackpot) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid game selected",
+      });
+    }
+
+    /* ========== WALLET CHECK ========== */
+    if (user.wallet < calculatedTotal) {
+      return res.status(400).json({
+        success: false,
+        message: "Insufficient wallet balance",
+      });
+    }
+
+    /* ========== TIME (INDIA) ========== */
+    const now = moment().tz("Asia/Kolkata");
+
+    /* ========== DEDUCT WALLET ========== */
+    user.wallet -= calculatedTotal;
+    await user.save();
+
+    /* ========== SAVE BET ========== */
+    const betDoc = new SingleBulkDigitBet({
+      userId: user._id,
+      gameId,
+      gameName: game.gameName || gameName,
+      session,
+      bets,
+      totalAmount: calculatedTotal,
+      playedDate: now.format("YYYY-MM-DD"),
+      playedTime: now.format("HH:mm"),
+      playedWeekday: now.format("dddd"),
+    });
+
+    await betDoc.save();
+
+    return res.json({
+      success: true,
+      message: `Single Bulk Digit bet placed! ₹${calculatedTotal} deducted`,
+      wallet: user.wallet,
+    });
+  } catch (err) {
+    console.error("❌ SINGLE BULK DIGIT ERROR:", err);
+
+    /* ========== REFUND SAFETY ========== */
+    if (user && Array.isArray(req.body?.bets)) {
+      const refund = req.body.bets.reduce(
+        (s, b) => s + (Number(b.amount) || 0),
+        0,
+      );
+      user.wallet += refund;
+      await user.save();
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong",
+    });
+  }
+};
+
+/* ================= PLACE JODI DIGIT BET ================= */
+exports.placeJodiDigitBet = async (req, res) => {
+  let user;
+  try {
+    if (!req.session.isLoggedIn || !req.session.user || req.session.user.role !== "user") {
+      return res.redirect("/login");
+    }
+
+    user = await User.findOne({ _id: req.session.user._id, role: "user", userStatus: "active" });
+    if (!user) {
+      req.session.destroy();
+      return res.redirect("/login");
+    }
+
+    const { gameId, gameName, bets } = req.body;
+    if (!gameId || !Array.isArray(bets) || bets.length === 0) {
+      return res.status(400).json({ success: false, message: "Invalid bet data" });
+    }
+
+    let totalAmount = 0;
+    for (const bet of bets) {
+      if (
+        typeof bet.mainNo !== "number" || bet.mainNo < 0 || bet.mainNo > 9 ||
+        !bet.underNo || !/^[0-9]{2}$/.test(bet.underNo) ||
+        typeof bet.amount !== "number" || bet.amount <= 0
+      ) {
+        return res.status(400).json({ success: false, message: "Invalid bet" });
+      }
+      totalAmount += bet.amount;
+    }
+
+    const game = await Game.findById(gameId);
+    if (!game || game.isDeleted) {
+      return res.status(400).json({ success: false, message: "Invalid game" });
+    }
+
+    if (user.wallet < totalAmount) {
+      return res.status(400).json({ success: false, message: "Insufficient balance" });
+    }
+
+    const now = moment().tz("Asia/Kolkata");
+    user.wallet -= totalAmount;
+    await user.save();
+
+    const betDoc = new JodiDigitBet({
+      userId: user._id,
+      gameId,
+      gameName: game.gameName || gameName,
+      bets,
+      totalAmount,
+      playedDate: now.format("YYYY-MM-DD"),
+      playedTime: now.format("HH:mm"),
+      playedWeekday: now.format("dddd")
+    });
+
+    await betDoc.save();
+
+    res.json({ success: true, message: `Jodi Digit bet placed ₹${totalAmount}`, wallet: user.wallet });
+
+  } catch (err) {
+    console.error("❌ JODI DIGIT ERROR:", err);
+    if (user) {
+      user.wallet += req.body?.bets?.reduce((s, b) => s + (b.amount || 0), 0);
+      await user.save();
+    }
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
