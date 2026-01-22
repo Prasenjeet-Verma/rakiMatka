@@ -6,6 +6,7 @@ const path = require("path");
 const mongoose = require("mongoose");
 const session = require("express-session");
 const MongoDBStore = require("connect-mongodb-session")(session);
+const flash = require("connect-flash");
 require("dotenv").config(); // <-- load .env variables
 
 // Import routes
@@ -38,13 +39,23 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+
+
 // ---------------- CUSTOM MIDDLEWARE ----------------
 app.use((req, res, next) => {
   req.isLoggedIn = req.session.isLoggedIn;
   next();
 });
 
+/* ================= FLASH (SESSION KE BAAD) ================= */
+app.use(flash());
 
+/* ================= GLOBAL FLASH VARIABLES ================= */
+app.use((req, res, next) => {
+  res.locals.success = req.flash("success");
+  res.locals.error = req.flash("error");
+  next();
+});
 
 // ---------------- STATIC ----------------
 app.use(express.static(path.join(rootDir, "public")));

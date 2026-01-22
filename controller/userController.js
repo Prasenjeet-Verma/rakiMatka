@@ -5,7 +5,7 @@ const User = require("../model/userSchema");
 const WalletTransaction = require("../model/WalletTransaction");
 const UserBankDetails = require("../model/UserBankDetails");
 const GameRate = require("../model/GameRate");
-
+const SingleDigitBet = require("../model/SingleDigitBet");
 exports.UserHomePage = async (req, res, next) => {
   try {
     // This will be either the user object or undefined
@@ -17,14 +17,13 @@ exports.UserHomePage = async (req, res, next) => {
     // Render your home page and pass the session info
     res.render("User/UserHomePage", {
       user: user,
-      isLoggedIn: false
+      isLoggedIn: false,
     });
   } catch (err) {
     console.error("Error in UserHomePage:", err);
     next(err); // pass error to Express error handler
   }
 };
-
 
 exports.getUserDashboardPage = async (req, res, next) => {
   try {
@@ -40,7 +39,7 @@ exports.getUserDashboardPage = async (req, res, next) => {
     const user = await User.findOne({
       _id: req.session.user._id,
       role: "user",
-      userStatus: "active"
+      userStatus: "active",
     }).select("-password");
 
     if (!user) {
@@ -49,7 +48,7 @@ exports.getUserDashboardPage = async (req, res, next) => {
     }
 
     const admin = await User.findOne({ role: "admin" }).select(
-      "username phoneNo profilePhoto"
+      "username phoneNo profilePhoto",
     );
 
     // 🇮🇳 Indian Time
@@ -62,7 +61,7 @@ exports.getUserDashboardPage = async (req, res, next) => {
       "wednesday",
       "thursday",
       "friday",
-      "saturday"
+      "saturday",
     ];
 
     const todayKey = days[now.day()];
@@ -71,59 +70,55 @@ exports.getUserDashboardPage = async (req, res, next) => {
     const games = await Game.find({ isDeleted: false }).lean();
 
     // 🔥 COMMON FORMATTER
-const processedGames = games
-  .filter(game => {
-    const d = game.schedule?.[todayKey];
-    return d && d.isActive && d.openTime && d.closeTime;
-  })
-  .map(game => {
-    const d = game.schedule[todayKey];
+    const processedGames = games
+      .filter((game) => {
+        const d = game.schedule?.[todayKey];
+        return d && d.isActive && d.openTime && d.closeTime;
+      })
+      .map((game) => {
+        const d = game.schedule[todayKey];
 
-    // Parse the original admin times
-    const [oh, om] = d.openTime.split(":").map(Number);  // for display
-    const [ch, cm] = d.closeTime.split(":").map(Number);
+        // Parse the original admin times
+        const [oh, om] = d.openTime.split(":").map(Number); // for display
+        const [ch, cm] = d.closeTime.split(":").map(Number);
 
-    const closeMinutes = ch * 60 + cm;
-    const currentMinutes = now.hours() * 60 + now.minutes();
+        const closeMinutes = ch * 60 + cm;
+        const currentMinutes = now.hours() * 60 + now.minutes();
 
-    // ✅ Open automatically at 12:00 AM, ignore admin openTime for running
-    const isRunning = currentMinutes >= 0 && currentMinutes <= closeMinutes;
+        // ✅ Open automatically at 12:00 AM, ignore admin openTime for running
+        const isRunning = currentMinutes >= 0 && currentMinutes <= closeMinutes;
 
-    return {
-      _id: game._id,
-      gameName: game.gameName,
-      openTime: moment(d.openTime, "HH:mm").format("hh:mm A"), // Show admin openTime
-      closeTime: moment(d.closeTime, "HH:mm").format("hh:mm A"),
-      isRunning,
-      statusText: isRunning ? "Market Running" : "Market Closed",
-      isStarline: game.isStarline || false,
-      isJackpot: game.isJackpot || false
-    };
-  });
-
-
+        return {
+          _id: game._id,
+          gameName: game.gameName,
+          openTime: moment(d.openTime, "HH:mm").format("hh:mm A"), // Show admin openTime
+          closeTime: moment(d.closeTime, "HH:mm").format("hh:mm A"),
+          isRunning,
+          statusText: isRunning ? "Market Running" : "Market Closed",
+          isStarline: game.isStarline || false,
+          isJackpot: game.isJackpot || false,
+        };
+      });
 
     // ===================== 🎯 SEPARATION =====================
     const normalGames = processedGames.filter(
-      g => !g.isStarline && !g.isJackpot
+      (g) => !g.isStarline && !g.isJackpot,
     );
 
-    const starlineGames = processedGames.filter(
-      g => g.isStarline
-    );
+    const starlineGames = processedGames.filter((g) => g.isStarline);
 
-    const jackpotGames = processedGames.filter(
-      g => g.isJackpot
-    );
+    const jackpotGames = processedGames.filter((g) => g.isJackpot);
 
     // ===================== TRANSACTIONS =====================
-    const transactions = await WalletTransaction
-      .find({ user: user._id, status: "success" })
+    const transactions = await WalletTransaction.find({
+      user: user._id,
+      status: "success",
+    })
       .sort({ createdAt: -1 })
       .limit(20)
       .lean();
 
-    const formattedTransactions = transactions.map(tx => {
+    const formattedTransactions = transactions.map((tx) => {
       let title, displayType, amountSign, amountColor;
 
       if (tx.type === "credit") {
@@ -147,7 +142,7 @@ const processedGames = games
         amountColor,
         createdAt: moment(tx.createdAt)
           .tz("Asia/Kolkata")
-          .format("DD MMM YYYY hh:mm:ss A")
+          .format("DD MMM YYYY hh:mm:ss A"),
       };
     });
 
@@ -156,24 +151,21 @@ const processedGames = games
       user,
       admin,
 
-      normalGames,     // ✅ NORMAL
-      starlineGames,   // ⭐ STARLINE
-      jackpotGames,    // 💰 JACKPOT
+      normalGames, // ✅ NORMAL
+      starlineGames, // ⭐ STARLINE
+      jackpotGames, // 💰 JACKPOT
 
       transactions: formattedTransactions,
-      isLoggedIn: req.session.isLoggedIn
+      isLoggedIn: req.session.isLoggedIn,
     });
-
   } catch (err) {
     console.error("UserDashboardPage Error:", err);
     next(err);
   }
 };
 
-
 exports.getUserProfilePage = async (req, res, next) => {
   try {
-
     // 🔐 User Security Check
     if (
       !req.session.isLoggedIn ||
@@ -186,7 +178,7 @@ exports.getUserProfilePage = async (req, res, next) => {
     const user = await User.findOne({
       _id: req.session.user._id,
       role: "user",
-      userStatus: "active"
+      userStatus: "active",
     }).select("-password");
 
     if (!user) {
@@ -196,7 +188,7 @@ exports.getUserProfilePage = async (req, res, next) => {
 
     // Optional: admin info (for header/support)
     const admin = await User.findOne({ role: "admin" }).select(
-      "username phoneNo profilePhoto"
+      "username phoneNo profilePhoto",
     );
     const oldInput = req.session.oldInput || {};
     req.session.oldInput = null; // clear after use
@@ -207,14 +199,13 @@ exports.getUserProfilePage = async (req, res, next) => {
       admin,
       oldInput,
       flash,
-      isLoggedIn: req.session.isLoggedIn
+      isLoggedIn: req.session.isLoggedIn,
     });
-
   } catch (err) {
     console.error("userProfile Error:", err);
     next(err);
   }
-}
+};
 
 exports.postUserEditDetails = async (req, res, next) => {
   try {
@@ -246,12 +237,11 @@ exports.postUserEditDetails = async (req, res, next) => {
         type: "info",
         message: "No changes detected",
       };
-          // ✅ IMPORTANT: return + session.save
-    return req.session.save(() => {
-      res.redirect("/userprofile");
-    });
+      // ✅ IMPORTANT: return + session.save
+      return req.session.save(() => {
+        res.redirect("/userprofile");
+      });
     }
-
 
     // ❌ Basic validation
     if (!username || !phoneNo) {
@@ -260,10 +250,10 @@ exports.postUserEditDetails = async (req, res, next) => {
         type: "error",
         message: "Username and mobile number are required",
       };
-          // ✅ IMPORTANT: return + session.save
-    return req.session.save(() => {
-      res.redirect("/userprofile");
-    });
+      // ✅ IMPORTANT: return + session.save
+      return req.session.save(() => {
+        res.redirect("/userprofile");
+      });
     }
 
     // ❌ Check duplicate username
@@ -278,10 +268,10 @@ exports.postUserEditDetails = async (req, res, next) => {
         type: "error",
         message: "Username already in use",
       };
-          // ✅ IMPORTANT: return + session.save
-    return req.session.save(() => {
-      res.redirect("/userprofile");
-    });
+      // ✅ IMPORTANT: return + session.save
+      return req.session.save(() => {
+        res.redirect("/userprofile");
+      });
     }
     const phoneRegex = /^[6-9]\d{9}$/;
     if (!phoneRegex.test(phoneNo)) {
@@ -290,10 +280,10 @@ exports.postUserEditDetails = async (req, res, next) => {
         type: "error",
         message: "Enter a valid 10-digit mobile number",
       };
-          // ✅ IMPORTANT: return + session.save
-    return req.session.save(() => {
-      res.redirect("/userprofile");
-    });
+      // ✅ IMPORTANT: return + session.save
+      return req.session.save(() => {
+        res.redirect("/userprofile");
+      });
     }
 
     // ❌ Check duplicate phone
@@ -308,10 +298,10 @@ exports.postUserEditDetails = async (req, res, next) => {
         type: "error",
         message: "Mobile number already in use",
       };
-          // ✅ IMPORTANT: return + session.save
-    return req.session.save(() => {
-      res.redirect("/userprofile");
-    });
+      // ✅ IMPORTANT: return + session.save
+      return req.session.save(() => {
+        res.redirect("/userprofile");
+      });
     }
 
     // ✅ Update user
@@ -329,11 +319,10 @@ exports.postUserEditDetails = async (req, res, next) => {
       message: "Profile updated successfully",
     };
 
-        // ✅ IMPORTANT: return + session.save
+    // ✅ IMPORTANT: return + session.save
     return req.session.save(() => {
       res.redirect("/userprofile");
     });
-
   } catch (err) {
     console.error("postUserEditDetails Error:", err);
 
@@ -348,18 +337,15 @@ exports.postUserEditDetails = async (req, res, next) => {
         message: firstErrorMessage,
       };
 
-          // ✅ IMPORTANT: return + session.save
-    return req.session.save(() => {
-      res.redirect("/userprofile");
-    });
+      // ✅ IMPORTANT: return + session.save
+      return req.session.save(() => {
+        res.redirect("/userprofile");
+      });
     }
 
     next(err);
   }
 };
-
-
-
 
 exports.getUserBankDetailsPage = async (req, res, next) => {
   try {
@@ -383,7 +369,7 @@ exports.getUserBankDetailsPage = async (req, res, next) => {
     }
 
     const admin = await User.findOne({ role: "admin" }).select(
-      "username phoneNo profilePhoto"
+      "username phoneNo profilePhoto",
     );
 
     // 👇 fetch saved bank details
@@ -402,7 +388,6 @@ exports.getUserBankDetailsPage = async (req, res, next) => {
       flash,
       isLoggedIn: req.session.isLoggedIn,
     });
-
   } catch (err) {
     console.error("userBankDetails Error:", err);
     next(err);
@@ -449,7 +434,7 @@ exports.postUserBankDetails = async (req, res, next) => {
       req.session.oldInput = req.body; // 👈 save old input
       req.session.flash = {
         type: "error",
-        message: "All fields are required"
+        message: "All fields are required",
       };
       return res.redirect("/user/bank-details");
     }
@@ -467,7 +452,7 @@ exports.postUserBankDetails = async (req, res, next) => {
       await bankDetails.save();
       req.session.flash = {
         type: "success",
-        message: "Bank details updated successfully"
+        message: "Bank details updated successfully",
       };
     } else {
       await UserBankDetails.create({
@@ -480,13 +465,12 @@ exports.postUserBankDetails = async (req, res, next) => {
       });
       req.session.flash = {
         type: "success",
-        message: "Bank details added successfully"
+        message: "Bank details added successfully",
       };
     }
 
     req.session.oldInput = null; // clear
     res.redirect("/userbankdetails");
-
   } catch (err) {
     console.error("postUserBankDetails Error:", err);
 
@@ -509,11 +493,8 @@ exports.postUserBankDetails = async (req, res, next) => {
   }
 };
 
-
-
 exports.getUserChangePasswordPage = async (req, res, next) => {
   try {
-
     // 🔐 User Security Check
     if (
       !req.session.isLoggedIn ||
@@ -526,7 +507,7 @@ exports.getUserChangePasswordPage = async (req, res, next) => {
     const user = await User.findOne({
       _id: req.session.user._id,
       role: "user",
-      userStatus: "active"
+      userStatus: "active",
     }).select("-password");
 
     if (!user) {
@@ -536,7 +517,7 @@ exports.getUserChangePasswordPage = async (req, res, next) => {
 
     // Optional: admin info (for header/support)
     const admin = await User.findOne({ role: "admin" }).select(
-      "username phoneNo profilePhoto"
+      "username phoneNo profilePhoto",
     );
     const oldInput = req.session.oldInput || {};
     req.session.oldInput = null; // clear after use
@@ -547,15 +528,13 @@ exports.getUserChangePasswordPage = async (req, res, next) => {
       admin,
       oldInput,
       flash,
-      isLoggedIn: req.session.isLoggedIn
+      isLoggedIn: req.session.isLoggedIn,
     });
-
   } catch (err) {
     console.error("userChangePassword Error:", err);
     next(err);
   }
 };
-
 
 exports.postForgetUserPassword = async (req, res, next) => {
   try {
@@ -651,7 +630,6 @@ exports.postForgetUserPassword = async (req, res, next) => {
     return req.session.save(() => {
       res.redirect("/forgetuserpassword");
     });
-
   } catch (err) {
     console.error("postForgetUserPassword Error:", err);
 
@@ -666,10 +644,8 @@ exports.postForgetUserPassword = async (req, res, next) => {
   }
 };
 
-
 exports.getUserContactAdminPage = async (req, res, next) => {
   try {
-
     // 🔐 User Security Check
     if (
       !req.session.isLoggedIn ||
@@ -682,7 +658,7 @@ exports.getUserContactAdminPage = async (req, res, next) => {
     const user = await User.findOne({
       _id: req.session.user._id,
       role: "user",
-      userStatus: "active"
+      userStatus: "active",
     }).select("-password");
 
     if (!user) {
@@ -692,24 +668,22 @@ exports.getUserContactAdminPage = async (req, res, next) => {
 
     // Optional: admin info (for header/support)
     const admin = await User.findOne({ role: "admin" }).select(
-      "username phoneNo profilePhoto"
+      "username phoneNo profilePhoto",
     );
 
     res.render("User/userContactUs", {
       user,
       admin,
-      isLoggedIn: req.session.isLoggedIn
+      isLoggedIn: req.session.isLoggedIn,
     });
-
   } catch (err) {
     console.error("userContactAdmin Error:", err);
     next(err);
   }
-}
+};
 
 exports.getUserGameRatesPage = async (req, res, next) => {
   try {
-
     // 🔐 User Security Check
     if (
       !req.session.isLoggedIn ||
@@ -722,7 +696,7 @@ exports.getUserGameRatesPage = async (req, res, next) => {
     const user = await User.findOne({
       _id: req.session.user._id,
       role: "user",
-      userStatus: "active"
+      userStatus: "active",
     }).select("-password");
 
     if (!user) {
@@ -732,18 +706,18 @@ exports.getUserGameRatesPage = async (req, res, next) => {
 
     // Optional: admin info (for header/support)
     const admin = await User.findOne({ role: "admin" }).select(
-      "username phoneNo profilePhoto"
+      "username phoneNo profilePhoto",
     );
     // Fetch all game rates
-       const gameRates = await GameRate.find({ isActive: true })
-      .sort({ gameType: 1 });
+    const gameRates = await GameRate.find({ isActive: true }).sort({
+      gameType: 1,
+    });
     res.render("User/userGameRates", {
       user,
       admin,
       gameRates,
-      isLoggedIn: req.session.isLoggedIn
+      isLoggedIn: req.session.isLoggedIn,
     });
-
   } catch (err) {
     console.error("userGameRates Error:", err);
     next(err);
@@ -752,7 +726,6 @@ exports.getUserGameRatesPage = async (req, res, next) => {
 
 exports.getUserLanguagePage = async (req, res, next) => {
   try {
-
     // 🔐 User Security Check
     if (
       !req.session.isLoggedIn ||
@@ -765,7 +738,7 @@ exports.getUserLanguagePage = async (req, res, next) => {
     const user = await User.findOne({
       _id: req.session.user._id,
       role: "user",
-      userStatus: "active"
+      userStatus: "active",
     }).select("-password");
 
     if (!user) {
@@ -775,20 +748,187 @@ exports.getUserLanguagePage = async (req, res, next) => {
 
     // Optional: admin info (for header/support)
     const admin = await User.findOne({ role: "admin" }).select(
-      "username phoneNo profilePhoto"
+      "username phoneNo profilePhoto",
     );
 
     res.render("User/userLanguage", {
       user,
       admin,
-      isLoggedIn: req.session.isLoggedIn
+      isLoggedIn: req.session.isLoggedIn,
     });
-
   } catch (err) {
     console.error("userLanguage Error:", err);
     next(err);
   }
-}
+};
+
+exports.getPlayGamePage = async (req, res, next) => {
+  try {
+    // 🔐 User Security Check
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.user ||
+      req.session.user.role !== "user"
+    ) {
+      return res.redirect("/login");
+    }
+
+    const user = await User.findOne({
+      _id: req.session.user._id,
+      role: "user",
+      userStatus: "active",
+    }).select("-password");
+
+    if (!user) {
+      req.session.destroy();
+      return res.redirect("/login");
+    }
+
+    // Optional: admin info (for header/support)
+    const admin = await User.findOne({ role: "admin" }).select(
+      "username phoneNo profilePhoto",
+    );
+
+    const gameId = req.params.id;
+
+    const game = await Game.findById(gameId);
+    if (!game) {
+      return res.status(404).send("Game not found");
+    }
+
+    res.render("User/userMainGame", {
+      game,
+      admin,
+      user,
+      isLoggedIn: req.session.isLoggedIn,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("Server error");
+  }
+};
 
 
+//Game Betting Logic Start Here
+/* ================= PLACE SINGLE DIGIT BET ================= */
+exports.placeSingleDigitBet = async (req, res) => {
+  let user;
+
+  try {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.user ||
+      req.session.user.role !== "user"
+    ) {
+      return res.status(401).json({
+        success: false,
+        message: "Please login to place bet",
+      });
+    }
+
+    user = await User.findOne({
+      _id: req.session.user._id,
+      role: "user",
+      userStatus: "active",
+    });
+
+    if (!user) {
+      req.session.destroy();
+      return res.status(401).json({
+        success: false,
+        message: "Session expired. Login again",
+      });
+    }
+
+    const { gameId, gameName, betType, bets } = req.body;
+
+    if (!gameId || !betType || !Array.isArray(bets) || bets.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid bet data",
+      });
+    }
+
+    if (!["open", "close"].includes(betType)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid bet type",
+      });
+    }
+
+    let calculatedTotal = 0;
+
+    for (const bet of bets) {
+      if (
+        typeof bet.number !== "number" ||
+        bet.number < 0 ||
+        bet.number > 9 ||
+        typeof bet.amount !== "number" ||
+        bet.amount <= 0
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid bet numbers or amount",
+        });
+      }
+      calculatedTotal += bet.amount;
+    }
+
+    const game = await Game.findById(gameId);
+    if (!game || game.isDeleted || game.isJackpot) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid game selected",
+      });
+    }
+
+    if (user.wallet < calculatedTotal) {
+      return res.status(400).json({
+        success: false,
+        message: "Insufficient wallet balance",
+      });
+    }
+
+    const now = moment().tz("Asia/Kolkata");
+
+    user.wallet -= calculatedTotal;
+    await user.save();
+
+    const betDoc = new SingleDigitBet({
+      userId: user._id,
+      gameId,
+      gameName: game.gameName || gameName,
+      betType,
+      bets,
+      totalAmount: calculatedTotal,
+      playedDate: now.format("YYYY-MM-DD"),
+      playedTime: now.format("HH:mm"),
+      playedWeekday: now.format("dddd"),
+    });
+
+    await betDoc.save();
+
+    return res.json({
+      success: true,
+      message: `Bet placed successfully! ₹${calculatedTotal} deducted`,
+      wallet: user.wallet,
+    });
+  } catch (err) {
+    console.error("❌ SINGLE DIGIT BET ERROR:", err);
+
+    if (user && req.body?.bets) {
+      const refund = req.body.bets.reduce(
+        (s, b) => s + (Number(b.amount) || 0),
+        0
+      );
+      user.wallet += refund;
+      await user.save();
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong",
+    });
+  }
+};
 

@@ -13,5 +13,7 @@ userRouter.get('/usercontactadmin', userController.getUserContactAdminPage);
 userRouter.get('/userGameRates', userController.getUserGameRatesPage);
 userRouter.get('/userlanguage', userController.getUserLanguagePage);
 userRouter.post('/forgetuserpassword', userController.postForgetUserPassword);
-
+//Play Game Route Start Here
+userRouter.get("/play/:id", userController.getPlayGamePage);
+userRouter.post("/single-digit/place-bet", userController.placeSingleDigitBet);
 module.exports = userRouter;
