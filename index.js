@@ -6,7 +6,6 @@ const path = require("path");
 const mongoose = require("mongoose");
 const session = require("express-session");
 const MongoDBStore = require("connect-mongodb-session")(session);
-const flash = require("connect-flash");
 require("dotenv").config(); // <-- load .env variables
 
 // Import routes
@@ -14,6 +13,7 @@ const rootDir = require("./utils/pathUtils");
 const loginAndSignupRouter = require("./routes/loginAndSignupRouter");
 const userRouter = require("./routes/userRouter");
 const adminRouter = require("./routes/adminRouter");
+const timeRouter = require("./routes/time");
 // ---------------- EXPRESS APP ----------------
 const app = express();
 app.set("view engine", "ejs");
@@ -47,19 +47,11 @@ app.use((req, res, next) => {
   next();
 });
 
-/* ================= FLASH (SESSION KE BAAD) ================= */
-app.use(flash());
-
-/* ================= GLOBAL FLASH VARIABLES ================= */
-app.use((req, res, next) => {
-  res.locals.success = req.flash("success");
-  res.locals.error = req.flash("error");
-  next();
-});
 
 // ---------------- STATIC ----------------
 app.use(express.static(path.join(rootDir, "public")));
-
+// 🔥 SERVER TIME API (GLOBAL)
+app.use("/", timeRouter);
 // ---------------- ROUTES ----------------
 app.use(loginAndSignupRouter);
 app.use(userRouter);

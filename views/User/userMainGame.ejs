@@ -250,7 +250,8 @@
   <!-- ===================================== Single Digit ================================ -->
 
   <main id="singleDigitGame" data-game-id="<%= game._id %>" data-game-name="<%= game.gameName %>"
-    data-game-type="SINGLE_DIGIT" class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full z-50">
+    data-game-type="SINGLE_DIGIT"   data-open-time="<%= todaySchedule ? todaySchedule.openTime : '' %>"
+  data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>" class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full z-50">
 
     <!-- HEADER -->
 
@@ -300,6 +301,8 @@
   data-game-id="<%= game._id %>"
   data-game-name="<%= game.gameName %>"
   data-game-type="SINGLE_BULK_DIGIT"
+  data-open-time="<%= todaySchedule ? todaySchedule.openTime : '' %>"
+  data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>"
   class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full z-50"
 >
   <!-- HEADER -->

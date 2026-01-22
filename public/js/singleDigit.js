@@ -8,49 +8,94 @@ document.addEventListener("DOMContentLoaded", () => {
   const submitBtn = document.getElementById("submitSingleDigit");
   const betTypeSelect = document.getElementById("betTypeSingle");
 
-  /* ================= MESSAGE BOX FUNCTION ================= */
+  let serverTime = null;
+  let openTime = gameBox.dataset.openTime; // HH:mm
+  let openLocked = false; // 🔥 FLAG (IMPORTANT)
+
+  /* ================= MESSAGE BOX ================= */
   function showMessage(message, type = "success") {
-    // remove old box if exists
-    const oldBox = document.getElementById("jsMsgBox");
-    if (oldBox) oldBox.remove();
+    const old = document.getElementById("jsMsgBox");
+    if (old) old.remove();
 
     const box = document.createElement("div");
     box.id = "jsMsgBox";
     box.innerText = message;
 
-    // base styles
-    box.style.position = "fixed";
-    box.style.top = "20px";
-    box.style.left = "50%";
-    box.style.transform = "translateX(-50%)";
-    box.style.padding = "12px 24px";
-    box.style.borderRadius = "12px";
-    box.style.color = "#fff";
-    box.style.fontWeight = "600";
-    box.style.zIndex = "9999";
-    box.style.boxShadow = "0 10px 25px rgba(0,0,0,0.2)";
-    box.style.transition = "all 0.4s ease";
-    box.style.width = "fit-content";
-
-    // color by type
-    box.style.background = type === "success" ? "#16a34a" : "#dc2626";
+    Object.assign(box.style, {
+      position: "fixed",
+      top: "20px",
+      left: "50%",
+      transform: "translateX(-50%)",
+      padding: "12px 26px",
+      borderRadius: "14px",
+      color: "#fff",
+      fontWeight: "700",
+      fontSize: "14px",
+      zIndex: "99999",
+      boxShadow: "0 15px 30px rgba(0,0,0,.3)",
+      background:
+        type === "success"
+          ? "linear-gradient(135deg,#16a34a,#22c55e)"
+          : "linear-gradient(135deg,#dc2626,#ef4444)",
+      transition: "all .4s ease",
+    });
 
     document.body.appendChild(box);
 
-    // auto hide after 5 sec
     setTimeout(() => {
       box.style.opacity = "0";
       box.style.top = "0px";
-    }, 4500);
+    }, 4000);
 
-    setTimeout(() => box.remove(), 5000);
+    setTimeout(() => box.remove(), 4500);
   }
 
-  /* ================= OPEN / CLOSE GAME BOX ================= */
-  openBtn.addEventListener("click", () => gameBox.classList.remove("hidden"));
-  closeBtn.addEventListener("click", () => gameBox.classList.add("hidden"));
+  /* ================= SERVER TIME ================= */
+  async function syncServerTime() {
+    try {
+      const res = await fetch("/server-time");
+      const data = await res.json();
+      if (data.success) {
+        serverTime = data.time;
+      }
+    } catch (err) {
+      console.error("Time sync failed");
+    }
+  }
 
-  /* ================= CREATE INPUTS 0-9 ================= */
+  function checkOpenLock() {
+    if (!serverTime || !openTime) return;
+
+    // 🔒 already locked → kuch mat karo
+    if (openLocked) return;
+
+    if (serverTime >= openTime) {
+      openLocked = true; // ✅ LOCK ONCE
+
+      betTypeSelect.value = "close";
+      betTypeSelect.querySelector('option[value="open"]').disabled = true;
+
+      showMessage("Open Time Bet Close ❌", "error");
+    }
+  }
+
+  /* ================= AUTO CHECK EVERY 5 SEC ================= */
+  syncServerTime().then(checkOpenLock);
+
+  setInterval(async () => {
+    await syncServerTime();
+    checkOpenLock();
+  }, 5000);
+
+  /* ================= OPEN / CLOSE ================= */
+  openBtn.addEventListener("click", () =>
+    gameBox.classList.remove("hidden")
+  );
+  closeBtn.addEventListener("click", () =>
+    gameBox.classList.add("hidden")
+  );
+
+  /* ================= GRID ================= */
   let html = "";
   for (let i = 0; i <= 9; i++) {
     html += `
@@ -60,31 +105,30 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
         <input
           type="number"
-          inputmode="numeric"
-          placeholder="Amount"
           class="amount-input w-2/3 text-center font-semibold outline-none"
           data-number="${i}"
+          placeholder="Amount"
         />
       </div>
     `;
   }
   grid.innerHTML = html;
 
-  /* ================= TOTAL CALCULATION ================= */
   grid.addEventListener("input", () => {
     let total = 0;
-    grid.querySelectorAll(".amount-input").forEach(inp => {
-      total += parseInt(inp.value) || 0;
+    grid.querySelectorAll(".amount-input").forEach(i => {
+      total += parseInt(i.value) || 0;
     });
     totalDisplay.innerText = total;
   });
 
-  /* ================= SUBMIT BET ================= */
+  /* ================= SUBMIT ================= */
   submitBtn.addEventListener("click", () => {
     const bets = [];
+
     grid.querySelectorAll(".amount-input").forEach(input => {
       const amount = parseInt(input.value);
-      if (amount && amount > 0) {
+      if (amount > 0) {
         bets.push({
           number: Number(input.dataset.number),
           amount
@@ -93,37 +137,28 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     if (bets.length === 0) {
-      showMessage("Please enter at least one bet", "error");
+      showMessage("Please enter at least one bet ❌", "error");
       return;
     }
-
-    const payload = {
-      gameId: gameBox.dataset.gameId,
-      gameName: gameBox.dataset.gameName,
-      betType: betTypeSelect.value,
-      bets,
-      totalAmount: bets.reduce((s, b) => s + b.amount, 0)
-    };
-
-    console.log("BET DATA 👉", payload);
 
     fetch("/single-digit/place-bet", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({
+        gameId: gameBox.dataset.gameId,
+        gameName: gameBox.dataset.gameName,
+        betType: betTypeSelect.value,
+        bets
+      })
     })
       .then(res => res.json())
       .then(data => {
         if (data.success) {
           showMessage(data.message, "success");
-         // setTimeout(() => window.location.reload(), 2000); // optional reload
         } else {
           showMessage(data.message, "error");
         }
       })
-      .catch(err => {
-        console.error(err);
-        showMessage("Server error. Try again", "error");
-      });
+      .catch(() => showMessage("Server error ❌", "error"));
   });
 });
