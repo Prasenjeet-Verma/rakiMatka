@@ -10,7 +10,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let serverTime = null;
   let openTime = gameBox.dataset.openTime; // HH:mm
-  let openLocked = false; // 🔥 FLAG (IMPORTANT)
+  let openLocked = false;
+
+  // 🔥 current mode (default OPEN)
+  let currentMode = "OPEN";
 
   /* ================= MESSAGE BOX ================= */
   function showMessage(message, type = "success") {
@@ -37,17 +40,10 @@ document.addEventListener("DOMContentLoaded", () => {
         type === "success"
           ? "linear-gradient(135deg,#16a34a,#22c55e)"
           : "linear-gradient(135deg,#dc2626,#ef4444)",
-      transition: "all .4s ease",
     });
 
     document.body.appendChild(box);
-
-    setTimeout(() => {
-      box.style.opacity = "0";
-      box.style.top = "0px";
-    }, 4000);
-
-    setTimeout(() => box.remove(), 4500);
+    setTimeout(() => box.remove(), 3500);
   }
 
   /* ================= SERVER TIME ================= */
@@ -55,47 +51,42 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const res = await fetch("/server-time");
       const data = await res.json();
-      if (data.success) {
-        serverTime = data.time;
-      }
-    } catch (err) {
-      console.error("Time sync failed");
-    }
+      if (data.success) serverTime = data.time;
+    } catch {}
   }
 
   function checkOpenLock() {
-    if (!serverTime || !openTime) return;
-
-    // 🔒 already locked → kuch mat karo
-    if (openLocked) return;
+    if (!serverTime || !openTime || openLocked) return;
 
     if (serverTime >= openTime) {
-      openLocked = true; // ✅ LOCK ONCE
-
+      openLocked = true;
       betTypeSelect.value = "close";
       betTypeSelect.querySelector('option[value="open"]').disabled = true;
-
+      currentMode = "CLOSE";
       showMessage("Open Time Bet Close ❌", "error");
     }
   }
 
-  /* ================= AUTO CHECK EVERY 5 SEC ================= */
   syncServerTime().then(checkOpenLock);
-
   setInterval(async () => {
     await syncServerTime();
     checkOpenLock();
   }, 5000);
 
   /* ================= OPEN / CLOSE ================= */
-  openBtn.addEventListener("click", () =>
+  openBtn?.addEventListener("click", () =>
     gameBox.classList.remove("hidden")
   );
-  closeBtn.addEventListener("click", () =>
+  closeBtn?.addEventListener("click", () =>
     gameBox.classList.add("hidden")
   );
 
-  /* ================= GRID ================= */
+  /* ================= MODE CHANGE ================= */
+  betTypeSelect.addEventListener("change", () => {
+    currentMode = betTypeSelect.value.toUpperCase();
+  });
+
+  /* ================= GRID CREATE ================= */
   let html = "";
   for (let i = 0; i <= 9; i++) {
     html += `
@@ -107,6 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
           type="number"
           class="amount-input w-2/3 text-center font-semibold outline-none"
           data-number="${i}"
+          data-mode="OPEN"
           placeholder="Amount"
         />
       </div>
@@ -114,24 +106,31 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   grid.innerHTML = html;
 
-  grid.addEventListener("input", () => {
+  /* ================= INPUT HANDLER ================= */
+  grid.addEventListener("input", (e) => {
+    if (!e.target.classList.contains("amount-input")) return;
+
+    // 🔒 lock mode at input time
+    e.target.dataset.mode = currentMode;
+
     let total = 0;
-    grid.querySelectorAll(".amount-input").forEach(i => {
+    grid.querySelectorAll(".amount-input").forEach((i) => {
       total += parseInt(i.value) || 0;
     });
     totalDisplay.innerText = total;
   });
 
   /* ================= SUBMIT ================= */
-  submitBtn.addEventListener("click", () => {
+  submitBtn.addEventListener("click", async () => {
     const bets = [];
 
-    grid.querySelectorAll(".amount-input").forEach(input => {
+    grid.querySelectorAll(".amount-input").forEach((input) => {
       const amount = parseInt(input.value);
       if (amount > 0) {
         bets.push({
           number: Number(input.dataset.number),
-          amount
+          amount,
+          mode: input.dataset.mode, // 🔥 per-input mode
         });
       }
     });
@@ -141,24 +140,25 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    fetch("/single-digit/place-bet", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        gameId: gameBox.dataset.gameId,
-        gameName: gameBox.dataset.gameName,
-        betType: betTypeSelect.value,
-        bets
-      })
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          showMessage(data.message, "success");
-        } else {
-          showMessage(data.message, "error");
-        }
-      })
-      .catch(() => showMessage("Server error ❌", "error"));
+    try {
+      const res = await fetch("/single-digit/place-bet", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          gameId: gameBox.dataset.gameId,
+          gameName: gameBox.dataset.gameName,
+          bets,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        showMessage(data.message || "Bet placed ✅");
+      } else {
+        showMessage(data.message || "Bet failed ❌", "error");
+      }
+    } catch {
+      showMessage("Server error ❌", "error");
+    }
   });
 });

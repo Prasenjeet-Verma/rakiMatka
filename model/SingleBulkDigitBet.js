@@ -12,6 +12,11 @@ const bulkDigitItemSchema = new mongoose.Schema({
     type: Number,
     required: true,
     min: 1
+  },
+  mode: {
+    type: String,
+    enum: ["OPEN", "CLOSE"],
+    required: true
   }
 });
 
@@ -23,71 +28,46 @@ const singleBulkDigitBetSchema = new mongoose.Schema(
       ref: "User",
       required: true
     },
-
     gameId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Game",
       required: true
     },
-
     gameName: {
       type: String,
       required: true
     },
-
-    /* 🔒 FIXED GAME TYPE */
     gameType: {
       type: String,
       default: "SINGLE_BULK_DIGIT",
       immutable: true
     },
-
-    session: {
-      type: String,
-      enum: ["OPEN", "CLOSE"],
-      required: true
-    },
-
     bets: {
       type: [bulkDigitItemSchema],
-       required: true,
+      required: true,
       validate: [
         arr => arr.length > 0,
         "At least one bulk digit bet required"
       ]
     },
-
     totalAmount: {
       type: Number,
       required: true
     },
-
-    /* ================= RESULT ================= */
     resultStatus: {
       type: String,
       enum: ["PENDING", "WIN", "LOSS"],
       default: "PENDING"
     },
-
     winningNumber: {
       type: Number,
       min: 0,
       max: 9,
       default: null
     },
-
-    /* ================= INDIAN TIME ================= */
-    playedDate: {
-      type: String // YYYY-MM-DD
-    },
-
-    playedTime: {
-      type: String // HH:mm
-    },
-
-    playedWeekday: {
-      type: String // Monday
-    }
+    playedDate: String,
+    playedTime: String,
+    playedWeekday: String
   },
   { timestamps: true }
 );

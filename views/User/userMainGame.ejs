@@ -5,6 +5,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Milan Morning</title>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.43/moment-timezone-with-data.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <link rel="stylesheet" href="/css/userMainGame.css" />
@@ -245,6 +247,7 @@
       <p class="mt-4 font-semibold text-gray-800">Red Bracket</p>
     </div>
   </div>
+
   <!-- ===================================== Single Digit ================================ -->
 
   <main id="singleDigitGame" data-game-id="<%= game._id %>" data-game-name="<%= game.gameName %>"
@@ -294,7 +297,6 @@
   </main>
 
   <!-- ===================================== Single Bulk Digit ================================ -->
-
   <main id="SingleBulkDigit" data-game-id="<%= game._id %>" data-game-name="<%= game.gameName %>"
     data-game-type="SINGLE_BULK_DIGIT" data-open-time="<%= todaySchedule ? todaySchedule.openTime : '' %>"
     data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>"
@@ -314,11 +316,11 @@
         <div class="text-xl font-bold">Choose<br />Session</div>
         <div class="flex space-x-6">
           <label class="flex items-center space-x-2">
-            <input type="radio" name="session" value="OPEN" checked />
+            <input type="radio" name="sessionSB" value="OPEN" />
             <span class="font-bold">Open</span>
           </label>
           <label class="flex items-center space-x-2">
-            <input type="radio" name="session" value="CLOSE" />
+            <input type="radio" name="sessionSB" value="CLOSE" />
             <span class="font-bold">Close</span>
           </label>
         </div>
@@ -346,7 +348,7 @@
           <div class="text-xs uppercase">Total Amount</div>
           <div id="totalAmount" class="text-xl font-black">0</div>
         </div>
-        <button onclick="submitBids()" class="bg-[#065f56] text-white px-10 py-3 rounded-xl font-bold">
+        <button onclick="submitBidsofsinglebulk()" class="bg-[#065f56] text-white px-10 py-3 rounded-xl font-bold">
           Submit
         </button>
       </div>
@@ -612,7 +614,9 @@
 
   </main>
   <!-- ===================================== Double Panna ================================ -->
-  <main id="DoublePanna" class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
+  <main id="DoublePanna" data-game-id="<%= game._id %>" data-game-name="<%= game.gameName %>"
+    data-open-time="<%= todaySchedule ? todaySchedule.openTime : '' %>"
+    data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>"class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
     <!-- HEADER -->
 
     <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">

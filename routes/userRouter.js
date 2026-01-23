@@ -21,4 +21,5 @@ userRouter.post("/jodi-digit/place-bet", userController.placeJodiDigitBet);
 userRouter.post("/jodi-digit-bulk/place-bet", userController.placeJodiDigitBulkBet);
 userRouter.post("/single-panna/place-bet", userController.placeSinglePannaBet);
 userRouter.post("/single-panna-bulk/place-bet", userController.placeSinglePannaBulkBet);
+userRouter.post("/double-panna/place-bet", userController.placeDoublePannaBet);
 module.exports = userRouter;

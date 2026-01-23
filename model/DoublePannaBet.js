@@ -1,16 +1,16 @@
 const mongoose = require("mongoose");
 
-/* ================= SINGLE PANNA ITEM ================= */
-const singlePannaItemSchema = new mongoose.Schema({
+/* ================= DOUBLE PANNA ITEM ================= */
+const doublePannaItemSchema = new mongoose.Schema({
   mainNo: {
-    type: Number,
+    type: Number, // 0 - 9
     required: true,
     min: 0,
     max: 9
   },
 
   underNo: {
-    type: String,
+    type: String, // "337"
     required: true,
     match: /^[0-9]{3}$/
   },
@@ -21,7 +21,7 @@ const singlePannaItemSchema = new mongoose.Schema({
     min: 1
   },
 
-  // 🔥 MODE PER PANNA
+  /* 🔥 IMPORTANT (OPEN / CLOSE per panna) */
   mode: {
     type: String,
     enum: ["OPEN", "CLOSE"],
@@ -29,8 +29,8 @@ const singlePannaItemSchema = new mongoose.Schema({
   }
 });
 
-/* ================= SINGLE PANNA BET ================= */
-const singlePannaBetSchema = new mongoose.Schema(
+/* ================= DOUBLE PANNA BET ================= */
+const doublePannaBetSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -49,18 +49,20 @@ const singlePannaBetSchema = new mongoose.Schema(
       required: true
     },
 
+    /* 🔒 FIXED GAME TYPE */
     gameType: {
       type: String,
-      default: "SINGLE_PANNA",
+      default: "DOUBLE_PANNA",
       immutable: true
     },
 
+    /* 🔥 REMOVE betType (not needed here) */
     bets: {
-      type: [singlePannaItemSchema],
+      type: [doublePannaItemSchema],
       required: true,
       validate: [
         arr => arr.length > 0,
-        "At least one single panna bet required"
+        "At least one double panna bet required"
       ]
     },
 
@@ -82,14 +84,14 @@ const singlePannaBetSchema = new mongoose.Schema(
     },
 
     /* ================= INDIAN TIME ================= */
-    playedDate: String,
-    playedTime: String,
-    playedWeekday: String
+    playedDate: String,   // YYYY-MM-DD
+    playedTime: String,   // HH:mm
+    playedWeekday: String // Monday
   },
   { timestamps: true }
 );
 
 module.exports = mongoose.model(
-  "SinglePannaBet",
-  singlePannaBetSchema
+  "DoublePannaBet",
+  doublePannaBetSchema
 );

@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const totalAmountDisplay = document.getElementById("totalAmount");
 
   /* ================= STATE ================= */
-  let bets = Array(10).fill(0);
+  let bets = Array(10).fill(null); // each item: {amount, mode} or null
   let holdTimer = null;
 
   let serverTime = null;
@@ -67,28 +67,27 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!serverTime || !openTime || !closeTime) return;
 
     const selectedSession = document.querySelector(
-      'input[name="session"]:checked'
+      'input[name="sessionSB"]:checked'
     )?.value;
 
-    // OPEN session lock
-    if (selectedSession === "OPEN" && serverTime >= openTime) {
+    const serverMoment = moment(serverTime, "HH:mm");
+    const openMoment = moment(openTime, "HH:mm");
+
+    if (selectedSession === "OPEN" && serverMoment.isSameOrAfter(openMoment)) {
       const openRadio = document.querySelector(
-        'input[name="session"][value="OPEN"]'
+        'input[name="sessionSB"][value="OPEN"]'
       );
       if (openRadio) openRadio.disabled = true;
 
       document.querySelector(
-        'input[name="session"][value="CLOSE"]'
+        'input[name="sessionSB"][value="CLOSE"]'
       ).checked = true;
 
       showMessage("Open Time Bet Close ❌", "error");
     }
-
-    // OPTIONAL: CLOSE session lock after closeTime (controller already blocks)
-    // if needed, can add UI disable for CLOSE too
   }
 
-  /* ================= AUTO CHECK EVERY 5 SEC ================= */
+  /* ================= AUTO CHECK SERVER TIME ================= */
   syncServerTime().then(checkSessionLock);
   setInterval(async () => {
     await syncServerTime();
@@ -108,7 +107,7 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ================= GRID INIT ================= */
   function initGrid() {
     gridContainer.innerHTML = "";
-    bets = Array(10).fill(0);
+    bets = Array(10).fill(null); // reset all bets
     pointsInput.value = "";
     updateUI();
 
@@ -129,32 +128,36 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  /* ================= CLICK ================= */
-  function handleCardClick(index) {
-    const session = document.querySelector(
-      'input[name="session"]:checked'
-    ).value;
+  /* ================= HANDLE CARD CLICK ================= */
+function handleCardClick(index) {
+  const pointsRaw = pointsInput.value.trim();
+  const points = parseInt(pointsRaw, 10);
 
-    // ❌ OPEN session blocked after openTime
-    if (session === "OPEN" && serverTime >= openTime) {
-      showMessage("Open Time Bet Close ❌", "error");
-      return;
-    }
-
-    const points = parseInt(pointsInput.value);
-    if (!points || points <= 0) {
-      showMessage("Enter points first ❌", "error");
-      return;
-    }
-
-    bets[index] = bets[index] === 0 ? points : bets[index] * 2;
-    updateUI();
+  // 1️⃣ Check if points entered
+  if (!pointsRaw || isNaN(points) || points <= 0) {
+    showMessage("Enter points first ❌", "error");
+    return;
   }
+
+  // 2️⃣ Check if session selected
+  const sessionRadio = document.querySelector('input[name="sessionSB"]:checked');
+  if (!sessionRadio) {
+    showMessage("Please select Open or Close session ❌", "error");
+    return;
+  }
+
+  const selectedMode = sessionRadio.value;
+
+  bets[index] = { amount: points, mode: selectedMode };
+  updateUI();
+}
+
+
 
   /* ================= HOLD TO CLEAR ================= */
   function startHold(index) {
     holdTimer = setTimeout(() => {
-      bets[index] = 0;
+      bets[index] = null; // clear properly
       if (navigator.vibrate) navigator.vibrate(40);
       updateUI();
     }, 700);
@@ -164,7 +167,7 @@ document.addEventListener("DOMContentLoaded", () => {
     clearTimeout(holdTimer);
   }
 
-  /* ================= UI UPDATE ================= */
+  /* ================= UPDATE UI ================= */
   function updateUI() {
     let totalBids = 0;
     let totalAmount = 0;
@@ -174,14 +177,14 @@ document.addEventListener("DOMContentLoaded", () => {
       const badge = card.querySelector(".badge");
       if (badge) badge.remove();
 
-      if (val > 0) {
+      if (val) {
         totalBids++;
-        totalAmount += val;
+        totalAmount += val.amount;
 
         const span = document.createElement("span");
         span.className =
           "badge absolute -top-2 -right-2 bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded-full";
-        span.innerText = val;
+        span.innerText = `${val.amount} (${val.mode[0]})`;
 
         card.appendChild(span);
         card.classList.add("brightness-125");
@@ -194,20 +197,29 @@ document.addEventListener("DOMContentLoaded", () => {
     totalAmountDisplay.innerText = totalAmount;
   }
 
-  /* ================= SUBMIT ================= */
-  window.submitBids = function () {
+  /* ================= SUBMIT BIDS ================= */
+  window.submitBidsofsinglebulk = function () {
     const session = document.querySelector(
-      'input[name="session"]:checked'
+      'input[name="sessionSB"]:checked'
     ).value;
 
-    if (session === "OPEN" && serverTime >= openTime) {
+    const serverMoment = moment(serverTime, "HH:mm");
+    const openMoment = moment(openTime, "HH:mm");
+    const closeMoment = moment(closeTime, "HH:mm");
+
+    if (session === "OPEN" && serverMoment.isSameOrAfter(openMoment)) {
       showMessage("Open Time Bet Close ❌", "error");
       return;
     }
 
+    if (session === "CLOSE" && serverMoment.isSameOrAfter(closeMoment)) {
+      showMessage("Close Time Bet Close ❌", "error");
+      return;
+    }
+
     const activeBids = bets
-      .map((amount, number) => ({ number, amount }))
-      .filter(b => b.amount > 0);
+      .map((b, number) => b && { number, amount: b.amount, mode: b.mode })
+      .filter(b => b);
 
     if (activeBids.length === 0) {
       showMessage("Please place at least one bet ❌", "error");
@@ -220,7 +232,6 @@ document.addEventListener("DOMContentLoaded", () => {
       body: JSON.stringify({
         gameId: gameBox.dataset.gameId,
         gameName: gameBox.dataset.gameName,
-        session,
         bets: activeBids,
         totalAmount: activeBids.reduce((s, b) => s + b.amount, 0),
       }),
@@ -229,7 +240,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .then(data => {
         if (data.success) {
           showMessage(data.message || "Bet placed successfully ✅");
-          initGrid();
+          initGrid(); // reset grid after successful bet
         } else {
           showMessage(data.message || "Bet failed ❌", "error");
         }
