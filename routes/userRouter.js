@@ -19,4 +19,6 @@ userRouter.post("/single-digit/place-bet", userController.placeSingleDigitBet);
 userRouter.post("/single-bulk-digit/place-bet", userController.placeSingleBulkDigitBet);
 userRouter.post("/jodi-digit/place-bet", userController.placeJodiDigitBet);
 userRouter.post("/jodi-digit-bulk/place-bet", userController.placeJodiDigitBulkBet);
+userRouter.post("/single-panna/place-bet", userController.placeSinglePannaBet);
+userRouter.post("/single-panna-bulk/place-bet", userController.placeSinglePannaBulkBet);
 module.exports = userRouter;
