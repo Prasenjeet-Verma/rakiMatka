@@ -5,7 +5,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const gameBox = document.getElementById("triplePanna");
   const grid = document.getElementById("tp-main-grid");
   const totalDisplay = document.getElementById("tp-final-total");
-  const submitBtn = document.querySelector("#triplePanna button[onclick='tpSubmitFinalData()']");
   const betTypeSelect = document.getElementById("tp-select-trigger");
 
   /* ================= VARIABLES ================= */
@@ -15,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let openLocked = false;
   let currentMode = "OPEN";
 
-  /* ================= MESSAGE SYSTEM ================= */
+  /* ================= MESSAGE ================= */
   function showMessage(message, type = "success") {
     const old = document.getElementById("jsMsgBox");
     if (old) old.remove();
@@ -35,17 +34,16 @@ document.addEventListener("DOMContentLoaded", () => {
       fontWeight: "700",
       fontSize: "14px",
       zIndex: "99999",
-      boxShadow: "0 15px 30px rgba(0,0,0,.3)",
       background: type === "success"
         ? "linear-gradient(135deg,#16a34a,#22c55e)"
         : "linear-gradient(135deg,#dc2626,#ef4444)",
     });
 
     document.body.appendChild(box);
-    setTimeout(() => box.remove(), 3500);
+    setTimeout(() => box.remove(), 3000);
   }
 
-  /* ================= SERVER TIME & OPEN LOCK ================= */
+  /* ================= SERVER TIME ================= */
   async function syncServerTime() {
     try {
       const res = await fetch("/server-time");
@@ -59,9 +57,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (serverTime >= openTime) {
       openLocked = true;
+      currentMode = "CLOSE";
+
       if (betTypeSelect) {
         betTypeSelect.innerText = "CLOSE";
+        betTypeSelect.disabled = true;
+        betTypeSelect.classList.add("opacity-50", "cursor-not-allowed");
       }
+
+      const menu = document.getElementById("tp-dropdown-box");
+      if (menu) menu.classList.add("tp-hidden");
+
       showMessage("Open Time Bet Closed ❌", "error");
     }
   }
@@ -72,57 +78,71 @@ document.addEventListener("DOMContentLoaded", () => {
     checkOpenLock();
   }, 5000);
 
-  /* ================= MODAL OPEN/CLOSE ================= */
+  /* ================= OPEN / CLOSE MODAL ================= */
   openBtn?.addEventListener("click", () => gameBox?.classList.remove("hidden"));
-  closeBtn?.addEventListener("click", () => gameBox?.classList.add("hidden"));
+ closeBtn?.addEventListener("click", () => {
+  // Reset all input fields inside the grid
+  grid.querySelectorAll(".tp-amount-input").forEach(input => {
+    input.value = "";
+    input.dataset.mode = "OPEN"; // optional: reset mode
+  });
 
- 
-/* ================= MODE CHANGE / DROPDOWN ================= */
-window.tpToggleMenu = () => {
-  const menu = document.getElementById("tp-dropdown-box");
-  if (menu) menu.classList.toggle("tp-hidden");
-};
-
-window.tpSetGameType = (val) => {
-  if (betTypeSelect) betTypeSelect.innerText = val;
-  currentMode = val;
-  const menu = document.getElementById("tp-dropdown-box");
-  if (menu) menu.classList.add("tp-hidden");
-};
+  // Reset total display
+  if (totalDisplay) totalDisplay.value = "0";
+});
 
 
-  /* ================= GRID CREATE ================= */
+  /* ================= DROPDOWN ================= */
+  window.tpToggleMenu = () => {
+    if (openLocked) return;
+    const menu = document.getElementById("tp-dropdown-box");
+    if (menu) menu.classList.toggle("tp-hidden");
+  };
+
+  window.tpSetGameType = (val) => {
+    if (openLocked && val === "OPEN") {
+      showMessage("Open Time Bet Closed ❌", "error");
+      return;
+    }
+    currentMode = val;
+    if (betTypeSelect) betTypeSelect.innerText = val;
+
+    const menu = document.getElementById("tp-dropdown-box");
+    if (menu) menu.classList.add("tp-hidden");
+  };
+
+  /* ================= GRID ================= */
   if (grid) {
     tpNumbers.forEach((num) => {
       const div = document.createElement("div");
-      div.className = "flex border-2 border-[#005c4b] rounded overflow-hidden bg-white hover:shadow-md transition-shadow";
+      div.className =
+        "flex border-2 border-[#005c4b] rounded overflow-hidden bg-white";
       div.innerHTML = `
-        <div class="bg-[#005c4b] text-white w-12 md:w-16 flex items-center justify-center font-bold text-sm md:text-base">
+        <div class="bg-[#005c4b] text-white w-14 flex items-center justify-center font-bold">
           ${num}
         </div>
         <input type="number" placeholder="0"
-               class="tp-amount-input w-full p-2 outline-none text-gray-700 font-semibold"
-               data-number="${num}" data-mode="OPEN">
+          class="tp-amount-input w-full p-2 outline-none font-semibold"
+          data-number="${num}" data-mode="OPEN">
       `;
       grid.appendChild(div);
     });
   }
 
-  /* ================= INPUT HANDLER ================= */
+  /* ================= INPUT ================= */
   grid?.addEventListener("input", (e) => {
     if (!e.target.classList.contains("tp-amount-input")) return;
     e.target.dataset.mode = currentMode;
 
-    // live total
     let sum = 0;
     grid.querySelectorAll(".tp-amount-input").forEach((i) => {
-      const val = parseFloat(i.value);
-      if (!isNaN(val)) sum += val;
+      const v = parseFloat(i.value);
+      if (!isNaN(v)) sum += v;
     });
-    if (totalDisplay) totalDisplay.value = sum.toLocaleString();
+    if (totalDisplay) totalDisplay.value = sum;
   });
 
-  /* ================= SUBMIT BETS ================= */
+  /* ================= SUBMIT ================= */
   window.tpSubmitFinalData = async () => {
     const bets = [];
     grid.querySelectorAll(".tp-amount-input").forEach((input) => {
@@ -154,8 +174,7 @@ window.tpSetGameType = (val) => {
 
       const data = await res.json();
       if (data.success) {
-        showMessage(data.message || "Bet placed ✅");
-        // Reset inputs
+        showMessage("Bet placed ✅");
         grid.querySelectorAll(".tp-amount-input").forEach(i => i.value = "");
         if (totalDisplay) totalDisplay.value = "0";
       } else {

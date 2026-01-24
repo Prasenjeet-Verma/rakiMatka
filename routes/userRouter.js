@@ -24,4 +24,6 @@ userRouter.post("/single-panna-bulk/place-bet", userController.placeSinglePannaB
 userRouter.post("/double-panna/place-bet", userController.placeDoublePannaBet);
 userRouter.post("/double-panna-bulk/place-bet", userController.placeDoublePannaBulkBet);
 userRouter.post("/triple-panna/place-bet", userController.placeTriplePannaBet);
+userRouter.post("/odd-even/place-bet", userController.placeOddEvenBet)
+userRouter.post("/half-sangam/place-bet", userController.placeHalfSangamBet)
 module.exports = userRouter;

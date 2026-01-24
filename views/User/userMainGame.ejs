@@ -808,9 +808,13 @@
     </div>
 
   </main>
+
+  
   <!-- ===================================== Odd Even ================================ -->
 
-  <main id="oddEven" class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
+  <main id="oddEven" data-game-id="<%= game._id %>" data-game-name="<%= game.gameName %>"
+    data-open-time="<%= todaySchedule ? todaySchedule.openTime : '' %>"
+    data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>" class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
     <!-- HEADER -->
 
     <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
@@ -913,9 +917,12 @@
 
   </main>
 
-  <!-- ===================================== Half Sugam ================================ -->
 
-  <main id="halfSugam" class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
+  <!-- ===================================== Half Sangam ================================ -->
+
+  <main id="halfSugam" data-game-id="<%= game._id %>" data-game-name="<%= game.gameName %>"
+    data-open-time="<%= todaySchedule ? todaySchedule.openTime : '' %>"
+    data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>" class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
     <!-- HEADER -->
 
     <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
@@ -933,12 +940,12 @@
 
         <div class="flex space-x-6">
           <label class="flex items-center space-x-2">
-            <input type="radio" name="session" checked class="accent-teal-700 w-5 h-5" />
+            <input type="radio" name="session" required checked class="accent-teal-700 w-5 h-5" />
             <span class="font-semibold text-lg">Open</span>
           </label>
 
           <label class="flex items-center space-x-2">
-            <input type="radio" name="session" class="accent-gray-400 w-5 h-5" />
+            <input type="radio" name="session" required class="accent-gray-400 w-5 h-5" />
             <span class="font-semibold text-lg text-gray-600">Close</span>
           </label>
         </div>
@@ -948,7 +955,7 @@
       <div class="flex justify-between items-center">
         <h2 class="text-xl font-bold text-gray-900">Open Digit:</h2>
 
-        <input type="number" placeholder="Enter Digit"
+        <input type="number" placeholder="Enter Digit" required
           class="w-52 px-4 py-3 rounded-xl shadow-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-700 font-semibold" />
       </div>
 
@@ -956,7 +963,7 @@
       <div class="flex justify-between items-center">
         <h2 class="text-xl font-bold text-gray-900">Close Panna</h2>
 
-        <input type="number" placeholder="Enter Panna"
+        <input type="number" placeholder="Enter Panna" required
           class="w-52 px-4 py-3 rounded-xl shadow-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-700 font-semibold" />
       </div>
 
@@ -964,7 +971,7 @@
       <div class="flex justify-between items-center">
         <h2 class="text-xl font-bold text-gray-900">Points</h2>
 
-        <input type="number" placeholder="Enter Point"
+        <input type="number" placeholder="Enter Point" required
           class="w-52 px-4 py-3 rounded-xl shadow-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-700 font-semibold" />
       </div>
 
@@ -975,18 +982,25 @@
           Add
         </button>
       </div>
-    </div>
+        <!-- ================== SUBMIT BUTTON ================== -->
 
+    </div>
+  <button
+    id="HalfSangamSubmit"
+    name="HalfSangamSubmit"
+    class="bg-green-600 text-white text-xl font-bold px-20 py-4 rounded-2xl shadow-lg active:scale-95 transition">
+    Submit
+  </button>
     <!-- BOTTOM BAR -->
     <div class="border-t-2 border-teal-800 bg-white py-4">
       <div class="flex justify-around text-center font-semibold text-lg">
         <div>
           <div>Bids</div>
-          <div class="text-gray-600">0</div>
+          <div id="halfSangamBids" class="text-gray-600">0</div>
         </div>
         <div>
           <div>Amount</div>
-          <div class="text-gray-600">0</div>
+          <div id="halfSangamAmount" class="text-gray-600">0</div>
         </div>
       </div>
     </div>
@@ -1364,6 +1378,7 @@
   <script src="/js/singlePannaBulk.js"></script>
   <script src="/js/doublePannaBulk.js" defer></script>
   <script src="/js/oddEven.js"></script>
+  <script src="/js/HalfSangam.js"></script>
   <script src="/js/redBracket.js"></script>
 
 </body>

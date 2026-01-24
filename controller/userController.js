@@ -12,8 +12,11 @@ const JodiDigitBulkBet = require("../model/JodiDigitBulkBet");
 const SinglePannaBet = require("../model/SinglePannaBet");
 const SinglePannaBulkBet = require("../model/SinglePannaBulkBet");
 const DoublePannaBet = require("../model/DoublePannaBet");
-const DoublePannaBulkBet = require("../model/DoublePannaBulkBet")
-const TriplePannaBet = require("../model/TriplePannaBet")
+const DoublePannaBulkBet = require("../model/DoublePannaBulkBet");
+const TriplePannaBet = require("../model/TriplePannaBet");
+const OddEvenBet = require("../model/OddEvenBet");
+const HalfSangamBet = require("../model/HalfSangamBet");
+
 exports.UserHomePage = async (req, res, next) => {
   try {
     // This will be either the user object or undefined
@@ -1738,5 +1741,246 @@ exports.placeTriplePannaBet = async (req, res, next) => {
   } catch (err) {
     console.error("❌ TRIPLE PANNA BET ERROR:", err);
     return res.json({ success: false, message: "Server error ❌" });
+  }
+};
+
+
+/* ================= DIGIT MAP ================= */
+const ODD_DIGITS = [1, 3, 5, 7, 9];
+const EVEN_DIGITS = [0, 2, 4, 6, 8];
+
+exports.placeOddEvenBet = async (req, res) => {
+  try {
+    /* ================= AUTH ================= */
+    if (
+      !req.session?.isLoggedIn ||
+      !req.session.user ||
+      req.session.user.role !== "user"
+    ) {
+      return res.status(401).json({
+        success: false,
+        message: "Login required ❌",
+      });
+    }
+
+    const user = await User.findOne({
+      _id: req.session.user._id,
+      role: "user",
+      userStatus: "active",
+    });
+
+    if (!user)
+      return res.status(401).json({
+        success: false,
+        message: "User not found ❌",
+      });
+
+    /* ================= BODY ================= */
+    const { gameId, gameName, bets } = req.body;
+
+    if (!gameId || !gameName || !Array.isArray(bets) || bets.length === 0) {
+      return res.json({
+        success: false,
+        message: "No bets provided ❌",
+      });
+    }
+
+    /* ================= GAME ================= */
+    const game = await Game.findById(gameId);
+    if (!game || game.isDeleted) {
+      return res.json({
+        success: false,
+        message: "Invalid game ❌",
+      });
+    }
+
+    const now = moment().tz("Asia/Kolkata");
+    const today = now.format("dddd").toLowerCase();
+    const schedule = game.schedule?.[today];
+
+    if (!schedule?.isActive) {
+      return res.json({
+        success: false,
+        message: "Market closed today ❌",
+      });
+    }
+
+    /* ================= BET VALIDATION ================= */
+    let totalAmount = 0;
+
+    for (const bet of bets) {
+      const {
+        pattern,              // ODD / EVEN
+        underNos,             // digits array
+        amountPerUnderNo,
+        totalAmount: batchTotal,
+        mode,                 // OPEN / CLOSE
+      } = bet;
+
+      /* ----- BASIC CHECKS ----- */
+      if (
+        !["ODD", "EVEN"].includes(pattern) ||
+        !Array.isArray(underNos) ||
+        underNos.length === 0 ||
+        typeof amountPerUnderNo !== "number" ||
+        amountPerUnderNo <= 0 ||
+        batchTotal !== amountPerUnderNo * underNos.length ||
+        !["OPEN", "CLOSE"].includes(mode)
+      ) {
+        return res.json({
+          success: false,
+          message: "Invalid bet data ❌",
+        });
+      }
+
+      /* ----- DIGIT VALIDATION ----- */
+      const validDigits = pattern === "ODD" ? ODD_DIGITS : EVEN_DIGITS;
+
+      for (const digit of underNos) {
+        const d = Number(digit);
+        if (!validDigits.includes(d)) {
+          return res.json({
+            success: false,
+            message: `Invalid digit ${digit} for ${pattern} ❌`,
+          });
+        }
+      }
+
+      /* ----- OPEN SESSION LOCK ----- */
+      if (mode === "OPEN") {
+        const openMoment = moment.tz(
+          `${now.format("YYYY-MM-DD")} ${schedule.openTime}`,
+          "YYYY-MM-DD HH:mm",
+          "Asia/Kolkata"
+        );
+
+        if (now.isSameOrAfter(openMoment)) {
+          return res.json({
+            success: false,
+            message: "Open session closed ❌",
+          });
+        }
+      }
+
+      totalAmount += batchTotal;
+    }
+
+    /* ================= WALLET ================= */
+    if (user.wallet < totalAmount) {
+      return res.json({
+        success: false,
+        message: "Insufficient wallet balance ❌",
+      });
+    }
+
+    user.wallet -= totalAmount;
+    await user.save();
+
+    /* ================= SAVE BET ================= */
+    await OddEvenBet.create({
+      userId: user._id,
+      gameId,
+      gameName,
+      bets,
+      totalAmount,
+      playedDate: now.format("YYYY-MM-DD"),
+      playedTime: now.format("HH:mm"),
+      playedWeekday: now.format("dddd"),
+      resultStatus: "PENDING",
+    });
+
+    return res.json({
+      success: true,
+      message: `Odd–Even bet placed ₹${totalAmount} ✅`,
+    });
+
+  } catch (err) {
+    console.error("ODD EVEN ERROR:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Server error ❌",
+    });
+  }
+};
+
+
+/* ================= PLACE HALF SANGAM BET ================= */
+exports.placeHalfSangamBet = async (req, res, next) => {
+  try {
+    /* ================= AUTH CHECK ================= */
+    if (!req.session?.isLoggedIn || !req.session.user || req.session.user.role !== "user") {
+      return res.status(401).json({ success: false, message: "Login required ❌" });
+    }
+
+    const user = await User.findOne({ _id: req.session.user._id, role: "user", userStatus: "active" });
+    if (!user) return res.status(401).json({ success: false, message: "User not found ❌" });
+
+    /* ================= BODY ================= */
+    const { gameId, gameName, bets } = req.body;
+    if (!gameId || !gameName || !Array.isArray(bets) || bets.length === 0) {
+      return res.json({ success: false, message: "No bets provided ❌" });
+    }
+
+    const now = moment().tz("Asia/Kolkata");
+
+    /* ================= BET VALIDATION ================= */
+    let totalAmount = 0;
+    for (const bet of bets) {
+      const { session, openDigit, closePanna, amount } = bet;
+
+      // Check required fields
+      // if (!session || !["OPEN", "CLOSE"].includes(session) || openDigit === undefined || closePanna === undefined || typeof amount !== "number" || amount <= 0) {
+      //   return res.json({ success: false, message: "Invalid bet data ❌" });
+      // }
+
+      // Check open session lock
+      // if (session === "OPEN") {
+      //   const openTime = gameBox?.dataset.openTime; // optional, can be sent from frontend
+      //   if (openTime) {
+      //     const openMoment = moment.tz(`${now.format("YYYY-MM-DD")} ${openTime}`, "YYYY-MM-DD HH:mm", "Asia/Kolkata");
+      //     if (now.isSameOrAfter(openMoment)) {
+      //       return res.json({ success: false, message: "Open session closed ❌" });
+      //     }
+      //   }
+      // }
+if (!session || !["OPEN", "CLOSE"].includes(session) || openDigit === undefined || closePanna === undefined || typeof amount !== "number" || amount <= 0) {
+  return res.json({ success: false, message: "Invalid bet data ❌" });
+}
+
+      totalAmount += amount;
+    }
+
+    /* ================= WALLET CHECK ================= */
+    if (user.wallet < totalAmount) {
+      return res.json({ success: false, message: "Insufficient wallet balance ❌" });
+    }
+
+    user.wallet -= totalAmount;
+    await user.save();
+
+    /* ================= SAVE BET ================= */
+    await HalfSangamBet.create({
+      userId: user._id,
+      gameId,
+      gameName,
+      bets: bets.map(b => ({
+        session: b.session,
+        openDigit: b.openDigit,
+        closePanna: b.closePanna,
+        amount: b.amount,
+        totalAmount: b.amount
+      })),
+      totalAmount,
+      playedDate: now.format("YYYY-MM-DD"),
+      playedTime: now.format("HH:mm"),
+      playedWeekday: now.format("dddd"),
+      resultStatus: "PENDING",
+    });
+
+    return res.json({ success: true, message: `Half Sangam bet placed ₹${totalAmount} ✅` });
+
+  } catch (err) {
+    console.error("HALF SANGAM ERROR:", err);
+    return res.status(500).json({ success: false, message: "Server error ❌" });
   }
 };
