@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 /* ================= SINGLE PANNA BULK ITEM ================= */
-const singlePannaBulkItemSchema = new mongoose.Schema({
+const doublePannaBulkItemSchema = new mongoose.Schema({
   mainNo: {
     type: Number, // 0 - 9
     required: true,
@@ -31,7 +31,7 @@ const singlePannaBulkItemSchema = new mongoose.Schema({
 });
 
 /* ================= SINGLE PANNA BULK BET ================= */
-const singlePannaBulkBetSchema = new mongoose.Schema(
+const doublePannaBulkBetSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -49,15 +49,15 @@ const singlePannaBulkBetSchema = new mongoose.Schema(
     },
     gameType: {
       type: String,
-      default: "SINGLE_PANNA_BULK",
+      default: "DOUBLE_PANNA_BULK",
       immutable: true,
     },
     bets: {
-      type: [singlePannaBulkItemSchema],
+      type: [doublePannaBulkItemSchema],
       required: true,
       validate: [
         arr => arr.length > 0,
-        "At least one single panna bulk bet required",
+        "At least one double panna bulk bet required",
       ],
     },
     totalAmount: {
@@ -81,7 +81,7 @@ const singlePannaBulkBetSchema = new mongoose.Schema(
 );
 
 /* ===== PRE-SAVE HOOK: CALCULATE TOTAL AMOUNT ===== */
-singlePannaBulkBetSchema.pre("validate", function () {
+doublePannaBulkBetSchema.pre("validate", function () {
   this.totalAmount = this.bets.reduce(
     (sum, b) => sum + (b.totalAmount || 0),
     0
@@ -89,8 +89,7 @@ singlePannaBulkBetSchema.pre("validate", function () {
 });
 
 
-
 module.exports = mongoose.model(
-  "SinglePannaBulkBet",
-  singlePannaBulkBetSchema
+  "DoublePannaBulkBet",
+  doublePannaBulkBetSchema
 );

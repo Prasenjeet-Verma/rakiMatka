@@ -670,7 +670,9 @@
   </main>
 
   <!-- ===================================== Double Panna Bulk ================================ -->
-  <main id="DoublePannaBulk" class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
+  <main id="DoublePannaBulk" data-game-id="<%= game._id %>" data-game-name="<%= game.gameName %>"
+    data-open-time="<%= todaySchedule ? todaySchedule.openTime : '' %>"
+    data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>" class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
     <!-- HEADER -->
 
     <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
@@ -741,9 +743,13 @@
       </div>
     </div>
   </main>
+
+
   <!-- ===================================== Triple Panna ================================ -->
 
-  <main id="triplePanna" class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
+  <main id="triplePanna" data-game-id="<%= game._id %>" data-game-name="<%= game.gameName %>"
+    data-open-time="<%= todaySchedule ? todaySchedule.openTime : '' %>"
+    data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>" class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
     <!-- HEADER -->
 
     <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">

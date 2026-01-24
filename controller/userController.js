@@ -12,6 +12,8 @@ const JodiDigitBulkBet = require("../model/JodiDigitBulkBet");
 const SinglePannaBet = require("../model/SinglePannaBet");
 const SinglePannaBulkBet = require("../model/SinglePannaBulkBet");
 const DoublePannaBet = require("../model/DoublePannaBet");
+const DoublePannaBulkBet = require("../model/DoublePannaBulkBet")
+const TriplePannaBet = require("../model/TriplePannaBet")
 exports.UserHomePage = async (req, res, next) => {
   try {
     // This will be either the user object or undefined
@@ -1281,141 +1283,118 @@ exports.placeSinglePannaBet = async (req, res) => {
 
 
 
+/* ================= PANNA MAP ================= */
+const patti_map = {
+  0: [127,136,145,190,235,280,370,479,460,569,389,578],
+  1: [128,137,146,236,245,290,380,470,489,560,678,579],
+  2: [129,138,147,156,237,246,345,390,480,570,679,589],
+  3: [120,139,148,157,238,247,256,346,490,580,670,689],
+  4: [130,149,158,167,239,248,257,347,356,590,680,789],
+  5: [140,159,168,230,249,258,267,348,357,456,690,780],
+  6: [123,150,169,178,240,259,268,349,358,457,367,790],
+  7: [124,160,179,250,269,278,340,359,368,458,467,890],
+  8: [125,134,170,189,260,279,350,369,378,459,567,468],
+  9: [126,135,180,234,270,289,360,379,450,469,478,568],
+};
+
 exports.placeSinglePannaBulkBet = async (req, res, next) => {
   try {
-    /* ================= AUTH ================= */
-    if (
-      !req.session.isLoggedIn ||
-      !req.session.user ||
-      req.session.user.role !== "user"
-    ) {
-      return res.redirect("/login");
+    // ===== AUTH =====
+    if (!req.session?.isLoggedIn || !req.session.user || req.session.user.role !== "user") {
+      return res.status(401).json({ success: false, message: "Login required ❌" });
     }
 
-    const user = await User.findOne({
-      _id: req.session.user._id,
-      role: "user",
-      userStatus: "active",
+    const user = await User.findOne({ 
+      _id: req.session.user._id, 
+      role: "user", 
+      userStatus: "active" 
     }).select("-password");
 
-    if (!user) {
-      req.session.destroy();
-      return res.redirect("/login");
-    }
+    if (!user) return res.status(401).json({ success: false, message: "User not found ❌" });
 
-    /* ================= BODY ================= */
+    // ===== BODY VALIDATION =====
     const { gameId, gameName, bets } = req.body;
-
     if (!gameId || !gameName || !Array.isArray(bets) || bets.length === 0) {
-      return res.json({
-        success: false,
-        message: "No bets found ❌",
-      });
+      return res.json({ success: false, message: "No bets provided ❌" });
     }
 
-    /* ================= GAME ================= */
+    // ===== GAME VALIDATION =====
     const game = await Game.findById(gameId);
-    if (!game || game.isDeleted) {
-      return res.json({
-        success: false,
-        message: "Invalid game ❌",
-      });
-    }
+    if (!game || game.isDeleted) return res.json({ success: false, message: "Invalid game ❌" });
 
-    /* ================= TIME / SCHEDULE ================= */
     const now = moment().tz("Asia/Kolkata");
     const today = now.format("dddd").toLowerCase();
     const schedule = game.schedule?.[today];
 
-    if (!schedule || !schedule.isActive) {
-      return res.json({
-        success: false,
-        message: "Market closed today ❌",
-      });
-    }
+    if (!schedule?.isActive) return res.json({ success: false, message: "Market closed today ❌" });
 
-    /* ================= VALIDATION & TOTAL ================= */
+    // ===== BETS VALIDATION & TOTAL =====
     let totalAmount = 0;
 
-    for (const b of bets) {
+    for (const batch of bets) {
+      const { mainNo, underNos, amountPerUnderNo, totalAmount: batchTotal, mode } = batch;
+
+      // Basic type checks
       if (
-        typeof b.mainNo !== "number" ||
-        b.mainNo < 0 ||
-        b.mainNo > 9 ||
-        typeof b.underNo !== "string" ||
-        !/^[0-9]{3}$/.test(b.underNo) ||
-        typeof b.amount !== "number" ||
-        b.amount <= 0 ||
-        !["OPEN", "CLOSE"].includes(b.mode)
+        typeof mainNo !== "number" || mainNo < 0 || mainNo > 9 ||
+        !Array.isArray(underNos) || underNos.length === 0 ||
+        typeof amountPerUnderNo !== "number" || amountPerUnderNo <= 0 ||
+        typeof batchTotal !== "number" || batchTotal !== amountPerUnderNo * underNos.length ||
+        !["OPEN", "CLOSE"].includes(mode)
       ) {
-        return res.json({
-          success: false,
-          message: "Invalid panna, amount, or mode ❌",
-        });
+        return res.json({ success: false, message: "Invalid batch data ❌" });
       }
 
-      if (Number(b.underNo[0]) !== b.mainNo) {
-        return res.json({
-          success: false,
-          message: "UnderNo mismatch ❌",
-        });
-      }
-
-      /* 🔒 OPEN TIME LOCK */
-      if (b.mode === "OPEN") {
-        const openMoment = moment.tz(
-          `${now.format("YYYY-MM-DD")} ${schedule.openTime}`,
-          "YYYY-MM-DD HH:mm",
-          "Asia/Kolkata"
-        );
-        if (now.isSameOrAfter(openMoment)) {
-          return res.json({
-            success: false,
-            message: "Open Time Bet Closed ❌",
-          });
+      // UnderNo validation
+      for (const underNo of underNos) {
+        // if (Number(String(underNo)[0]) !== mainNo) {
+        //   return res.json({ success: false, message: `UnderNo ${underNo} mismatch with mainNo ${mainNo} ❌` });
+        // }
+        if (!patti_map[mainNo].includes(Number(underNo))) {
+          return res.json({ success: false, message: `Invalid panna ${underNo} ❌` });
         }
       }
 
-      totalAmount += b.amount;
+      // Open session time lock
+      if (mode === "OPEN") {
+        const openMoment = moment.tz(`${now.format("YYYY-MM-DD")} ${schedule.openTime}`, "YYYY-MM-DD HH:mm", "Asia/Kolkata");
+        if (now.isSameOrAfter(openMoment)) {
+          return res.json({ success: false, message: "Open session closed ❌" });
+        }
+      }
+
+      totalAmount += batchTotal;
     }
 
-    /* ================= WALLET CHECK ================= */
-    if (user.wallet < totalAmount) {
-      return res.json({
-        success: false,
-        message: "Insufficient wallet balance ❌",
-      });
-    }
+    // ===== WALLET CHECK =====
+    if (user.wallet < totalAmount) return res.json({ success: false, message: "Insufficient wallet balance ❌" });
 
     user.wallet -= totalAmount;
     await user.save();
 
-    /* ================= SAVE BET ================= */
+    // ===== SAVE BET =====
     await SinglePannaBulkBet.create({
       userId: user._id,
       gameId,
       gameName,
-      gameType: "SINGLE_PANNA_BULK",
       bets,
       totalAmount,
-      resultStatus: "PENDING",
       playedDate: now.format("YYYY-MM-DD"),
       playedTime: now.format("HH:mm"),
       playedWeekday: now.format("dddd"),
+      resultStatus: "PENDING",
     });
 
-    return res.json({
-      success: true,
-      message: `Single Panna Bulk Bet placed successfully ₹${totalAmount}`,
-    });
+    return res.json({ success: true, message: `Bet placed successfully ₹${totalAmount} ✅` });
   } catch (err) {
-    console.error("❌ SINGLE PANNA BULK BET ERROR:", err);
-    return res.json({
-      success: false,
-      message: "Server error ❌",
-    });
+    console.error("SINGLE PANNA BULK ERROR:", err);
+    return res.status(500).json({ success: false, message: "Server error ❌" });
   }
 };
+
+
+
+/* ================= PLACE DOUBLE PANNA BET ================= */
 
 exports.placeDoublePannaBet = async (req, res) => {
   try {
@@ -1553,5 +1532,211 @@ exports.placeDoublePannaBet = async (req, res) => {
       success: false,
       message: "Server error ❌"
     });
+  }
+};
+
+/* ================= PANNA MAP ================= */
+const patti_map_DPB = {
+  0: [550,668,244,299,226,488,677,118,334],
+  1: [100,119,155,227,335,344,399,588,669],
+  2: [200,110,228,255,336,499,660,688,778],
+  3: [300,166,229,337,355,445,599,779,788],
+  4: [400,112,220,266,338,446,455,699,770],
+  5: [500,113,122,177,339,366,447,799,889],
+  6: [600,114,277,330,448,466,556,880,899],
+  7: [700,115,133,188,223,377,449,557,566],
+  8: [800,116,224,233,288,440,477,558,990],
+  9: [900,117,144,199,225,388,559,577,667],
+};
+
+exports.placeDoublePannaBulkBet = async (req, res, next) => {
+  try {
+    // ===== AUTH =====
+    if (!req.session?.isLoggedIn || !req.session.user || req.session.user.role !== "user") {
+      return res.status(401).json({ success: false, message: "Login required ❌" });
+    }
+
+    const user = await User.findOne({ 
+      _id: req.session.user._id, 
+      role: "user", 
+      userStatus: "active" 
+    }).select("-password");
+
+    if (!user) return res.status(401).json({ success: false, message: "User not found ❌" });
+
+    // ===== BODY VALIDATION =====
+    const { gameId, gameName, bets } = req.body;
+    if (!gameId || !gameName || !Array.isArray(bets) || bets.length === 0) {
+      return res.json({ success: false, message: "No bets provided ❌" });
+    }
+
+    // ===== GAME VALIDATION =====
+    const game = await Game.findById(gameId);
+    if (!game || game.isDeleted) return res.json({ success: false, message: "Invalid game ❌" });
+
+    const now = moment().tz("Asia/Kolkata");
+    const today = now.format("dddd").toLowerCase();
+    const schedule = game.schedule?.[today];
+
+    if (!schedule?.isActive) return res.json({ success: false, message: "Market closed today ❌" });
+
+    // ===== BETS VALIDATION & TOTAL =====
+    let totalAmount = 0;
+
+    for (const batch of bets) {
+      const { mainNo, underNos, amountPerUnderNo, totalAmount: batchTotal, mode } = batch;
+
+      // Basic type checks
+      if (
+        typeof mainNo !== "number" || mainNo < 0 || mainNo > 9 ||
+        !Array.isArray(underNos) || underNos.length === 0 ||
+        typeof amountPerUnderNo !== "number" || amountPerUnderNo <= 0 ||
+        typeof batchTotal !== "number" || batchTotal !== amountPerUnderNo * underNos.length ||
+        !["OPEN", "CLOSE"].includes(mode)
+      ) {
+        return res.json({ success: false, message: "Invalid batch data ❌" });
+      }
+
+      // UnderNo validation
+      for (const underNo of underNos) {
+        if (!patti_map_DPB[mainNo].includes(Number(underNo))) {
+          return res.json({ success: false, message: `Invalid panna ${underNo} ❌` });
+        }
+      }
+
+      // Open session time lock
+      if (mode === "OPEN") {
+        const openMoment = moment.tz(`${now.format("YYYY-MM-DD")} ${schedule.openTime}`, "YYYY-MM-DD HH:mm", "Asia/Kolkata");
+        if (now.isSameOrAfter(openMoment)) {
+          return res.json({ success: false, message: "Open session closed ❌" });
+        }
+      }
+
+      totalAmount += batchTotal;
+    }
+
+    // ===== WALLET CHECK =====
+    if (user.wallet < totalAmount) return res.json({ success: false, message: "Insufficient wallet balance ❌" });
+
+    user.wallet -= totalAmount;
+    await user.save();
+
+    // ===== SAVE BET =====
+    await DoublePannaBulkBet.create({
+      userId: user._id,
+      gameId,
+      gameName,
+      bets,
+      totalAmount,
+      playedDate: now.format("YYYY-MM-DD"),
+      playedTime: now.format("HH:mm"),
+      playedWeekday: now.format("dddd"),
+      resultStatus: "PENDING",
+    });
+
+    return res.json({ success: true, message: `Bet placed successfully ₹${totalAmount} ✅` });
+  } catch (err) {
+    console.error("DOUBLE PANNA BULK ERROR:", err);
+    return res.status(500).json({ success: false, message: "Server error ❌" });
+  }
+};
+
+
+exports.placeTriplePannaBet = async (req, res, next) => {
+  try {
+    // ✅ AUTH CHECK
+    if (!req.session.isLoggedIn || !req.session.user || req.session.user.role !== "user") {
+      return res.redirect("/login");
+    }
+
+    const user = await User.findOne({
+      _id: req.session.user._id,
+      role: "user",
+      userStatus: "active"
+    }).select("-password");
+
+    if (!user) {
+      req.session.destroy();
+      return res.redirect("/login");
+    }
+
+    const { gameId, bets } = req.body;
+
+    if (!gameId || !Array.isArray(bets) || bets.length === 0) {
+      return res.json({ success: false, message: "Invalid bet data ❌" });
+    }
+
+    const game = await Game.findById(gameId);
+    if (!game || game.isDeleted) {
+      return res.json({ success: false, message: "Invalid game ❌" });
+    }
+
+    const now = moment().tz("Asia/Kolkata");
+    const today = now.format("dddd").toLowerCase();
+    const schedule = game.schedule?.[today];
+
+    if (!schedule || !schedule.isActive) {
+      return res.json({ success: false, message: "Market closed today ❌" });
+    }
+
+    let totalAmount = 0;
+
+    // ✅ VALIDATION & OPEN TIME LOCK
+    for (const b of bets) {
+      if (
+        typeof b.number !== "string" || 
+        !/^[0-9]{3}$/.test(b.number) || // triple digit check
+        typeof b.amount !== "number" ||
+        b.amount <= 0 ||
+        !["OPEN", "CLOSE"].includes(b.mode)
+      ) {
+        return res.json({ success: false, message: "Invalid number / amount / mode ❌" });
+      }
+
+      // 🔒 OPEN TIME LOCK
+      if (b.mode === "OPEN") {
+        const openMoment = moment.tz(
+          `${now.format("YYYY-MM-DD")} ${schedule.openTime}`,
+          "YYYY-MM-DD HH:mm",
+          "Asia/Kolkata"
+        );
+
+        if (now.isSameOrAfter(openMoment)) {
+          return res.json({ success: false, message: "Open Time Bet Close ❌" });
+        }
+      }
+
+      totalAmount += b.amount;
+    }
+
+    // ✅ WALLET CHECK
+    if (user.wallet < totalAmount) {
+      return res.json({ success: false, message: "Insufficient wallet balance ❌" });
+    }
+
+    // ✅ DEDUCT WALLET
+    user.wallet -= totalAmount;
+    await user.save();
+
+    // ✅ SAVE BET
+    await TriplePannaBet.create({
+      userId: user._id,
+      gameId,
+      gameName: game.gameName,
+      bets, // array can have mixed OPEN & CLOSE
+      totalAmount,
+      playedDate: now.format("YYYY-MM-DD"),
+      playedTime: now.format("HH:mm"),
+      playedWeekday: now.format("dddd")
+    });
+
+    return res.json({
+      success: true,
+      message: `TRIPLE PANNA Bet placed successfully ₹${totalAmount}`
+    });
+
+  } catch (err) {
+    console.error("❌ TRIPLE PANNA BET ERROR:", err);
+    return res.json({ success: false, message: "Server error ❌" });
   }
 };

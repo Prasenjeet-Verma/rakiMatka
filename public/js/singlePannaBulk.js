@@ -13,6 +13,7 @@ const patti_map = {
 };
 
 /* ================= STORE ================= */
+// Each element = { mainNo, underNos: [], amountPerUnderNo, totalAmount, mode, uid }
 let db_store = [];
 
 /* ================= ELEMENTS ================= */
@@ -73,8 +74,8 @@ function handleToggle() {
   toggleBtn.innerText = toggleBtn.innerText === "OPEN" ? "CLOSE" : "OPEN";
 }
 
-/* ================= PROCESS SELECTION ================= */
-function processSelection(num) {
+/* ================= PROCESS MAINNO SELECTION ================= */
+function processSelection(mainNo) {
   if (openLocked && toggleBtn.innerText === "OPEN") {
     showMessage("Open session closed ❌", "error");
     return;
@@ -87,23 +88,42 @@ function processSelection(num) {
   }
 
   const mode = toggleBtn.innerText;
-  const selection_set = patti_map[num];
+  const underNos = patti_map[mainNo];
 
-  selection_set.forEach((d) => {
+  // Check if this mainNo already exists
+  const existing = db_store.find(b => b.mainNo === mainNo);
+  if (existing) {
+    // Update mode only
+    existing.mode = mode;
+    existing.amountPerUnderNo = val; // optional if user wants to update amount
+    existing.totalAmount = existing.amountPerUnderNo * existing.underNos.length;
+  } else {
     db_store.push({
       uid: Math.random().toString(36).substr(2, 9),
-      digit: d,
-      pts: val,
-      mode: mode,
+      mainNo,
+      underNos: [...underNos],
+      amountPerUnderNo: val,
+      totalAmount: val * underNos.length,
+      mode,
     });
-  });
+  }
 
   refreshView();
 }
 
-/* ================= REMOVE ITEM ================= */
-function removeItem(uid) {
-  db_store = db_store.filter((item) => item.uid !== uid);
+/* ================= REMOVE UNDERNO FROM MAINNO ================= */
+function removeUnderNo(mainNo, underNo) {
+  const batch = db_store.find(b => b.mainNo === mainNo);
+  if (!batch) return;
+
+  batch.underNos = batch.underNos.filter(u => u !== underNo);
+  batch.totalAmount = batch.amountPerUnderNo * batch.underNos.length;
+
+  // If no underNos left, remove the batch entirely
+  if (batch.underNos.length === 0) {
+    db_store = db_store.filter(b => b.mainNo !== mainNo);
+  }
+
   refreshView();
 }
 
@@ -111,21 +131,27 @@ function removeItem(uid) {
 function refreshView() {
   scrollArea.innerHTML = "";
   let total_pts = 0;
+  let total_items = 0;
 
-  [...db_store].reverse().forEach((item) => {
-    total_pts += item.pts;
-    const row = document.createElement("div");
-    row.className =
-      "grid grid-cols-4 text-center items-center bg-white py-4 rounded-xl shadow-sm border border-gray-100 mb-2";
-    row.innerHTML = `
-      <span class="text-sm font-bold text-gray-700">${item.digit}</span>
-      <span class="text-sm text-gray-600 font-medium">${item.pts}</span>
-      <span class="type-label text-[10px] font-black text-brand-teal bg-teal-50 py-1 rounded-full mx-2 uppercase">${item.mode}</span>
-      <button onclick="removeItem('${item.uid}')" class="hover:text-red-500 transition-colors">
-        <i class="fa-solid fa-trash-can text-red-400 cursor-pointer p-2 active:text-red-600"></i>
-      </button>
-    `;
-    scrollArea.appendChild(row);
+  db_store.forEach(batch => {
+    total_pts += batch.totalAmount;
+    total_items += batch.underNos.length;
+
+    batch.underNos.forEach(underNo => {
+      const row = document.createElement("div");
+      row.className =
+        "grid grid-cols-4 text-center items-center bg-white py-4 rounded-xl shadow-sm border border-gray-100 mb-2";
+
+      row.innerHTML = `
+        <span class="text-sm font-bold text-gray-700">${underNo}</span>
+        <span class="text-sm text-gray-600 font-medium">${batch.amountPerUnderNo}</span>
+        <span class="type-label text-[10px] font-black text-brand-teal bg-teal-50 py-1 rounded-full mx-2 uppercase">${batch.mode}</span>
+        <button onclick="removeUnderNo(${batch.mainNo}, ${underNo})" class="hover:text-red-500 transition-colors">
+          <i class="fa-solid fa-trash-can text-red-400 cursor-pointer p-2 active:text-red-600"></i>
+        </button>
+      `;
+      scrollArea.appendChild(row);
+    });
   });
 
   statCount.innerText = db_store.length;
@@ -147,11 +173,13 @@ function submitBulkBets() {
     return;
   }
 
-  const bets = db_store.map((item) => ({
-    mainNo: Number(String(item.digit)[0]),
-    underNo: String(item.digit).padStart(3, "0"),
-    amount: item.pts,
-    mode: item.mode,
+  // Format bets for backend schema
+  const bets = db_store.map(batch => ({
+    mainNo: batch.mainNo,
+    underNos: batch.underNos,
+    amountPerUnderNo: batch.amountPerUnderNo,
+    totalAmount: batch.totalAmount,
+    mode: batch.mode,
   }));
 
   fetch("/single-panna-bulk/place-bet", {
@@ -163,8 +191,8 @@ function submitBulkBets() {
       bets,
     }),
   })
-    .then((r) => r.json())
-    .then((d) => {
+    .then(r => r.json())
+    .then(d => {
       if (d.success) {
         showMessage(d.message, "success");
         resetBulkBets();

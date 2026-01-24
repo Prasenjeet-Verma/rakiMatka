@@ -131,11 +131,18 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* ================= MODE CHANGE ================= */
-  betTypeSel.addEventListener("change", () => {
-    const activeBtn = digitBar.querySelector(".bg-[#005c4b]");
-    const digit = activeBtn ? activeBtn.innerText : 0;
-    loadDigit(digit);
-  });
+betTypeSel.addEventListener("change", () => {
+  // 🔥 remove active digit highlight
+  digitBar.querySelectorAll("button")
+    .forEach(b => b.classList.remove("bg-[#005c4b]", "text-white"));
+
+  // 🔥 clear grid so no old amount is visible
+  pattiGrid.innerHTML = "";
+
+  // OPTIONAL UX message
+  showMessage("Select digit again", "success");
+});
+
 
   /* ================= RESET ================= */
   function resetSinglePanna() {
