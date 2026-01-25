@@ -678,7 +678,7 @@
     <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
       <div class="flex items-center gap-3">
         <i id="closeDoublePannaBulk" class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
-        <h1 class="text-lg font-semibold">Double Panna Bulk</h1>
+        <h1 class="text-lg font-semibold">Double Panna Bulk - <%= game.gameName %></h1>
       </div>
     </header>
 
@@ -755,7 +755,7 @@
     <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
       <div class="flex items-center gap-3">
         <i id="closeTriplePanna" class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
-        <h1 class="text-lg font-semibold">Triple Panna</h1>
+        <h1 class="text-lg font-semibold">Triple Panna - <%= game.gameName %></h1>
       </div>
     </header>
     <div class="bg-gray-100 min-h-screen flex justify-center items-start md:items-center">
@@ -820,7 +820,7 @@
     <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
       <div class="flex items-center gap-3">
         <i id="closeOddEven" class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
-        <h1 class="text-lg font-semibold">Odd Even</h1>
+        <h1 class="text-lg font-semibold">Odd Even - <%= game.gameName %></h1>
       </div>
     </header>
 
@@ -866,7 +866,7 @@
               style="direction: row; justify-content: space-around;">
               <label class="field-label font-semibold text-slate-600 flex justify-center items-center">Enter Points
                 :</label>
-              <input type="number" id="inputPointsAmount" value="10"
+              <input type="number" id="inputPointsAmount"
                 class="form-input w-full sm:w-2/3 border border-slate-300 rounded-full py-3 px-4 bg-white text-center text-xl font-bold focus:ring-2 focus:ring-[#005c4b] outline-none shadow-inner w-[12rem]">
             </div>
 
@@ -928,7 +928,7 @@
     <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
       <div class="flex items-center gap-3">
         <i id="closeHalfSugam" class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
-        <h1 class="text-lg font-semibold">Half Sangam</h1>
+        <h1 class="text-lg font-semibold">Half Sangam - <%= game.gameName %></h1>
       </div>
     </header>
 
@@ -1005,15 +1005,19 @@
       </div>
     </div>
   </main>
+
+
   <!-- ===================================== Full Sugam ================================ -->
 
-  <main id="fullSugam" class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
+  <main id="fullSugam" data-game-id="<%= game._id %>" data-game-name="<%= game.gameName %>"
+    data-open-time="<%= todaySchedule ? todaySchedule.openTime : '' %>"
+    data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>" class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
     <!-- HEADER -->
 
     <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
       <div class="flex items-center gap-3">
         <i id="closeFullSugam" class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
-        <h1 class="text-lg font-semibold">Full Sangam</h1>
+        <h1 class="text-lg font-semibold">Full Sangam - <%= game.gameName %></h1>
       </div>
     </header>
 
@@ -1023,14 +1027,14 @@
       <div class="flex justify-between items-center">
         <h2 class="text-xl font-bold text-gray-900">Open Pana</h2>
 
-        <input type="number" placeholder="Enter Pana"
+        <input type="number" placeholder="Enter Pana" required
           class="w-52 px-4 py-3 rounded-xl shadow-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-700 font-semibold" />
       </div>
       <!-- CLOSE DIGIT -->
       <div class="flex justify-between items-center">
         <h2 class="text-xl font-bold text-gray-900">Close Pana</h2>
 
-        <input type="number" placeholder="Enter Pana"
+        <input type="number" placeholder="Enter Pana" required
           class="w-52 px-4 py-3 rounded-xl shadow-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-700 font-semibold" />
       </div>
 
@@ -1038,7 +1042,7 @@
       <div class="flex justify-between items-center">
         <h2 class="text-xl font-bold text-gray-900">Points</h2>
 
-        <input type="number" placeholder="Enter Point"
+        <input type="number" placeholder="Enter Point" required
           class="w-52 px-4 py-3 rounded-xl shadow-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-700 font-semibold" />
       </div>
 
@@ -1049,6 +1053,20 @@
           Add
         </button>
       </div>
+<!-- SUBMIT BUTTON -->
+<div class="flex justify-center pt-8">
+  <button
+    id="fullSangam"
+    name="fullSangam"
+    type="submit"
+    class="bg-gradient-to-r from-purple-700 to-indigo-700 text-white
+           text-xl font-bold px-24 py-4 rounded-2xl shadow-xl
+           active:scale-95 transition-all duration-150">
+    Submit
+  </button>
+</div>
+
+
     </div>
 
     <!-- BOTTOM BAR -->
@@ -1065,76 +1083,94 @@
       </div>
     </div>
   </main>
-  <!-- ===================================== SP Motor ================================ -->
 
-  <main id="sPMotor " class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
-    <!-- HEADER -->
 
-    <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
-      <div class="flex items-center gap-3">
-        <i id="closeSPMotor " class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
-        <h1 class="text-lg font-semibold">SP Motor</h1>
-      </div>
-    </header>
+<!-- ===================================== SP Motor ================================ -->
 
-    <!-- FORM -->
-    <div class="px-5 pt-8 space-y-8 flex-1">
-      <!-- CHOOSE SESSION -->
-      <div class="flex justify-between items-center">
-        <h2 class="text-xl font-bold text-gray-900">Choose<br />Session</h2>
+<main id="sPMotor " data-game-id="<%= game._id %>" data-game-name="<%= game.gameName %>"
+  data-open-time="<%= todaySchedule ? todaySchedule.openTime : '' %>"
+  data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>" class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
+  <!-- HEADER -->
 
-        <div class="flex space-x-6">
-          <label class="flex items-center space-x-2">
-            <input type="radio" name="session" checked class="accent-teal-700 w-5 h-5" />
-            <span class="font-semibold text-lg">Open</span>
-          </label>
+  <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
+    <div class="flex items-center gap-3">
+      <i id="closeSPMotor " class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
+      <h1 class="text-lg font-semibold">SP Motor - <%= game.gameName %></h1>
+    </div>
+  </header>
 
-          <label class="flex items-center space-x-2">
-            <input type="radio" name="session" class="accent-gray-400 w-5 h-5" />
-            <span class="font-semibold text-lg text-gray-600">Close</span>
-          </label>
-        </div>
-      </div>
+  <!-- FORM -->
+  <div class="px-5 pt-8 space-y-8 flex-1">
+    <!-- CHOOSE SESSION -->
+    <div class="flex justify-between items-center">
+      <h2 class="text-xl font-bold text-gray-900">Choose<br />Session</h2>
 
-      <!-- OPEN DIGIT -->
-      <div class="flex justify-between items-center">
-        <h2 class="text-xl font-bold text-gray-900">Open Digit:</h2>
+      <div class="flex space-x-6">
+        <label class="flex items-center space-x-2">
+          <input type="radio" name="spmotor_session" checked class="accent-teal-700 w-5 h-5" />
+          <span class="font-semibold text-lg">Open</span>
+        </label>
 
-        <input type="number" placeholder="Enter Digit"
-          class="w-52 px-4 py-3 rounded-xl shadow-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-700 font-semibold" />
-      </div>
-
-      <!-- POINTS -->
-      <div class="flex justify-between items-center">
-        <h2 class="text-xl font-bold text-gray-900">Points</h2>
-
-        <input type="number" placeholder="Enter Point"
-          class="w-52 px-4 py-3 rounded-xl shadow-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-700 font-semibold" />
-      </div>
-
-      <!-- ADD BUTTON -->
-      <div class="flex justify-end pt-6">
-        <button
-          class="bg-teal-800 text-white text-xl font-bold px-20 py-4 rounded-2xl shadow-lg active:scale-95 transition">
-          Add
-        </button>
+        <label class="flex items-center space-x-2">
+          <input type="radio" name="spmotor_session" class="accent-gray-400 w-5 h-5" />
+          <span class="font-semibold text-lg text-gray-600">Close</span>
+        </label>
       </div>
     </div>
 
-    <!-- BOTTOM BAR -->
-    <div class="border-t-2 border-teal-800 bg-white py-4">
-      <div class="flex justify-around text-center font-semibold text-lg">
-        <div>
-          <div>Bids</div>
-          <div class="text-gray-600">0</div>
-        </div>
-        <div>
-          <div>Amount</div>
-          <div class="text-gray-600">0</div>
-        </div>
+    <!-- OPEN DIGIT -->
+    <div class="flex justify-between items-center">
+      <h2 class="text-xl font-bold text-gray-900">Open Digit:</h2>
+
+      <input type="number" id="spmotor_opendigit" placeholder="Enter Digit"
+        class="w-52 px-4 py-3 rounded-xl shadow-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-700 font-semibold" />
+    </div>
+
+    <!-- POINTS -->
+    <div class="flex justify-between items-center">
+      <h2 class="text-xl font-bold text-gray-900">Points</h2>
+
+      <input type="number" id="spmotor_points" placeholder="Enter Point"
+        class="w-52 px-4 py-3 rounded-xl shadow-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-700 font-semibold" />
+    </div>
+
+    <!-- ADD BUTTON -->
+    <div class="flex justify-end pt-6">
+      <button id="spmotor_addbtn"
+        class="bg-teal-800 text-white text-xl font-bold px-20 py-4 rounded-2xl shadow-lg active:scale-95 transition">
+        Add
+      </button>
+    </div>
+
+    <!-- SUBMIT BUTTON -->
+    <div class="flex justify-center pt-8">
+      <button
+        id="spmotor_submitbtn"
+        name="spmotor_submit"
+        type="submit"
+        class="bg-gradient-to-r from-purple-700 to-indigo-700 text-white
+               text-xl font-bold px-24 py-4 rounded-2xl shadow-xl
+               active:scale-95 transition-all duration-150">
+        Submit
+      </button>
+    </div>
+  </div>
+
+  <!-- BOTTOM BAR -->
+  <div class="border-t-2 border-teal-800 bg-white py-4">
+    <div class="flex justify-around text-center font-semibold text-lg">
+      <div>
+        <div>Bids</div>
+        <div class="spmotor_totalbids text-gray-600">0</div>
+      </div>
+      <div>
+        <div>Amount</div>
+        <div class="spmotor_totalamount text-gray-600">0</div>
       </div>
     </div>
-  </main>
+  </div>
+</main>
+
   <!-- ===================================== DP Motor ================================ -->
 
   <main id="dPMotor " class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
@@ -1380,6 +1416,8 @@
   <script src="/js/oddEven.js"></script>
   <script src="/js/HalfSangam.js"></script>
   <script src="/js/redBracket.js"></script>
+  <script src="/js/FullSangam.js"></script>
+  <script src="/js/spMotor.js"></script>
 
 </body>
 

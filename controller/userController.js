@@ -16,6 +16,9 @@ const DoublePannaBulkBet = require("../model/DoublePannaBulkBet");
 const TriplePannaBet = require("../model/TriplePannaBet");
 const OddEvenBet = require("../model/OddEvenBet");
 const HalfSangamBet = require("../model/HalfSangamBet");
+const FullSangam = require("../model/FullSangamBet");
+const SPMotorBet = require("../model/SPMotorBet");
+
 
 exports.UserHomePage = async (req, res, next) => {
   try {
@@ -59,12 +62,11 @@ exports.getUserDashboardPage = async (req, res, next) => {
     }
 
     const admin = await User.findOne({ role: "admin" }).select(
-      "username phoneNo profilePhoto",
+      "username phoneNo profilePhoto"
     );
 
-    // 🇮🇳 Indian Time
+    // 🇮🇳 Current time in India
     const now = moment().tz("Asia/Kolkata");
-
     const days = [
       "sunday",
       "monday",
@@ -74,53 +76,58 @@ exports.getUserDashboardPage = async (req, res, next) => {
       "friday",
       "saturday",
     ];
-
     const todayKey = days[now.day()];
-    const currentMinutes = now.hours() * 60 + now.minutes();
 
+    // Fetch all active games
     const games = await Game.find({ isDeleted: false }).lean();
 
-    // 🔥 COMMON FORMATTER
-    const processedGames = games
-      .filter((game) => {
-        const d = game.schedule?.[todayKey];
-        return d && d.isActive && d.openTime && d.closeTime;
-      })
-      .map((game) => {
-        const d = game.schedule[todayKey];
+    // ===================== 🎯 PROCESS GAMES =====================
+const processedGames = games
+  .filter((game) => {
+    const d = game.schedule?.[todayKey];
+    return d && d.isActive && d.closeTime;
+  })
+  .map((game) => {
+    const d = game.schedule[todayKey];
 
-        // Parse the original admin times
-        const [oh, om] = d.openTime.split(":").map(Number); // for display
-        const [ch, cm] = d.closeTime.split(":").map(Number);
+    // Parse closeTime from DB
+    const [ch, cm] = d.closeTime.split(":").map(Number);
+    let closeMinutes = ch * 60 + cm;
 
-        const closeMinutes = ch * 60 + cm;
-        const currentMinutes = now.hours() * 60 + now.minutes();
+    // Current time in minutes
+    const nowMinutes = now.hours() * 60 + now.minutes();
 
-        // ✅ Open automatically at 12:00 AM, ignore admin openTime for running
-        const isRunning = currentMinutes >= 0 && currentMinutes <= closeMinutes;
+    // Backend logic: open time = 12:00 AM
+    const openMinutes = 0;
 
-        return {
-          _id: game._id,
-          gameName: game.gameName,
-          openTime: moment(d.openTime, "HH:mm").format("hh:mm A"), // Show admin openTime
-          closeTime: moment(d.closeTime, "HH:mm").format("hh:mm A"),
-          isRunning,
-          statusText: isRunning ? "Market Running" : "Market Closed",
-          isStarline: game.isStarline || false,
-          isJackpot: game.isJackpot || false,
-        };
-      });
+    // Cross-midnight handling
+    if (closeMinutes < 360) closeMinutes += 24 * 60;
+    let runningMinutes = nowMinutes;
+    if (nowMinutes < 360) runningMinutes += 24 * 60;
 
-    // ===================== 🎯 SEPARATION =====================
+    const isRunning = runningMinutes >= openMinutes && runningMinutes <= closeMinutes;
+
+    return {
+      _id: game._id,
+      gameName: game.gameName,
+      openTime: moment(d.openTime, "HH:mm").format("hh:mm A"), // display admin-set openTime in AM/PM
+      closeTime: moment(d.closeTime, "HH:mm").format("hh:mm A"), // display admin-set closeTime in AM/PM
+      isRunning,
+      statusText: isRunning ? "Market Running" : "Market Closed",
+      isStarline: game.isStarline || false,
+      isJackpot: game.isJackpot || false,
+    };
+  });
+
+
+    // ===================== 🎯 SEPARATE GAMES =====================
     const normalGames = processedGames.filter(
-      (g) => !g.isStarline && !g.isJackpot,
+      (g) => !g.isStarline && !g.isJackpot
     );
-
     const starlineGames = processedGames.filter((g) => g.isStarline);
-
     const jackpotGames = processedGames.filter((g) => g.isJackpot);
 
-    // ===================== TRANSACTIONS =====================
+    // ===================== 🎯 FETCH TRANSACTIONS =====================
     const transactions = await WalletTransaction.find({
       user: user._id,
       status: "success",
@@ -157,15 +164,13 @@ exports.getUserDashboardPage = async (req, res, next) => {
       };
     });
 
-    // ===================== RENDER =====================
+    // ===================== 🎯 RENDER DASHBOARD =====================
     res.render("User/userDashboard", {
       user,
       admin,
-
-      normalGames, // ✅ NORMAL
-      starlineGames, // ⭐ STARLINE
-      jackpotGames, // 💰 JACKPOT
-
+      normalGames,
+      starlineGames,
+      jackpotGames,
       transactions: formattedTransactions,
       isLoggedIn: req.session.isLoggedIn,
     });
@@ -174,6 +179,7 @@ exports.getUserDashboardPage = async (req, res, next) => {
     next(err);
   }
 };
+
 
 exports.getUserProfilePage = async (req, res, next) => {
   try {
@@ -1905,9 +1911,9 @@ exports.placeOddEvenBet = async (req, res) => {
 
 
 /* ================= PLACE HALF SANGAM BET ================= */
-exports.placeHalfSangamBet = async (req, res, next) => {
+exports.placeHalfSangamBet = async (req, res) => {
   try {
-    /* ================= AUTH CHECK ================= */
+    // ================= AUTH CHECK =================
     if (!req.session?.isLoggedIn || !req.session.user || req.session.user.role !== "user") {
       return res.status(401).json({ success: false, message: "Login required ❌" });
     }
@@ -1915,50 +1921,54 @@ exports.placeHalfSangamBet = async (req, res, next) => {
     const user = await User.findOne({ _id: req.session.user._id, role: "user", userStatus: "active" });
     if (!user) return res.status(401).json({ success: false, message: "User not found ❌" });
 
-    /* ================= BODY ================= */
+    // ================= BODY =================
     const { gameId, gameName, bets } = req.body;
     if (!gameId || !gameName || !Array.isArray(bets) || bets.length === 0) {
       return res.json({ success: false, message: "No bets provided ❌" });
     }
 
-    const now = moment().tz("Asia/Kolkata");
+    // ================= GAME SCHEDULE =================
+    const game = await Game.findById(gameId);
+    if (!game || game.isDeleted) return res.json({ success: false, message: "Invalid game ❌" });
 
-    /* ================= BET VALIDATION ================= */
+    const now = moment().tz("Asia/Kolkata");
+    const today = now.format("dddd").toLowerCase();
+    const schedule = game.schedule?.[today];
+
+    if (!schedule?.isActive) return res.json({ success: false, message: "Market closed today ❌" });
+
+    // ================= BET VALIDATION =================
     let totalAmount = 0;
+
     for (const bet of bets) {
       const { session, openDigit, closePanna, amount } = bet;
 
-      // Check required fields
-      // if (!session || !["OPEN", "CLOSE"].includes(session) || openDigit === undefined || closePanna === undefined || typeof amount !== "number" || amount <= 0) {
-      //   return res.json({ success: false, message: "Invalid bet data ❌" });
-      // }
+      // ----- BASIC CHECKS -----
+      if (!session || !["OPEN", "CLOSE"].includes(session) || openDigit === undefined || closePanna === undefined || typeof amount !== "number" || amount <= 0) {
+        return res.json({ success: false, message: "Invalid bet data ❌" });
+      }
 
-      // Check open session lock
-      // if (session === "OPEN") {
-      //   const openTime = gameBox?.dataset.openTime; // optional, can be sent from frontend
-      //   if (openTime) {
-      //     const openMoment = moment.tz(`${now.format("YYYY-MM-DD")} ${openTime}`, "YYYY-MM-DD HH:mm", "Asia/Kolkata");
-      //     if (now.isSameOrAfter(openMoment)) {
-      //       return res.json({ success: false, message: "Open session closed ❌" });
-      //     }
-      //   }
-      // }
-if (!session || !["OPEN", "CLOSE"].includes(session) || openDigit === undefined || closePanna === undefined || typeof amount !== "number" || amount <= 0) {
-  return res.json({ success: false, message: "Invalid bet data ❌" });
-}
+      // ----- OPEN SESSION LOCK -----
+      if (session === "OPEN") {
+        const openMoment = moment.tz(
+          `${now.format("YYYY-MM-DD")} ${schedule.openTime}`,
+          "YYYY-MM-DD HH:mm",
+          "Asia/Kolkata"
+        );
+        if (now.isSameOrAfter(openMoment)) {
+          return res.json({ success: false, message: "Open session closed ❌" });
+        }
+      }
 
       totalAmount += amount;
     }
 
-    /* ================= WALLET CHECK ================= */
-    if (user.wallet < totalAmount) {
-      return res.json({ success: false, message: "Insufficient wallet balance ❌" });
-    }
-
+    // ================= WALLET CHECK =================
+    if (user.wallet < totalAmount) return res.json({ success: false, message: "Insufficient wallet balance ❌" });
     user.wallet -= totalAmount;
     await user.save();
 
-    /* ================= SAVE BET ================= */
+    // ================= SAVE BET =================
     await HalfSangamBet.create({
       userId: user._id,
       gameId,
@@ -1968,7 +1978,7 @@ if (!session || !["OPEN", "CLOSE"].includes(session) || openDigit === undefined 
         openDigit: b.openDigit,
         closePanna: b.closePanna,
         amount: b.amount,
-        totalAmount: b.amount
+        totalAmount: b.amount,
       })),
       totalAmount,
       playedDate: now.format("YYYY-MM-DD"),
@@ -1981,6 +1991,196 @@ if (!session || !["OPEN", "CLOSE"].includes(session) || openDigit === undefined 
 
   } catch (err) {
     console.error("HALF SANGAM ERROR:", err);
+    return res.status(500).json({ success: false, message: "Server error ❌" });
+  }
+};
+
+
+/* ================= PLACE FULL SANGAM BID ================= */
+exports.placeFullSangamBid = async (req, res, next) => {
+  try {
+    /* 🔐 AUTH CHECK */
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.user ||
+      req.session.user.role !== "user"
+    ) {
+      return res.redirect("/login");
+    }
+
+    const user = await User.findOne({
+      _id: req.session.user._id,
+      role: "user",
+      userStatus: "active",
+    });
+
+    if (!user) {
+      req.session.destroy();
+      return res.redirect("/login");
+    }
+
+    /* 📦 BODY DATA */
+    const {
+      gameId,
+      gameType,
+      totalBids,
+      totalAmount,
+      bids,
+    } = req.body;
+
+    /* 🧪 VALIDATION */
+    if (!gameId || !Array.isArray(bids) || bids.length === 0) {
+      return res.status(400).json({ message: "Invalid bid data" });
+    }
+
+    if (gameType !== "FULL_SANGAM") {
+      return res.status(400).json({ message: "Invalid game type" });
+    }
+
+    if (bids.length !== totalBids) {
+      return res.status(400).json({ message: "Total bids mismatch" });
+    }
+
+    const calculatedAmount = bids.reduce(
+      (sum, bid) => sum + Number(bid.points),
+      0
+    );
+
+    if (calculatedAmount !== totalAmount) {
+      return res.status(400).json({ message: "Total amount mismatch" });
+    }
+
+    /* 💰 WALLET CHECK */
+    if (user.walletBalance < totalAmount) {
+      return res.status(400).json({ message: "Insufficient wallet balance" });
+    }
+
+    /* 💳 WALLET DEBIT */
+    user.walletBalance -= totalAmount;
+    await user.save();
+
+    /* 🕒 TIME (JUST LIKE HALF SANGAM) */
+    const now = moment().tz("Asia/Kolkata");
+
+    /* 🧾 SAVE FULL SANGAM */
+    const fullSangam = await FullSangam.create({
+      userId: user._id,
+      gameId,
+      gameType: "FULL_SANGAM",
+      totalBids,
+      totalAmount,
+      bids,
+
+      // 👇 added only this part
+      playedDate: now.format("YYYY-MM-DD"),
+      playedTime: now.format("HH:mm"),
+      playedWeekday: now.format("dddd"),
+
+      resultStatus: "PENDING",
+    });
+
+return res.status(201).json({
+  success: true,
+  message: `Full Sangam bid placed successfully ₹${totalAmount} ✅`,
+  totalAmount,
+  data: fullSangam,
+});
+
+
+  } catch (error) {
+    console.error("FULL_SANGAM_ERROR:", error);
+    return res.status(500).json({
+      message: "Server error while placing Full Sangam bid",
+    });
+  }
+};
+
+
+
+exports.placeSPMotorBet = async (req, res) => {
+  try {
+    // ================= AUTH =================
+    if (!req.session?.isLoggedIn || !req.session.user || req.session.user.role !== "user") {
+      return res.status(401).json({ success: false, message: "Login required ❌" });
+    }
+
+    const user = await User.findOne({
+      _id: req.session.user._id,
+      role: "user",
+      userStatus: "active",
+    });
+
+    if (!user) return res.status(401).json({ success: false, message: "User not found ❌" });
+
+    // ================= BODY =================
+    const { gameId, gameName, bets } = req.body;
+    if (!gameId || !gameName || !Array.isArray(bets) || bets.length === 0) {
+      return res.json({ success: false, message: "No bets provided ❌" });
+    }
+
+    // ================= GAME SCHEDULE =================
+    const game = await Game.findById(gameId);
+    if (!game || game.isDeleted) return res.json({ success: false, message: "Invalid game ❌" });
+
+    const now = moment().tz("Asia/Kolkata");
+    const today = now.format("dddd").toLowerCase();
+    const schedule = game.schedule?.[today];
+
+    if (!schedule?.isActive) return res.json({ success: false, message: "Market closed today ❌" });
+
+    // ================= BET VALIDATION =================
+    let totalAmount = 0;
+
+    for (const bet of bets) {
+      const { session, openDigit, points } = bet;
+
+      // ----- BASIC CHECKS -----
+      if (!session || !["OPEN", "CLOSE"].includes(session) || openDigit === undefined || typeof points !== "number" || points <= 0) {
+        return res.json({ success: false, message: "Invalid bet data ❌" });
+      }
+
+      // ----- OPEN SESSION LOCK -----
+      if (session === "OPEN") {
+        const openMoment = moment.tz(
+          `${now.format("YYYY-MM-DD")} ${schedule.openTime}`,
+          "YYYY-MM-DD HH:mm",
+          "Asia/Kolkata"
+        );
+        if (now.isSameOrAfter(openMoment)) {
+          return res.json({ success: false, message: "Open session closed ❌" });
+        }
+      }
+
+      totalAmount += points;
+    }
+
+    // ================= WALLET CHECK =================
+    if (user.wallet < totalAmount) return res.json({ success: false, message: "Insufficient wallet balance ❌" });
+    user.wallet -= totalAmount;
+    await user.save();
+
+    // ================= SAVE BET =================
+    await SPMotorBet.create({
+      userId: user._id,
+      gameId,
+      gameName,
+      bets: bets.map(b => ({
+        session: b.session,
+        openDigit: b.openDigit,
+        points: b.points,
+        totalAmount: b.points,
+      })),
+      totalAmount,
+      playedDate: now.format("YYYY-MM-DD"),
+      playedTime: now.format("HH:mm"),
+      playedWeekday: now.format("dddd"),
+      resultStatus: "PENDING",
+    });
+
+    return res.json({ success: true, message: `SP Motor bet placed ₹${totalAmount} ✅` });
+
+  } catch (err) {
+    console.error("SP MOTOR ERROR:", err);
     return res.status(500).json({ success: false, message: "Server error ❌" });
   }
 };

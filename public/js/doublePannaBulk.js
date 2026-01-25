@@ -84,60 +84,81 @@ document.addEventListener("DOMContentLoaded", () => {
       const btn = document.createElement("button");
       btn.className = "bg-brand-teal text-white py-3 rounded-xl font-bold transition-all border-4 border-transparent shadow-md active:scale-90";
       btn.innerText = i;
-      btn.onclick = () => {
-        btn.classList.add("border-accent-green");
-        setTimeout(() => btn.classList.remove("border-accent-green"), 300);
-        processSelection(i);
-      };
+btn.onclick = () => {
+  btn.classList.add("border-accent-green");
+  setTimeout(() => btn.classList.remove("border-accent-green"), 300);
+
+  const mode = gameTypeSelect.value; // get current mode
+  processSelection(i, mode);
+};
+
       digitGrid.appendChild(btn);
     }
   }
 
   /* ================= PROCESS SELECTION ================= */
-  function processSelection(mainNo) {
-    const mode = gameTypeSelect.value;
-
-    if (openLocked && mode === "OPEN") {
-      showMessage("Open session closed ❌", "error");
-      return;
-    }
-
-    const val = parseInt(pointsInput.value) || 0;
-    if (val <= 0) {
-      showMessage("Enter points ❌", "error");
-      return;
-    }
-
-    const underNos = pattiData[mainNo];
-    const existing = db_store.find(b => b.mainNo === mainNo);
-
-    if (existing) {
-      existing.mode = mode;
-      existing.amountPerUnderNo = val;
-      existing.totalAmount = val * existing.underNos.length;
-    } else {
-      db_store.push({
-        uid: Math.random().toString(36).substr(2, 9),
-        mainNo,
-        underNos: [...underNos],
-        amountPerUnderNo: val,
-        totalAmount: val * underNos.length,
-        mode,
-      });
-    }
-
-    updateHistory(mainNo);
-    refreshView();
+function processSelection(mainNo, mode) {
+  if (openLocked && mode === "OPEN") {
+    showMessage("Open session closed ❌", "error");
+    return;
   }
 
-  function updateHistory(num) {
-    selectedHistory.push(num);
-    const badge = document.createElement("span");
+  const val = parseInt(pointsInput.value) || 0;
+  if (val <= 0) {
+    showMessage("Enter points ❌", "error");
+    return;
+  }
+
+  const underNos = pattiData[mainNo];
+
+  // Check if SAME mainNo + SAME mode exists
+  const existing = db_store.find(b => b.mainNo === mainNo && b.mode === mode);
+
+  if (existing) {
+    existing.amountPerUnderNo += val;
+    existing.totalAmount = existing.amountPerUnderNo * existing.underNos.length;
+  } else {
+    db_store.push({
+      uid: Math.random().toString(36).substr(2, 9),
+      mainNo,
+      underNos: [...underNos],
+      amountPerUnderNo: val,
+      totalAmount: val * underNos.length,
+      mode,
+    });
+  }
+
+  // Update history with cumulative points
+  updateHistory(mainNo, mode, existing ? existing.amountPerUnderNo : val);
+
+  refreshView();
+}
+
+
+
+function updateHistory(mainNo, mode, totalPoints) {
+  // Look for existing badge for this mainNo + mode
+  let badge = Array.from(historyContainer.children).find(
+    el => el.dataset.mainno == mainNo && el.dataset.mode === mode
+  );
+
+  if (badge) {
+    // Update points if badge exists
+    badge.innerText = `${mainNo} (${mode}): ${totalPoints}`;
+  } else {
+    // Create new badge if it doesn't exist
+    badge = document.createElement("span");
+    badge.dataset.mainno = mainNo;
+    badge.dataset.mode = mode;
     badge.className = "bg-brand-teal text-white text-xs px-2 py-1 rounded-md font-bold animate-pulse";
-    badge.innerText = num;
+    badge.innerText = `${mainNo} (${mode}): ${totalPoints}`;
     historyContainer.appendChild(badge);
+
     setTimeout(() => badge.classList.remove("animate-pulse"), 500);
   }
+}
+
+
 
   /* ================= REMOVE ROW ================= */
   window.removeRow = (element) => {

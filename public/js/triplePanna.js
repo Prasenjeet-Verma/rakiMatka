@@ -14,6 +14,9 @@ document.addEventListener("DOMContentLoaded", () => {
   let openLocked = false;
   let currentMode = "OPEN";
 
+  // ✅ Store for each number + mode separately
+  const tpStore = {}; // e.g. { "000_OPEN": 100, "000_CLOSE": 50 }
+
   /* ================= MESSAGE ================= */
   function showMessage(message, type = "success") {
     const old = document.getElementById("jsMsgBox");
@@ -80,17 +83,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ================= OPEN / CLOSE MODAL ================= */
   openBtn?.addEventListener("click", () => gameBox?.classList.remove("hidden"));
- closeBtn?.addEventListener("click", () => {
-  // Reset all input fields inside the grid
-  grid.querySelectorAll(".tp-amount-input").forEach(input => {
-    input.value = "";
-    input.dataset.mode = "OPEN"; // optional: reset mode
+  closeBtn?.addEventListener("click", () => {
+    // Clear all inputs
+    grid.querySelectorAll(".tp-amount-input").forEach(input => input.value = "");
+    // Reset total display
+    if (totalDisplay) totalDisplay.value = "0";
   });
-
-  // Reset total display
-  if (totalDisplay) totalDisplay.value = "0";
-});
-
 
   /* ================= DROPDOWN ================= */
   window.tpToggleMenu = () => {
@@ -104,19 +102,32 @@ document.addEventListener("DOMContentLoaded", () => {
       showMessage("Open Time Bet Closed ❌", "error");
       return;
     }
+
     currentMode = val;
     if (betTypeSelect) betTypeSelect.innerText = val;
 
+    // Populate inputs with stored values for the selected mode
+    grid.querySelectorAll(".tp-amount-input").forEach(input => {
+      const num = input.dataset.number;
+      const key = `${num}_${currentMode}`;
+      input.value = tpStore[key] || "";
+      input.dataset.mode = currentMode;
+    });
+
     const menu = document.getElementById("tp-dropdown-box");
     if (menu) menu.classList.add("tp-hidden");
+
+    // Recalculate total for the mode
+    let sum = 0;
+    Object.values(tpStore).forEach(v => sum += v);
+    if (totalDisplay) totalDisplay.value = sum;
   };
 
   /* ================= GRID ================= */
   if (grid) {
     tpNumbers.forEach((num) => {
       const div = document.createElement("div");
-      div.className =
-        "flex border-2 border-[#005c4b] rounded overflow-hidden bg-white";
+      div.className = "flex border-2 border-[#005c4b] rounded overflow-hidden bg-white";
       div.innerHTML = `
         <div class="bg-[#005c4b] text-white w-14 flex items-center justify-center font-bold">
           ${num}
@@ -132,27 +143,30 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ================= INPUT ================= */
   grid?.addEventListener("input", (e) => {
     if (!e.target.classList.contains("tp-amount-input")) return;
+
+    const num = e.target.dataset.number;
+    const key = `${num}_${currentMode}`;
+    const val = parseFloat(e.target.value) || 0;
+
+    // Save in store
+    tpStore[key] = val;
     e.target.dataset.mode = currentMode;
 
+    // Recalculate total
     let sum = 0;
-    grid.querySelectorAll(".tp-amount-input").forEach((i) => {
-      const v = parseFloat(i.value);
-      if (!isNaN(v)) sum += v;
-    });
+    Object.values(tpStore).forEach(v => sum += v);
     if (totalDisplay) totalDisplay.value = sum;
   });
 
   /* ================= SUBMIT ================= */
   window.tpSubmitFinalData = async () => {
     const bets = [];
-    grid.querySelectorAll(".tp-amount-input").forEach((input) => {
-      const amount = parseFloat(input.value);
+
+    Object.keys(tpStore).forEach(key => {
+      const [number, mode] = key.split("_");
+      const amount = tpStore[key];
       if (amount > 0) {
-        bets.push({
-          number: input.dataset.number,
-          amount,
-          mode: input.dataset.mode,
-        });
+        bets.push({ number, mode, amount });
       }
     });
 
@@ -175,6 +189,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await res.json();
       if (data.success) {
         showMessage("Bet placed ✅");
+
+        // Clear store and inputs
+        Object.keys(tpStore).forEach(k => tpStore[k] = 0);
         grid.querySelectorAll(".tp-amount-input").forEach(i => i.value = "");
         if (totalDisplay) totalDisplay.value = "0";
       } else {
