@@ -1171,9 +1171,12 @@
   </div>
 </main>
 
+
   <!-- ===================================== DP Motor ================================ -->
 
-  <main id="dPMotor " class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
+  <main id="dPMotor " data-game-id="<%= game._id %>" data-game-name="<%= game.gameName %>"
+    data-open-time="<%= todaySchedule ? todaySchedule.openTime : '' %>"
+    data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>" class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
     <!-- HEADER -->
 
     <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
@@ -1191,12 +1194,12 @@
 
         <div class="flex space-x-6">
           <label class="flex items-center space-x-2">
-            <input type="radio" name="session" checked class="accent-teal-700 w-5 h-5" />
+            <input type="radio" name="dpmotor_session" checked class="accent-teal-700 w-5 h-5" />
             <span class="font-semibold text-lg">Open</span>
           </label>
 
           <label class="flex items-center space-x-2">
-            <input type="radio" name="session" class="accent-gray-400 w-5 h-5" />
+            <input type="radio" name="dpmotor_session" class="accent-gray-400 w-5 h-5" />
             <span class="font-semibold text-lg text-gray-600">Close</span>
           </label>
         </div>
@@ -1206,7 +1209,7 @@
       <div class="flex justify-between items-center">
         <h2 class="text-xl font-bold text-gray-900">Open Digit:</h2>
 
-        <input type="number" placeholder="Enter Digit"
+        <input type="number" placeholder="Enter Digit" name="dpOpenDigit" id="dpmotor_opendigit"
           class="w-52 px-4 py-3 rounded-xl shadow-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-700 font-semibold" />
       </div>
 
@@ -1214,17 +1217,28 @@
       <div class="flex justify-between items-center">
         <h2 class="text-xl font-bold text-gray-900">Points</h2>
 
-        <input type="number" placeholder="Enter Point"
+        <input type="number" placeholder="Enter Point" id="dpmotor_points" name="dpPoints"
           class="w-52 px-4 py-3 rounded-xl shadow-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-700 font-semibold" />
       </div>
 
       <!-- ADD BUTTON -->
       <div class="flex justify-end pt-6">
-        <button
+        <button id="dpmotor_addbtn"
           class="bg-teal-800 text-white text-xl font-bold px-20 py-4 rounded-2xl shadow-lg active:scale-95 transition">
           Add
         </button>
       </div>
+      <!-- SUBMIT BUTTON (CENTER) -->
+<div class="flex justify-center pt-6">
+  <button
+    type="submit"
+    id="dpmotor_submitbtn"
+    name="dpmotor_submit"
+    class="bg-teal-800 text-white text-xl font-bold px-24 py-4 rounded-2xl shadow-lg active:scale-95 transition">
+    Submit
+  </button>
+</div>
+
     </div>
 
     <!-- BOTTOM BAR -->
@@ -1232,15 +1246,17 @@
       <div class="flex justify-around text-center font-semibold text-lg">
         <div>
           <div>Bids</div>
-          <div class="text-gray-600">0</div>
+          <div class="dpmotor_totalbids text-gray-600">0</div>
         </div>
         <div>
           <div>Amount</div>
-          <div class="text-gray-600">0</div>
+          <div class="dpmotor_totalamount text-gray-600">0</div>
         </div>
       </div>
     </div>
   </main>
+
+  
   <!-- ===================================== SP DP TP ================================ -->
   <main id="sPDPTP " class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
     <!-- HEADER -->
@@ -1418,6 +1434,7 @@
   <script src="/js/redBracket.js"></script>
   <script src="/js/FullSangam.js"></script>
   <script src="/js/spMotor.js"></script>
+  <script src="/js/dpMotor.js"></script>
 
 </body>
 

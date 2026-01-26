@@ -18,7 +18,7 @@ const OddEvenBet = require("../model/OddEvenBet");
 const HalfSangamBet = require("../model/HalfSangamBet");
 const FullSangam = require("../model/FullSangamBet");
 const SPMotorBet = require("../model/SPMotorBet");
-
+const DPMotorBet = require("../model/DPMotorBet");
 
 exports.UserHomePage = async (req, res, next) => {
   try {
@@ -90,34 +90,26 @@ const processedGames = games
   .map((game) => {
     const d = game.schedule[todayKey];
 
-    // Parse closeTime from DB
-    const [ch, cm] = d.closeTime.split(":").map(Number);
-    let closeMinutes = ch * 60 + cm;
-
-    // Current time in minutes
     const nowMinutes = now.hours() * 60 + now.minutes();
 
-    // Backend logic: open time = 12:00 AM
-    const openMinutes = 0;
+    const [ch, cm] = d.closeTime.split(":").map(Number);
+    const closeMinutes = ch * 60 + cm;
 
-    // Cross-midnight handling
-    if (closeMinutes < 360) closeMinutes += 24 * 60;
-    let runningMinutes = nowMinutes;
-    if (nowMinutes < 360) runningMinutes += 24 * 60;
-
-    const isRunning = runningMinutes >= openMinutes && runningMinutes <= closeMinutes;
+    // 🔥 SIMPLE & CORRECT LOGIC
+    const isRunning = nowMinutes <= closeMinutes;
 
     return {
       _id: game._id,
       gameName: game.gameName,
-      openTime: moment(d.openTime, "HH:mm").format("hh:mm A"), // display admin-set openTime in AM/PM
-      closeTime: moment(d.closeTime, "HH:mm").format("hh:mm A"), // display admin-set closeTime in AM/PM
+      openTime: moment(d.openTime, "HH:mm").format("hh:mm A"), // admin open time (display)
+      closeTime: moment(d.closeTime, "HH:mm").format("hh:mm A"),
       isRunning,
       statusText: isRunning ? "Market Running" : "Market Closed",
       isStarline: game.isStarline || false,
       isJackpot: game.isJackpot || false,
     };
   });
+
 
 
     // ===================== 🎯 SEPARATE GAMES =====================
@@ -2184,3 +2176,91 @@ exports.placeSPMotorBet = async (req, res) => {
     return res.status(500).json({ success: false, message: "Server error ❌" });
   }
 };
+
+exports.placeDPMotorBet = async (req,res,next) => {
+    try {
+    // ================= AUTH =================
+    if (!req.session?.isLoggedIn || !req.session.user || req.session.user.role !== "user") {
+      return res.status(401).json({ success: false, message: "Login required ❌" });
+    }
+
+    const user = await User.findOne({
+      _id: req.session.user._id,
+      role: "user",
+      userStatus: "active",
+    });
+
+    if (!user) return res.status(401).json({ success: false, message: "User not found ❌" });
+
+    // ================= BODY =================
+    const { gameId, gameName, bets } = req.body;
+    if (!gameId || !gameName || !Array.isArray(bets) || bets.length === 0) {
+      return res.json({ success: false, message: "No bets provided ❌" });
+    }
+
+    // ================= GAME SCHEDULE =================
+    const game = await Game.findById(gameId);
+    if (!game || game.isDeleted) return res.json({ success: false, message: "Invalid game ❌" });
+
+    const now = moment().tz("Asia/Kolkata");
+    const today = now.format("dddd").toLowerCase();
+    const schedule = game.schedule?.[today];
+
+    if (!schedule?.isActive) return res.json({ success: false, message: "Market closed today ❌" });
+
+    // ================= BET VALIDATION =================
+    let totalAmount = 0;
+
+    for (const bet of bets) {
+      const { session, openDigit, points } = bet;
+
+      // ----- BASIC CHECKS -----
+      if (!session || !["OPEN", "CLOSE"].includes(session) || openDigit === undefined || typeof points !== "number" || points <= 0) {
+        return res.json({ success: false, message: "Invalid bet data ❌" });
+      }
+
+      // ----- OPEN SESSION LOCK -----
+      if (session === "OPEN") {
+        const openMoment = moment.tz(
+          `${now.format("YYYY-MM-DD")} ${schedule.openTime}`,
+          "YYYY-MM-DD HH:mm",
+          "Asia/Kolkata"
+        );
+        if (now.isSameOrAfter(openMoment)) {
+          return res.json({ success: false, message: "Open session closed ❌" });
+        }
+      }
+
+      totalAmount += points;
+    }
+
+    // ================= WALLET CHECK =================
+    if (user.wallet < totalAmount) return res.json({ success: false, message: "Insufficient wallet balance ❌" });
+    user.wallet -= totalAmount;
+    await user.save();
+
+    // ================= SAVE BET =================
+    await DPMotorBet.create({
+      userId: user._id,
+      gameId,
+      gameName,
+      bets: bets.map(b => ({
+        session: b.session,
+        openDigit: b.openDigit,
+        points: b.points,
+        totalAmount: b.points,
+      })),
+      totalAmount,
+      playedDate: now.format("YYYY-MM-DD"),
+      playedTime: now.format("HH:mm"),
+      playedWeekday: now.format("dddd"),
+      resultStatus: "PENDING",
+    });
+
+    return res.json({ success: true, message: `DP Motor bet placed ₹${totalAmount} ✅` });
+
+  } catch (err) {
+    console.error("DP MOTOR ERROR:", err);
+    return res.status(500).json({ success: false, message: "Server error ❌" });
+  }
+}
