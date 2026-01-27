@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Matka UI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Font Awesome -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+  />
+  <style type="text/tailwindcss">
+      @layer components {
+        /* Custom Digit Card Style */
+        .digit-card {
+          @apply relative basis-[30%] aspect-[4/3] bg-[#005c4b] text-white rounded-xl 
+                       flex items-center justify-center text-3xl font-medium shadow-md 
+                       cursor-pointer transition-all active:scale-95 select-none;
+        }
+        /* The small bet amount badge */
+        .badge {
+          @apply absolute top-1 right-2 sm:top-2 sm:right-3 text-[10px] sm:text-xs opacity-80 font-normal;
+        }
+      }
+        .g-hide-scroll::-webkit-scrollbar { display: none; }
+        .g-hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        
+        .g-full-height {
+            height: 100vh;
+            height: -webkit-fill-available;
+        }
+        .tp-hidden {
+            display: none !important;
+        }
+
+        .g-bg-teal { background-color: #005c4b; }
+        .g-text-teal { color: #005c4b; }
+        .g-border-teal { border-color: #005c4b; }
+                /* Removes the up/down arrows from number inputs */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+        .hidden { display: none; }
+        #scroll-area::-webkit-scrollbar { display: none; }
+        #scroll-area { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .entry-anim { animation: slideIn 0.25s ease-out forwards; }
+               /* Custom UI for Radio Markers */
+        input[type="radio"]:checked + .radio-indicator {
+            border-color: #005c4b;
+        }
+        input[type="radio"]:checked + .radio-indicator::after {
+            content: "";
+            display: block;
+            width: 10px;
+            height: 10px;
+            background: #005c4b;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+    </style>
+        <script>
+        // Extending Tailwind to include your specific brand color
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brandGreen: '#005c4b',
+                    }
+                }
+            }
+        }
+                tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary-teal': '#005c4b',
+                        'surface-gray': '#f1f2f6',
+                        'item-green': '#e6edea'
+                    }
+                }
+            }
+        }
+                tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-teal': '#005c4b', 
+                        'accent-green': '#7da15c',
+                        'app-bg': '#f0f2f5',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-white">
+
+  <div class="min-h-screen">
+
+    <!-- HEADER -->
+    <div class="bg-teal-800 text-white px-4 py-4 rounded-b-3xl shadow-lg flex items-center justify-center relative">
+      <a href="/userDashboard">
+      <button class="absolute left-4 top-4">
+        <i class="fa fa-arrow-left text-xl"></i>
+      </button>
+      </a>
+      <span class="font-semibold text-xl tracking-wide">Starline Game - <%= game.gameName %></span>
+    </div>
+
+    <!-- GRID -->
+    <div class="p-6 grid grid-cols-2 gap-10 place-items-center mt-4">
+
+
+      <div 
+        id="btnSingleDigit"
+        class="relative w-40 h-40 cursor-pointer active:scale-95 transition">
+            <div class="w-full h-full rounded-full bg-teal-800 border-4 border-red-500 shadow-lg flex items-center justify-center">
+              <span class="text-5xl">🎲</span>
+           </div>
+           <div class="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-red-500 text-white px-6 py-1 rounded-full shadow font-semibold">
+             Single Digit
+          </div>
+       </div>
+
+      <!-- CARD -->
+      <div 
+      id="btnSinglePanna"
+      class="relative w-40 h-40 cursor-pointer active:scale-95 transition">
+        <div class="w-full h-full rounded-full bg-teal-800 border-4 border-red-500 shadow-lg flex items-center justify-center">
+          <span class="text-5xl text-white">🂡</span>
+        </div>
+        <div class="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-red-500 text-white px-6 py-1 rounded-full shadow font-semibold">
+          Single Panna
+        </div>
+      </div>
+
+      <!-- CARD -->
+      <div id="btnDoublePanna" class="relative w-40 h-40 cursor-pointer active:scale-95 transition">
+        <div class="w-full h-full rounded-full bg-teal-800 border-4 border-red-500 shadow-lg flex items-center justify-center">
+          <span class="text-5xl text-white">🂡 🂡</span>
+        </div>
+        <div class="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-red-500 text-white px-6 py-1 rounded-full shadow font-semibold">
+          Double Panna
+        </div>
+      </div>
+
+      <!-- CARD -->
+      <div id="btnTriplePanna" class="relative w-40 h-40 cursor-pointer active:scale-95 transition">
+        <div class="w-full h-full rounded-full bg-teal-800 border-4 border-red-500 shadow-lg flex items-center justify-center">
+          <span class="text-5xl text-white">🂡 🂡 🂡</span>
+        </div>
+        <div class="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-red-500 text-white px-6 py-1 rounded-full shadow font-semibold">
+          Triple Panna
+        </div>
+      </div>
+    </div>
+
+       <!-- ===================================== Single Digit ================================ -->
+
+  <main id="singleDigitGame" data-game-id="<%= game._id %>" data-game-name="<%= game.gameName %>"
+    data-game-type="SINGLE_DIGIT" data-open-time="<%= todaySchedule ? todaySchedule.openTime : '' %>"
+    data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>"
+    class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full z-50">
+
+    <!-- HEADER -->
+
+    <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
+      <div class="flex items-center gap-3">
+        <i id="closeSingle" class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
+        <h1 class="text-lg font-semibold">Single Digit - <%= game.gameName %>
+        </h1>
+      </div>
+    </header>
+
+    <div class="h-[90vh] flex flex-col justify-between p-5 overflow-x-auto">
+
+      <!-- OPEN / CLOSE -->
+      <select id="betTypeSingle" class="border border-black rounded-full px-6 py-2 font-bold w-full text-center mb-6">
+        <option value="open">OPEN</option>
+        <option value="close">CLOSE</option>
+      </select>
+
+      <!-- INPUT GRID -->
+      <div id="singleDigitGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-8"></div>
+
+      <!-- TOTAL -->
+      <div class="flex mb-8">
+        <div class="flex w-full border-2 border-[#005c4b] rounded-lg overflow-hidden">
+          <div class="bg-[#005c4b] text-white px-4 py-3 flex-1 text-center font-bold">
+            Total
+          </div>
+          <div id="singleDigitTotal" class="bg-white px-4 py-3 flex-1 text-center font-bold">
+            0
+          </div>
+        </div>
+      </div>
+
+      <!-- SUBMIT -->
+      <button id="submitSingleDigit" class="w-full bg-[#005c4b] text-white py-4 rounded-full text-lg font-bold">
+        Submit
+      </button>
+
+    </div>
+  </main>
+
+
+   <!-- ===================================== Single Panna ================================ -->
+  <main id="singlePanna" data-game-id="<%= game._id %>" data-game-name="<%= game.gameName %>"
+    data-open-time="<%= todaySchedule ? todaySchedule.openTime : '' %>"
+    data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>"
+    class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
+    <!-- HEADER -->
+
+    <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
+      <div class="flex items-center gap-3">
+        <i id="closeSinglePanna" class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
+        <h1 class="text-lg font-semibold">Single Panna - <%= game.gameName %></h1>
+      </div>
+    </header>
+
+    <div class="w-[100%] bg-white md:rounded-2xl shadow-2xl flex flex-col h-screen">
+      <div class="bg-white border-b border-gray-100 shrink-0">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center px-4 py-3 gap-3">
+          <span class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Select Game Type</span>
+          <div class="relative w-full sm:w-auto">
+            <select id="betType" name="betType" class="w-full sm:w-48 appearance-none h-11
+         border-2 border-[#005c4b]
+         rounded-full px-6 font-bold text-sm
+         bg-white text-[#005c4b] cursor-pointer">
+              <option value="open">OPEN</option>
+              <option value="close">CLOSE</option>
+            </select>
+
+            <div class="absolute right-4 top-2.5 pointer-events-none text-[#005c4b]">▼</div>
+          </div>
+        </div>
+
+        <div id="digitBar"
+          class="flex gap-2 overflow-x-auto px-4 py-4 no-scrollbar bg-gray-50/50 border-t border-gray-100">
+        </div>
+      </div>
+
+      <main class="flex-grow overflow-y-auto p-4 md:p-8 custom-scrollbar">
+        <div id="pattiGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        </div>
+      </main>
+
+      <footer
+        class="bg-white p-4 md:p-6 border-t border-gray-200 shadow-[0_-10px_30px_rgba(0,0,0,0.05)] shrink-0 relative bottom-20">
+        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div class="flex items-baseline gap-2">
+            <span class="text-gray-400 font-bold uppercase text-xs">Total Bid:</span>
+            <span id="grandTotal" class="text-3xl font-black text-[#005c4b]">0</span>
+          </div>
+          <button onclick="submitBids()"
+            class="w-full sm:w-64 bg-[#005c4b] text-white py-4 rounded-xl font-bold uppercase tracking-widest hover:bg-[#004a3c] active:scale-95 transition-all shadow-lg">
+            Submit Bid
+          </button>
+        </div>
+      </footer>
+    </div>
+    </div>
+
+  </main>
+
+        <!-- ===================================== Single Panna Bulk ================================ Not Done-->
+    <main
+      id="singlePannaBulk"
+      class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full "
+    >
+      <!-- HEADER -->
+
+      <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
+        <div class="flex items-center gap-3">
+          <i
+            id="closeSinglePannaBulk"
+            class="fa-solid fa-arrow-left text-xl cursor-pointer"
+          ></i>
+          <h1 class="text-lg font-semibold">Single Panna Bulk</h1>
+        </div>
+      </header>
+<div class="bg-zinc-300 md:p-8 w-[100%]">
+
+    <div class="bg-surface-gray min-h-screen md:min-h-[850px] flex flex-col relative shadow-2xl md:rounded-[2.5rem] overflow-hidden">
+        
+
+        <div class="bg-white p-5 space-y-4 border-b border-zinc-100">
+            <div class="flex items-center justify-between">
+                <label class="text-zinc-500 text-[10px] font-black uppercase tracking-wider">Session Type</label>
+                <button id="toggle-session" onclick="handleToggle()" class="border-2 border-zinc-200 rounded-xl px-10 py-2 min-w-[150px] text-xs font-black text-zinc-700 hover:border-primary-teal transition-all">
+                    OPEN
+                </button>
+            </div>
+            <div class="flex items-center justify-between">
+                <label class="text-zinc-500 text-[10px] font-black uppercase tracking-wider">Point Value</label>
+                <input type="number" id="val-input" value="" class="border-2 border-zinc-200 rounded-xl px-4 py-2 w-[150px] text-center text-sm font-bold focus:border-primary-teal focus:ring-0 outline-none transition-all">
+            </div>
+        </div>
+
+        <div class="grid grid-cols-5 gap-3 p-5 bg-white">
+            <button onclick="processSelection(0)" class="bg-[#005c4b] text-white py-3.5 rounded-2xl text-xl font-bold shadow-md hover:brightness-110 active:scale-90 transition-all"> 0 </button>
+            <button onclick="processSelection(1)" class="bg-[#005c4b] text-white py-3.5 rounded-2xl text-xl font-bold shadow-md hover:brightness-110 active:scale-90 transition-all"> 1 </button>
+            <button onclick="processSelection(2)" class="bg-[#005c4b] text-white py-3.5 rounded-2xl text-xl font-bold shadow-md hover:brightness-110 active:scale-90 transition-all"> 2 </button>
+            <button onclick="processSelection(3)" class="bg-[#005c4b] text-white py-3.5 rounded-2xl text-xl font-bold shadow-md hover:brightness-110 active:scale-90 transition-all"> 3 </button>
+            <button onclick="processSelection(4)" class="bg-[#005c4b] text-white py-3.5 rounded-2xl text-xl font-bold shadow-md hover:brightness-110 active:scale-90 transition-all"> 4 </button>
+            <button onclick="processSelection(5)" class="bg-[#005c4b] text-white py-3.5 rounded-2xl text-xl font-bold shadow-md hover:brightness-110 active:scale-90 transition-all"> 5 </button>
+            <button onclick="processSelection(6)" class="bg-[#005c4b] text-white py-3.5 rounded-2xl text-xl font-bold shadow-md hover:brightness-110 active:scale-90 transition-all"> 6 </button>
+            <button onclick="processSelection(7)" class="bg-[#005c4b] text-white py-3.5 rounded-2xl text-xl font-bold shadow-md hover:brightness-110 active:scale-90 transition-all"> 7 </button>
+            <button onclick="processSelection(8)" class="bg-[#005c4b] text-white py-3.5 rounded-2xl text-xl font-bold shadow-md hover:brightness-110 active:scale-90 transition-all"> 8 </button>
+            <button onclick="processSelection(9)" class="bg-[#005c4b] text-white py-3.5 rounded-2xl text-xl font-bold shadow-md hover:brightness-110 active:scale-90 transition-all"> 9 </button>
+        </div>
+
+        <div style="height: 45vh; overflow-y: scroll;">
+             <div class="grid grid-cols-4 px-8 py-3 text-[9px] font-black text-[#005c4b] uppercase tracking-[0.2em] text-center border-y border-zinc-100">
+            <span>Digits</span>
+            <span>Pts</span>
+            <span>Mode</span>
+            <span></span>
+        </div>
+
+        <div id="scroll-area" class="flex-1 overflow-y-auto pb-40 pt-3 space-y-2"></div>
+        </div>
+
+        <footer class="absolute bottom-0 w-full bg-white border-t border-zinc-200 p-5 
+        shadow-[0_-10px_20px_rgba(0,0,0,0.03)] rounded-t-[2rem] bottom-[4rem]">
+            <div class="flex justify-between items-center mb-5 px-2">
+                <div class="text-left">
+                    <p class="text-[9px] text-zinc-400 font-black uppercase tracking-tighter">Items</p>
+                    <p id="stat-count" class="text-2xl font-black text-zinc-800">0</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-[9px] text-zinc-400 font-black uppercase tracking-tighter">Total Credits</p>
+                    <p id="stat-sum" class="text-2xl font-black text-primary-teal">0</p>
+                </div>
+            </div>
+            <button class="w-full bg-[#005c4b] text-white py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-lg shadow-teal-900/20 hover:scale-[1.02] active:scale-95 transition-all">
+                Place Order
+            </button>
+        </footer>
+    </div>
+
+    <script>
+
+    </script>
+</div>
+
+    </main>
+
+
+    <!-- ===================================== Double Panna ================================ -->
+  <main id="DoublePanna" data-game-id="<%= game._id %>" data-game-name="<%= game.gameName %>"
+    data-open-time="<%= todaySchedule ? todaySchedule.openTime : '' %>"
+    data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>"class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
+    <!-- HEADER -->
+
+    <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
+      <div class="flex items-center gap-3">
+        <i id="closeDoublePanna" class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
+        <h1 class="text-lg font-semibold">Double Panna - <%= game.gameName %></h1>
+      </div>
+    </header>
+
+
+    <div class="bg-slate-200 font-sans antialiased overflow-hidden text-slate-900">
+
+      <div class="flex items-center justify-center min-h-screen">
+
+        <div class=" flex flex-col g-full-height bg-white shadow-2xl overflow-hidden md:rounded-2xl ">
+
+          <section class="p-4 space-y-4 bg-white z-40 shadow-sm border-b w-[100%]">
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+              <select id="g-game-selector" onchange="updateGameMode(this.value)"
+                class="w-full sm:w-1/2 py-2.5 px-5 border border-slate-300 rounded-full font-bold text-xs bg-white focus:outline-none focus:border-[#005c4b] cursor-pointer hover:bg-slate-50 transition-all uppercase appearance-none text-center">
+                <option value="OPEN">OPEN</option>
+                <option value="CLOSE">CLOSE</option>
+              </select>
+            </div>
+
+            <div id="g-tab-wrapper" class="flex flex-row justify-between gap-2 overflow-x-auto g-hide-scroll py-2">
+            </div>
+          </section>
+
+          <main class="flex-1 overflow-y-auto p-4 g-hide-scroll bg-slate-50">
+            <div id="g-main-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5">
+            </div>
+          </main>
+
+          <footer class="p-4 border-t bg-white shadow-[0_-5px_20px_rgba(0,0,0,0.06)] relative bottom-[4.5rem]">
+            <div class="flex justify-between items-center mb-5 px-1">
+              <span class="text-slate-400 font-bold uppercase text-[10px] md:text-xs tracking-widest">Total
+                Amount</span>
+              <span id="g-total-display"
+                class="text-2xl md:text-4xl font-black g-text-teal tracking-tighter italic">0</span>
+            </div>
+            <button
+              class="w-full g-bg-teal hover:bg-[#004a3d] text-white py-4.5 rounded-2xl font-black text-sm md:text-lg active:scale-[0.96] transition-all shadow-xl uppercase tracking-[0.2em] p-[0.8rem]">
+              Submit Bid
+            </button>
+          </footer>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+    <!-- ===================================== Double Panna Bulk ================================ --> 
+    <main
+      id="DoublePannaBulk"
+      class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full"
+    >
+      <!-- HEADER -->
+
+      <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
+        <div class="flex items-center gap-3">
+          <i
+            id="closeDoublePannaBulk"
+            class="fa-solid fa-arrow-left text-xl cursor-pointer"
+          ></i>
+          <h1 class="text-lg font-semibold">Double Panna Bulk</h1>
+        </div>
+     </header>
+
+<div class="bg-gray-200 flex justify-center items-center md:py-8 font-sans">
+
+    <div class="w-full h-screen-safe md:h-[850px] flex flex-col shadow-2xl md:rounded-3xl overflow-hidden border border-gray-300">
+
+        <main class="flex-1 p-4 flex flex-col overflow-hidden">
+            
+            <div class="space-y-4 mb-6">
+                <div class="flex justify-between items-center">
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-tight">Select Game Type :</label>
+                    <select id="game-type" onchange="updateExistingBidsType()" 
+                            class="w-1/2 py-2 px-4 bg-white border border-black rounded-full text-center text-sm font-bold focus:ring-2 focus:ring-brand-teal outline-none cursor-pointer">
+                        <option value="OPEN">OPEN</option>
+                        <option value="CLOSE">CLOSE</option>
+                    </select>
+                </div>
+
+                <div class="flex justify-between items-center">
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-tight">Enter Points :</label>
+                    <input type="number" id="points-input" value="" 
+                           class="w-1/2 py-2 border border-black rounded-full text-center text-sm font-bold outline-none focus:ring-2 focus:ring-brand-teal">
+                </div>
+            </div>
+
+            <div id="digit-grid" class="grid grid-cols-5 gap-2 mb-6">
+            </div>
+
+            <div style="height: 38vh; overflow-y: auto; padding-bottom: 3.5rem;">
+            <div class="grid grid-cols-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest pb-3 border-b-2 border-gray-300 ">
+                <span>Digit</span>
+                <span>Points</span>
+                <span>Game type</span>
+                <span></span>
+            </div>
+
+            <div class="flex-1 overflow-y-auto no-scrollbar py-2">
+                <div id="bid-list" class="space-y-2"></div>
+            </div>
+            </div>
+        </main>
+
+        <footer class="bg-white p-5 border-t border-gray-200 flex justify-between items-center fixed w-[100%] bottom-0">
+            <div class="flex space-x-8">
+                <div class="flex flex-col items-center">
+                    <span class="text-[10px] text-gray-400 font-bold uppercase">Bid</span>
+                    <b id="total-bid" class="text-xl text-gray-800">0</b>
+                </div>
+                <div class="flex flex-col items-center">
+                    <span class="text-[10px] text-gray-400 font-bold uppercase">Total</span>
+                    <b id="total-points" class="text-xl text-gray-800">0</b>
+                </div>
+            </div>
+            <button onclick="submitData()" class="bg-brand-teal text-white px-12 py-3 rounded-xl font-bold shadow-lg text-sm md:text-base active:scale-95 transition-all">
+                SUBMIT
+            </button>
+        </footer>
+    </div>
+</div>
+    </main>
+    <!-- ===================================== Triple Panna ================================ -->
+
+  <main id="triplePanna" data-game-id="<%= game._id %>" data-game-name="<%= game.gameName %>"
+    data-open-time="<%= todaySchedule ? todaySchedule.openTime : '' %>"
+    data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>" class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
+    <!-- HEADER -->
+
+    <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
+      <div class="flex items-center gap-3">
+        <i id="closeTriplePanna" class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
+        <h1 class="text-lg font-semibold">Triple Panna - <%= game.gameName %></h1>
+      </div>
+    </header>
+    <div class="bg-gray-100 min-h-screen flex justify-center items-start md:items-center">
+
+      <div
+        class="w-full max-w-5xl bg-white shadow-xl flex flex-col min-h-screen md:min-h-0 md:rounded-2xl overflow-hidden">
+
+        <div class="p-4 md:p-6 border-b">
+
+          <div class="flex justify-between items-center relative">
+            <span class="text-gray-600 font-medium">Select Game Type</span>
+
+            <button id="tp-select-trigger" onclick="tpToggleMenu()"
+              class="border-2 border-[#005c4b] rounded-full px-10 py-1 font-bold text-xs uppercase tracking-widest text-[#005c4b] hover:bg-[#005c4b] hover:text-white transition-all">
+              OPEN
+            </button>
+
+            <div id="tp-dropdown-box"
+              class="tp-hidden absolute right-0 top-10 w-40 bg-white border-2 border-[#005c4b] rounded-lg shadow-xl z-50">
+              <button onclick="tpSetGameType('OPEN')"
+                class="w-full text-left px-4 py-2 font-bold hover:bg-teal-50 border-b border-gray-100 text-[#005c4b]">OPEN</button>
+              <button onclick="tpSetGameType('CLOSE')"
+                class="w-full text-left px-4 py-2 font-bold hover:bg-teal-50 text-[#005c4b]">CLOSE</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-4 md:p-8 bg-gray-50 flex-grow">
+          <div id="tp-main-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          </div>
+
+          <div class="flex justify-center mt-10">
+            <div class="flex border-2 border-[#005c4b] rounded-lg overflow-hidden w-full max-w-xs shadow-sm bg-white">
+              <div class="bg-[#005c4b] text-white px-5 py-2 font-bold flex items-center">
+                Total
+              </div>
+              <input type="text" id="tp-final-total" value="0" readonly
+                class="w-full p-2 text-center font-bold text-[#005c4b] outline-none text-xl">
+            </div>
+          </div>
+        </div>
+
+        <div class="p-4 md:p-6 bg-white border-t relative bottom-[5rem]">
+          <button onclick="tpSubmitFinalData()"
+            class="w-full md:max-w-xs mx-auto block bg-[#005c4b] text-white py-4 rounded-full text-lg font-bold shadow-lg hover:brightness-110 active:scale-95 transition-all">
+            SUBMIT
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+    <script src="/js/userMainGame.js"></script>
+    <script src="/js/starlineSingleDigit.js"></script>
+    <script src="/js/starlineSinglePanna.js"></script>
+    <script src="/js/starlineDoublePanna.js"></script>
+    <script src="/js/starlineTriplePanna.js"></script>
+</body>
+
+</html>

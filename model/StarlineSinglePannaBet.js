@@ -1,0 +1,99 @@
+const mongoose = require("mongoose");
+
+/* ================= SINGLE PANNA ITEM ================= */
+const starlineSinglePannaItemSchema = new mongoose.Schema({
+  mainNo: {
+    type: Number,
+    required: true,
+    min: 0,
+    max: 9
+  },
+
+  underNo: {
+    type: String,
+    required: true,
+    match: /^[0-9]{3}$/
+  },
+
+  amount: {
+    type: Number,
+    required: true,
+    min: 1
+  },
+
+  // 🔥 MODE PER PANNA
+  mode: {
+    type: String,
+    enum: ["OPEN", "CLOSE"],
+    required: true
+  }
+});
+
+/* ================= SINGLE PANNA BET ================= */
+const starlineSinglePannaBetSchema = new mongoose.Schema(
+  {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true
+    },
+
+    gameId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Game",
+      required: true
+    },
+
+    gameName: {
+      type: String,
+      required: true
+    },
+    mainGame: {
+      type: String,
+      default: "STARLINE",
+      immutable: true
+    },
+    gameType: {
+      type: String,
+      default: "SINGLE_PANNA",
+      immutable: true
+    },
+
+    bets: {
+      type: [starlineSinglePannaItemSchema],
+      required: true,
+      validate: [
+        arr => arr.length > 0,
+        "At least one single panna bet required"
+      ]
+    },
+
+    totalAmount: {
+      type: Number,
+      required: true
+    },
+
+    /* ================= RESULT ================= */
+    resultStatus: {
+      type: String,
+      enum: ["PENDING", "WIN", "LOSS"],
+      default: "PENDING"
+    },
+
+    winningPanna: {
+      type: String,
+      default: null
+    },
+
+    /* ================= INDIAN TIME ================= */
+    playedDate: String,
+    playedTime: String,
+    playedWeekday: String
+  },
+  { timestamps: true }
+);
+
+module.exports = mongoose.model(
+  "StarlineSinglePannaBet",
+  starlineSinglePannaBetSchema
+);

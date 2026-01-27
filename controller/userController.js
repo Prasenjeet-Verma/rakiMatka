@@ -21,7 +21,10 @@ const SPMotorBet = require("../model/SPMotorBet");
 const DPMotorBet = require("../model/DPMotorBet");
 const spdptpBet = require("../model/spdptpBet");
 const RedBracketBet = require("../model/RedBracketBet");
-
+const starlineSingleDigitBet = require("../model/StarlineSingleDigitBet");
+const StarlineSinglePannaBet = require("../model/StarlineSinglePannaBet")
+const StarlineDoublePannaBet = require("../model/StarlineDoublePannaBet");
+const StarlineTripplePannaBet = require("../model/StarlineTriplePannaBet");
 exports.UserHomePage = async (req, res, next) => {
   try {
     // This will be either the user object or undefined
@@ -2520,3 +2523,538 @@ exports.placeRedBracketBet = async (req, res, next) => {
   }
 };
 
+// Starline game code
+exports.getStarLinePlayGamePage = async (req,res,next) => {
+   try {
+    // 🔐 User Security Check
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.user ||
+      req.session.user.role !== "user"
+    ) {
+      return res.redirect("/login");
+    }
+
+    const user = await User.findOne({
+      _id: req.session.user._id,
+      role: "user",
+      userStatus: "active",
+    }).select("-password");
+
+    if (!user) {
+      req.session.destroy();
+      return res.redirect("/login");
+    }
+
+    const admin = await User.findOne({ role: "admin" }).select(
+      "username phoneNo profilePhoto"
+    );
+
+    const gameId = req.params.id;
+    const game = await Game.findById(gameId);
+
+    if (!game) {
+      return res.status(404).send("Game not found");
+    }
+
+    // ⏰ SERVER TIME (SAFE)
+    const now = moment().tz("Asia/Kolkata");
+    const today = now.format("dddd").toLowerCase();
+
+    // 🟢 TODAY SCHEDULE (VERY IMPORTANT)
+    const todaySchedule = game.schedule?.[today] || null;
+
+    res.render("User/userStarlineGame", {
+      game,
+      admin,
+      user,
+      todaySchedule, // ✅ FIX HERE
+      isLoggedIn: req.session.isLoggedIn,
+    });
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("Server error");
+  }
+}
+
+
+
+exports.placeStarlineSingleDigitBet = async (req, res, next) => {
+   try {
+    // ✅ AUTH CHECK
+    if (!req.session.isLoggedIn || !req.session.user || req.session.user.role !== "user") {
+      return res.redirect("/login");
+    }
+
+    const user = await User.findOne({
+      _id: req.session.user._id,
+      role: "user",
+      userStatus: "active"
+    }).select("-password");
+
+    if (!user) {
+      req.session.destroy();
+      return res.redirect("/login");
+    }
+
+    const { gameId, bets } = req.body;
+
+    if (!gameId || !Array.isArray(bets) || bets.length === 0) {
+      return res.json({ success: false, message: "Invalid bet data ❌" });
+    }
+
+    const game = await Game.findById(gameId);
+    if (!game || game.isDeleted) {
+      return res.json({ success: false, message: "Invalid game ❌" });
+    }
+
+    const now = moment().tz("Asia/Kolkata");
+    const today = now.format("dddd").toLowerCase();
+    const schedule = game.schedule?.[today];
+
+    if (!schedule || !schedule.isActive) {
+      return res.json({ success: false, message: "Market closed today ❌" });
+    }
+
+    let totalAmount = 0;
+
+    // ✅ VALIDATION & OPEN TIME LOCK
+    for (const b of bets) {
+      if (
+        typeof b.number !== "number" ||
+        b.number < 0 ||
+        b.number > 9 ||
+        typeof b.amount !== "number" ||
+        b.amount <= 0 ||
+        !["OPEN", "CLOSE"].includes(b.mode)
+      ) {
+        return res.json({ success: false, message: "Invalid digit / amount / mode ❌" });
+      }
+
+      // 🔒 OPEN TIME LOCK
+      if (b.mode === "OPEN") {
+        const openMoment = moment.tz(
+          `${now.format("YYYY-MM-DD")} ${schedule.openTime}`,
+          "YYYY-MM-DD HH:mm",
+          "Asia/Kolkata"
+        );
+
+        if (now.isSameOrAfter(openMoment)) {
+          return res.json({ success: false, message: "Open Time Bet Close ❌" });
+        }
+      }
+
+      totalAmount += b.amount;
+    }
+
+    // ✅ WALLET CHECK
+    if (user.wallet < totalAmount) {
+      return res.json({ success: false, message: "Insufficient wallet balance ❌" });
+    }
+
+    // ✅ DEDUCT WALLET
+    user.wallet -= totalAmount;
+    await user.save();
+
+    // ✅ SAVE BET
+    // Store bets as they come: OPEN and CLOSE in the same document
+    await starlineSingleDigitBet.create({
+      userId: user._id,
+      gameId,
+      gameName: game.gameName,
+      bets,          // array can have mixed OPEN & CLOSE
+      totalAmount,
+      playedDate: now.format("YYYY-MM-DD"),
+      playedTime: now.format("HH:mm"),
+      playedWeekday: now.format("dddd")
+    });
+
+    return res.json({
+      success: true,
+      message: `SINGLE DIGIT Bet placed successfully ₹${totalAmount}`
+    });
+
+  } catch (err) {
+    console.error("❌ SINGLE DIGIT BET ERROR:", err);
+    return res.json({ success: false, message: "Server error ❌" });
+  }
+}
+
+exports.placeStarlineSinglePannaBet = async (req,res,next) => {
+ try {
+    /* ================= AUTH ================= */
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.user ||
+      req.session.user.role !== "user"
+    ) {
+      return res.redirect("/login");
+    }
+
+    const user = await User.findOne({
+      _id: req.session.user._id,
+      role: "user",
+      userStatus: "active"
+    }).select("-password");
+
+    if (!user) {
+      req.session.destroy();
+      return res.redirect("/login");
+    }
+
+    /* ================= BODY ================= */
+    const { gameId, bets } = req.body;
+
+    if (!gameId || !Array.isArray(bets) || bets.length === 0) {
+      return res.json({
+        success: false,
+        message: "Add at least one panna ❌"
+      });
+    }
+
+    /* ================= GAME ================= */
+    const game = await Game.findById(gameId);
+    if (!game || game.isDeleted) {
+      return res.json({
+        success: false,
+        message: "Invalid game ❌"
+      });
+    }
+
+    /* ================= TIME / SCHEDULE ================= */
+    const now = moment().tz("Asia/Kolkata");
+    const today = now.format("dddd").toLowerCase();
+    const schedule = game.schedule?.[today];
+
+    if (!schedule || !schedule.isActive) {
+      return res.json({
+        success: false,
+        message: "Market closed today ❌"
+      });
+    }
+
+    /* ================= VALIDATION & TOTAL ================= */
+    let totalAmount = 0;
+
+    for (const b of bets) {
+      /* BASIC FIELD CHECK */
+      if (
+        typeof b.mainNo !== "number" ||
+        b.mainNo < 0 ||
+        b.mainNo > 9 ||
+        typeof b.underNo !== "string" ||
+        !/^[0-9]{3}$/.test(b.underNo) ||
+        typeof b.amount !== "number" ||
+        b.amount <= 0 ||
+        !["OPEN", "CLOSE"].includes(b.mode)
+      ) {
+        return res.json({
+          success: false,
+          message: "Invalid panna data ❌"
+        });
+      }
+
+      /* PANNA MATCH */
+      if (Number(b.underNo[0]) !== b.mainNo) {
+        return res.json({
+          success: false,
+          message: "Under number mismatch ❌"
+        });
+      }
+
+      /* OPEN TIME LOCK (PER BET) */
+      if (b.mode === "OPEN") {
+        const openMoment = moment.tz(
+          `${now.format("YYYY-MM-DD")} ${schedule.openTime}`,
+          "YYYY-MM-DD HH:mm",
+          "Asia/Kolkata"
+        );
+
+        if (now.isSameOrAfter(openMoment)) {
+          return res.json({
+            success: false,
+            message: "Open time bet closed ❌"
+          });
+        }
+      }
+
+      totalAmount += b.amount;
+    }
+
+    /* ================= WALLET ================= */
+    if (user.wallet < totalAmount) {
+      return res.json({
+        success: false,
+        message: "Insufficient wallet balance ❌"
+      });
+    }
+
+    user.wallet -= totalAmount;
+    await user.save();
+
+    /* ================= SAVE BET ================= */
+    await StarlineSinglePannaBet.create({
+      userId: user._id,
+      gameId,
+      gameName: game.gameName,
+      gameType: "SINGLE_PANNA",
+      bets, // 🔥 each bet has its own mode
+      totalAmount,
+      playedDate: now.format("YYYY-MM-DD"),
+      playedTime: now.format("HH:mm"),
+      playedWeekday: now.format("dddd")
+    });
+
+    return res.json({
+      success: true,
+      message: `SINGLE PANNA Bet placed successfully ₹${totalAmount}`
+    });
+
+  } catch (err) {
+    console.error("❌ SINGLE PANNA ERROR:", err);
+    return res.json({
+      success: false,
+      message: "Server error ❌"
+    });
+  }
+};
+
+
+exports.placeStarlineDoublePannaBet = async (req,res,next) => {
+try {
+    /* ================= AUTH ================= */
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.user ||
+      req.session.user.role !== "user"
+    ) {
+      return res.redirect("/login");
+    }
+
+    const user = await User.findOne({
+      _id: req.session.user._id,
+      role: "user",
+      userStatus: "active"
+    }).select("-password");
+
+    if (!user) {
+      req.session.destroy();
+      return res.redirect("/login");
+    }
+
+    /* ================= BODY ================= */
+    const { gameId, bets } = req.body;
+
+    if (!gameId || !Array.isArray(bets) || bets.length === 0) {
+      return res.json({
+        success: false,
+        message: "Enter bet amount first ❌"
+      });
+    }
+
+    /* ================= GAME ================= */
+    const game = await Game.findById(gameId);
+    if (!game || game.isDeleted) {
+      return res.json({
+        success: false,
+        message: "Invalid game ❌"
+      });
+    }
+
+    /* ================= TIME / SCHEDULE ================= */
+    const now = moment().tz("Asia/Kolkata");
+    const today = now.format("dddd").toLowerCase();
+    const schedule = game.schedule?.[today];
+
+    if (!schedule || !schedule.isActive) {
+      return res.json({
+        success: false,
+        message: "Market closed today ❌"
+      });
+    }
+
+    /* ================= VALIDATION & TOTAL ================= */
+    let totalAmount = 0;
+
+    for (const b of bets) {
+      /* BASIC VALIDATION */
+      if (
+        typeof b.mainNo !== "number" ||
+        b.mainNo < 0 ||
+        b.mainNo > 9 ||
+        typeof b.underNo !== "string" ||
+        !/^[0-9]{3}$/.test(b.underNo) ||
+        typeof b.amount !== "number" ||
+        b.amount <= 0 ||
+        !["OPEN", "CLOSE"].includes(b.mode)
+      ) {
+        return res.json({
+          success: false,
+          message: "Invalid panna or amount ❌"
+        });
+      }
+
+      /* MAIN / UNDER CHECK */
+      if (Number(b.underNo[0]) !== b.mainNo) {
+        return res.json({
+          success: false,
+          message: "UnderNo mismatch ❌"
+        });
+      }
+
+      /* OPEN TIME LOCK */
+      if (b.mode === "OPEN") {
+        const openMoment = moment.tz(
+          `${now.format("YYYY-MM-DD")} ${schedule.openTime}`,
+          "YYYY-MM-DD HH:mm",
+          "Asia/Kolkata"
+        );
+
+        if (now.isSameOrAfter(openMoment)) {
+          return res.json({
+            success: false,
+            message: "Open Time Bet Close ❌"
+          });
+        }
+      }
+
+      totalAmount += b.amount;
+    }
+
+    /* ================= WALLET ================= */
+    if (user.wallet < totalAmount) {
+      return res.json({
+        success: false,
+        message: "Insufficient wallet balance ❌"
+      });
+    }
+
+    user.wallet -= totalAmount;
+    await user.save();
+
+    /* ================= SAVE BET ================= */
+    await StarlineDoublePannaBet.create({
+      userId: user._id,
+      gameId,
+      gameName: game.gameName,
+      gameType: "DOUBLE_PANNA",
+      bets,
+      totalAmount,
+      playedDate: now.format("YYYY-MM-DD"),
+      playedTime: now.format("HH:mm"),
+      playedWeekday: now.format("dddd")
+    });
+
+    return res.json({
+      success: true,
+      message: `DOUBLE PANNA Bet placed successfully ₹${totalAmount}`
+    });
+
+  } catch (err) {
+    console.error("❌ DOUBLE PANNA BET ERROR:", err);
+    return res.json({
+      success: false,
+      message: "Server error ❌"
+    });
+  }
+};
+
+exports.placeStarlineTriplePannaBet = async (req, res, next) => {
+   try {
+    // ✅ AUTH CHECK
+    if (!req.session.isLoggedIn || !req.session.user || req.session.user.role !== "user") {
+      return res.redirect("/login");
+    }
+
+    const user = await User.findOne({
+      _id: req.session.user._id,
+      role: "user",
+      userStatus: "active"
+    }).select("-password");
+
+    if (!user) {
+      req.session.destroy();
+      return res.redirect("/login");
+    }
+
+    const { gameId, bets } = req.body;
+
+    if (!gameId || !Array.isArray(bets) || bets.length === 0) {
+      return res.json({ success: false, message: "Invalid bet data ❌" });
+    }
+
+    const game = await Game.findById(gameId);
+    if (!game || game.isDeleted) {
+      return res.json({ success: false, message: "Invalid game ❌" });
+    }
+
+    const now = moment().tz("Asia/Kolkata");
+    const today = now.format("dddd").toLowerCase();
+    const schedule = game.schedule?.[today];
+
+    if (!schedule || !schedule.isActive) {
+      return res.json({ success: false, message: "Market closed today ❌" });
+    }
+
+    let totalAmount = 0;
+
+    // ✅ VALIDATION & OPEN TIME LOCK
+    for (const b of bets) {
+      if (
+        typeof b.number !== "string" || 
+        !/^[0-9]{3}$/.test(b.number) || // triple digit check
+        typeof b.amount !== "number" ||
+        b.amount <= 0 ||
+        !["OPEN", "CLOSE"].includes(b.mode)
+      ) {
+        return res.json({ success: false, message: "Invalid number / amount / mode ❌" });
+      }
+
+      // 🔒 OPEN TIME LOCK
+      if (b.mode === "OPEN") {
+        const openMoment = moment.tz(
+          `${now.format("YYYY-MM-DD")} ${schedule.openTime}`,
+          "YYYY-MM-DD HH:mm",
+          "Asia/Kolkata"
+        );
+
+        if (now.isSameOrAfter(openMoment)) {
+          return res.json({ success: false, message: "Open Time Bet Close ❌" });
+        }
+      }
+
+      totalAmount += b.amount;
+    }
+
+    // ✅ WALLET CHECK
+    if (user.wallet < totalAmount) {
+      return res.json({ success: false, message: "Insufficient wallet balance ❌" });
+    }
+
+    // ✅ DEDUCT WALLET
+    user.wallet -= totalAmount;
+    await user.save();
+
+    // ✅ SAVE BET
+    await StarlineTripplePannaBet.create({
+      userId: user._id,
+      gameId,
+      gameName: game.gameName,
+      bets, // array can have mixed OPEN & CLOSE
+      totalAmount,
+      playedDate: now.format("YYYY-MM-DD"),
+      playedTime: now.format("HH:mm"),
+      playedWeekday: now.format("dddd")
+    });
+
+    return res.json({
+      success: true,
+      message: `TRIPLE PANNA Bet placed successfully ₹${totalAmount}`
+    });
+
+  } catch (err) {
+    console.error("❌ TRIPLE PANNA BET ERROR:", err);
+    return res.json({ success: false, message: "Server error ❌" });
+  }
+};

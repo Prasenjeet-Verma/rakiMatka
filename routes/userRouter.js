@@ -13,7 +13,7 @@ userRouter.get('/usercontactadmin', userController.getUserContactAdminPage);
 userRouter.get('/userGameRates', userController.getUserGameRatesPage);
 userRouter.get('/userlanguage', userController.getUserLanguagePage);
 userRouter.post('/forgetuserpassword', userController.postForgetUserPassword);
-//Play Game Route Start Here
+//Game Data Submit routes
 userRouter.get("/play/:id", userController.getPlayGamePage);
 userRouter.post("/single-digit/place-bet", userController.placeSingleDigitBet);
 userRouter.post("/single-bulk-digit/place-bet", userController.placeSingleBulkDigitBet);
@@ -31,4 +31,10 @@ userRouter.post("/sp-motor/place-bet", userController.placeSPMotorBet);
 userRouter.post("/dp-motor/place-bet", userController.placeDPMotorBet);
 userRouter.post("/spdptp/place-bet", userController.placeSpDpTpBet);
 userRouter.post("/red-bracket/place-bet", userController.placeRedBracketBet);
+//Starline Data Submit Routes
+userRouter.get("/playstarline/:id", userController.getStarLinePlayGamePage);
+userRouter.post("/starline-single-digit/place-bet", userController.placeStarlineSingleDigitBet);
+userRouter.post("/starline-single-panna/place-bet", userController.placeStarlineSinglePannaBet);
+userRouter.post("/starline-double-panna/place-bet", userController.placeStarlineDoublePannaBet);
+userRouter.post("/starline-triple-panna/place-bet", userController.placeStarlineTriplePannaBet);
 module.exports = userRouter;

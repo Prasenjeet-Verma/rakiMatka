@@ -191,7 +191,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try {
-      const res = await fetch("/single-digit/place-bet", {
+      const res = await fetch("/starline-single-digit/place-bet", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
