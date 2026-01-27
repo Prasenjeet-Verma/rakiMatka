@@ -29,4 +29,6 @@ userRouter.post("/half-sangam/place-bet", userController.placeHalfSangamBet);
 userRouter.post("/full-sangam/place-bid", userController.placeFullSangamBid);
 userRouter.post("/sp-motor/place-bet", userController.placeSPMotorBet);
 userRouter.post("/dp-motor/place-bet", userController.placeDPMotorBet);
+userRouter.post("/spdptp/place-bet", userController.placeSpDpTpBet);
+userRouter.post("/red-bracket/place-bet", userController.placeRedBracketBet);
 module.exports = userRouter;

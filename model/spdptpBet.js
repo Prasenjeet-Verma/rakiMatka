@@ -1,30 +1,27 @@
 const mongoose = require("mongoose");
 
-/* ================= SP MOTOR ITEM SCHEMA ================= */
-const dpMotorItemSchema = new mongoose.Schema({
+const spdptpItemSchema = new mongoose.Schema({
   session: {
-    type: String,           // "OPEN" or "CLOSE"
-    enum: ["OPEN", "CLOSE"],
+    type: String,
+    enum: ["Open", "Close"],
+    required: true,
+  },
+  choose: {
+    type: [String],
+    enum: ["SP", "DP", "TP"],
     required: true,
   },
   openDigit: {
-    type: Number,           // user input digit
+    type: Number,
     required: true,
   },
   points: {
-    type: Number,           // user points
+    type: Number,
     required: true,
-    min: 1,
-  },
-  totalAmount: {
-    type: Number,           // same as points
-    required: true,
-    min: 1,
   },
 });
 
-/* ================= DP MOTOR BET SCHEMA ================= */
-const dpMotorBetSchema = new mongoose.Schema(
+const spdptpBetSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -42,17 +39,17 @@ const dpMotorBetSchema = new mongoose.Schema(
     },
     gameType: {
       type: String,
-      default: "DP_MOTOR",
+      default: "SP_DP_TP",
       immutable: true,
     },
     bets: {
-      type: [dpMotorItemSchema],
+      type: [spdptpItemSchema],
       required: true,
       validate: [arr => arr.length > 0, "At least one bet required"],
     },
     totalAmount: {
       type: Number,
-      required: true,
+      default: 0,
     },
     resultStatus: {
       type: String,
@@ -66,12 +63,14 @@ const dpMotorBetSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-/* ===== PRE-SAVE HOOK: CALCULATE TOTAL AMOUNT ===== */
-dpMotorBetSchema.pre("validate", function () {
-  this.totalAmount = this.bets.reduce(
-    (sum, b) => sum + (b.totalAmount || b.points || 0),
-    0
-  );
+spdptpBetSchema.pre("validate", function () {
+  if (Array.isArray(this.bets)) {
+    this.totalAmount = this.bets.reduce(
+      (sum, b) => sum + b.points,
+      0
+    );
+  }
 });
 
-module.exports = mongoose.model("DPMotorBet", dpMotorBetSchema);
+
+module.exports = mongoose.model("spdptpBet", spdptpBetSchema);

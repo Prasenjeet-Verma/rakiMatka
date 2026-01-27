@@ -1182,7 +1182,7 @@
     <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
       <div class="flex items-center gap-3">
         <i id="closeDPMotor " class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
-        <h1 class="text-lg font-semibold">DP Motor</h1>
+        <h1 class="text-lg font-semibold">DP Motor - <%= game.gameName %></h1>
       </div>
     </header>
 
@@ -1258,12 +1258,14 @@
 
   
   <!-- ===================================== SP DP TP ================================ -->
-  <main id="sPDPTP " class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
+  <main id="sPDPTP " data-game-id="<%= game._id %>" data-game-name="<%= game.gameName %>"
+    data-open-time="<%= todaySchedule ? todaySchedule.openTime : '' %>"
+    data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>" class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
     <!-- HEADER -->
     <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
       <div class="flex items-center gap-3">
         <i id="closeSPDPTP" class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
-        <h1 class="text-lg font-semibold">SP DP TP</h1>
+        <h1 class="text-lg font-semibold">SP DP TP - <%= game.gameName %></h1>
       </div>
     </header>
 
@@ -1274,11 +1276,11 @@
         <span class="font-semibold text-lg">Choose Session</span>
         <div class="flex gap-6">
           <label class="flex items-center gap-2 cursor-pointer">
-            <input type="radio" name="session" checked class="accent-teal-700 w-5 h-5" />
+            <input type="radio" name="SPDPTP_session" checked class="accent-teal-700 w-5 h-5" />
             <span class="font-medium">Open</span>
           </label>
           <label class="flex items-center gap-2 cursor-pointer">
-            <input type="radio" name="session" class="accent-teal-700 w-5 h-5" />
+            <input type="radio" name="SPDPTP_session" class="accent-teal-700 w-5 h-5" />
             <span class="font-medium">Close</span>
           </label>
         </div>
@@ -1289,15 +1291,15 @@
         <span class="font-semibold text-lg">Choose SP DP TP</span>
         <div class="flex gap-6">
           <label class="flex items-center gap-2">
-            <input type="checkbox" class="w-5 h-5 accent-teal-700" />
+            <input type="checkbox" id="SP" class="w-5 h-5 accent-teal-700" />
             <span class="font-medium">SP</span>
           </label>
           <label class="flex items-center gap-2">
-            <input type="checkbox" class="w-5 h-5 accent-teal-700" />
+            <input type="checkbox" id="DP" class="w-5 h-5 accent-teal-700" />
             <span class="font-medium">DP</span>
           </label>
           <label class="flex items-center gap-2">
-            <input type="checkbox" class="w-5 h-5 accent-teal-700" />
+            <input type="checkbox" id="TP" class="w-5 h-5 accent-teal-700" />
             <span class="font-medium">TP</span>
           </label>
         </div>
@@ -1306,44 +1308,58 @@
       <!-- Open Digit -->
       <div class="flex items-center justify-between">
         <span class="font-semibold text-lg">Open Digit:</span>
-        <input type="number" placeholder="Enter Digit"
+        <input type="number" placeholder="Enter Digit" name="spdptpopen_Digit" id="spdptpopen_Digit"
           class="w-48 px-4 py-3 rounded-xl shadow-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-700" />
       </div>
 
       <!-- Points -->
       <div class="flex items-center justify-between">
         <span class="font-semibold text-lg">Points</span>
-        <input type="number" placeholder="Enter Point"
+        <input type="number" placeholder="Enter Point" name="spdptp_Points" id="spdptp_Points"
           class="w-48 px-4 py-3 rounded-xl shadow-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-700" />
       </div>
 
       <!-- ADD BUTTON -->
-      <button
+      <button id="spdptpAddBtn"
         class="w-full bg-teal-800 text-white py-4 rounded-2xl font-semibold text-lg shadow-lg active:scale-95 transition">
         Add
       </button>
+            <!-- SUBMIT BUTTON (CENTER) -->
+<div class="flex justify-center pt-6">
+  <button
+    type="submit"
+    id="spdptp_submitbtn"
+    name="spdptp_submit"
+    class="bg-teal-800 text-white text-xl font-bold px-24 py-4 rounded-2xl shadow-lg active:scale-95 transition">
+    Submit
+  </button>
+</div>
     </div>
 
     <!-- FOOTER BAR -->
     <div class="mt-auto border-t flex justify-around py-4 text-center">
       <div>
         <p class="font-semibold">Bids</p>
-        <p class="text-lg">0</p>
+        <p class="spdptp_totalbids text-lg">0</p>
       </div>
       <div>
         <p class="font-semibold">Amount</p>
-        <p class="text-lg">0</p>
+        <p class="spdptp_totalbids  text-lg">0</p>
       </div>
     </div>
   </main>
+
+  
   <!-- ===================================== Red Bracket ================================ -->
 
-  <main id="redBracket" class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
+  <main id="redBracket" data-game-id="<%= game._id %>" data-game-name="<%= game.gameName %>"
+    data-open-time="<%= todaySchedule ? todaySchedule.openTime : '' %>"
+    data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>" class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
     <!-- HEADER -->
     <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
       <div class="flex items-center gap-3">
         <i id="closeRedBracket" class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
-        <h1 class="text-lg font-semibold"> Red Bracket </h1>
+        <h1 class="text-lg font-semibold"> Red Bracket - <%= game.gameName %></h1>
       </div>
     </header>
     <div class="bg-slate-50 font-sans text-slate-900 min-h-screen ">
@@ -1408,7 +1424,7 @@
               <p id="totalPointsSum" class="text-xl sm:text-2xl font-black text-[#005c4b] leading-none">0</p>
             </div>
           </div>
-          <button
+          <button id="redBracketSubmitBtnn"
             class="bg-[#005c4b] text-white px-8 sm:px-14 py-3.5 rounded-xl font-bold shadow-md hover:bg-[#004a3c] transition-all active:shadow-none uppercase text-sm">
             Submit
           </button>
@@ -1435,6 +1451,7 @@
   <script src="/js/FullSangam.js"></script>
   <script src="/js/spMotor.js"></script>
   <script src="/js/dpMotor.js"></script>
+  <script src="/js/spdptp.js"></script>
 
 </body>
 
