@@ -25,6 +25,9 @@ const starlineSingleDigitBet = require("../model/StarlineSingleDigitBet");
 const StarlineSinglePannaBet = require("../model/StarlineSinglePannaBet")
 const StarlineDoublePannaBet = require("../model/StarlineDoublePannaBet");
 const StarlineTripplePannaBet = require("../model/StarlineTriplePannaBet");
+const LeftDigitBet = require ("../model/JackpotLeftDigitBet");
+const RightDigitBet = require ("../model/JackpotRightDigitBet");
+const JackpotCentreJodiDigitBet = require ("../model/JackpotCentreJodiDigitBet");
 exports.UserHomePage = async (req, res, next) => {
   try {
     // This will be either the user object or undefined
@@ -3058,3 +3061,249 @@ exports.placeStarlineTriplePannaBet = async (req, res, next) => {
     return res.json({ success: false, message: "Server error ❌" });
   }
 };
+
+//Jackpot Game Data Submit Controller function Start Here
+exports.getJackpotPlayGamePage = async (req,res,next) => {
+   try {
+    // 🔐 User Security Check
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.user ||
+      req.session.user.role !== "user"
+    ) {
+      return res.redirect("/login");
+    }
+
+    const user = await User.findOne({
+      _id: req.session.user._id,
+      role: "user",
+      userStatus: "active",
+    }).select("-password");
+
+    if (!user) {
+      req.session.destroy();
+      return res.redirect("/login");
+    }
+
+    const admin = await User.findOne({ role: "admin" }).select(
+      "username phoneNo profilePhoto"
+    );
+
+    const gameId = req.params.id;
+    const game = await Game.findById(gameId);
+
+    if (!game) {
+      return res.status(404).send("Game not found");
+    }
+
+    // ⏰ SERVER TIME (SAFE)
+    const now = moment().tz("Asia/Kolkata");
+    const today = now.format("dddd").toLowerCase();
+
+    // 🟢 TODAY SCHEDULE (VERY IMPORTANT)
+    const todaySchedule = game.schedule?.[today] || null;
+
+    res.render("User/userJackpotGame", {
+      game,
+      admin,
+      user,
+      todaySchedule, // ✅ FIX HERE
+      isLoggedIn: req.session.isLoggedIn,
+    });
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("Server error");
+  }
+}
+
+
+
+exports.placeJackpotRightDigitBet = async (req, res, next) => {
+try {
+
+    /* ================= AUTH ================= */
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.user ||
+      req.session.user.role !== "user"
+    ) {
+      return res.redirect("/login");
+    }
+
+    const user = await User.findOne({
+      _id: req.session.user._id,
+      role: "user",
+      userStatus: "active",
+    }).select("-password");
+
+    if (!user) {
+      req.session.destroy();
+      return res.redirect("/login");
+    }
+    const { gameId, bets } = req.body;
+    if (!gameId || !bets || !bets.length) {
+      return res.json({ success: false, message: "Invalid bet data ❌" });
+    }
+
+    /* ================= GAME CHECK ================= */
+    const game = await Game.findById(gameId);
+    if (!game || game.isDeleted) {
+      return res.json({ success: false, message: "Invalid game ❌" });
+    }
+
+    /* ================= TOTAL AMOUNT ================= */
+    const totalAmount = bets.reduce((sum, b) => sum + Number(b.amount || 0), 0);
+    if (user.wallet < totalAmount) {
+      return res.json({ success: false, message: "Insufficient balance ❌" });
+    }
+
+    /* ================= DEDUCT WALLET ================= */
+    user.wallet -= totalAmount;
+    await user.save();
+
+    /* ================= SAVE BET ================= */
+    const now = moment().tz("Asia/Kolkata");
+    await RightDigitBet.create({
+      userId: user._id,
+      gameId,
+      gameName: game.gameName,
+      bets,
+      totalAmount,
+      playedDate: now.format("YYYY-MM-DD"),
+      playedTime: now.format("HH:mm"),
+      playedWeekday: now.format("dddd")
+    });
+
+    return res.json({ success: true, message: `Bet placed ₹${totalAmount} ✅` });
+  } catch (err) {
+    console.error("RightDigitBet Error:", err);
+    res.json({ success: false, message: "Server error ❌" });
+  }
+};
+
+exports.placeJackpotLeftDigitBet = async (req, res, next) => {
+try {
+
+    /* ================= AUTH ================= */
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.user ||
+      req.session.user.role !== "user"
+    ) {
+      return res.redirect("/login");
+    }
+
+    const user = await User.findOne({
+      _id: req.session.user._id,
+      role: "user",
+      userStatus: "active",
+    }).select("-password");
+
+    if (!user) {
+      req.session.destroy();
+      return res.redirect("/login");
+    }
+    const { gameId, bets } = req.body;
+    if (!gameId || !bets || !bets.length) {
+      return res.json({ success: false, message: "Invalid bet data ❌" });
+    }
+
+    /* ================= GAME CHECK ================= */
+    const game = await Game.findById(gameId);
+    if (!game || game.isDeleted) {
+      return res.json({ success: false, message: "Invalid game ❌" });
+    }
+
+    /* ================= TOTAL AMOUNT ================= */
+    const totalAmount = bets.reduce((sum, b) => sum + Number(b.amount || 0), 0);
+    if (user.wallet < totalAmount) {
+      return res.json({ success: false, message: "Insufficient balance ❌" });
+    }
+
+    /* ================= DEDUCT WALLET ================= */
+    user.wallet -= totalAmount;
+    await user.save();
+
+    /* ================= SAVE BET ================= */
+    const now = moment().tz("Asia/Kolkata");
+    await LeftDigitBet.create({
+      userId: user._id,
+      gameId,
+      gameName: game.gameName,
+      bets,
+      totalAmount,
+      playedDate: now.format("YYYY-MM-DD"),
+      playedTime: now.format("HH:mm"),
+      playedWeekday: now.format("dddd")
+    });
+
+    return res.json({ success: true, message: `Bet placed ₹${totalAmount} ✅` });
+  } catch (err) {
+    console.error("LeftDigitBet Error:", err);
+    res.json({ success: false, message: "Server error ❌" });
+  }
+};
+
+exports.placeJackpotCenterJodiDigitBet = async (req, res, next) => {
+try {
+
+    /* ================= AUTH ================= */
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.user ||
+      req.session.user.role !== "user"
+    ) {
+      return res.redirect("/login");
+    }
+
+    const user = await User.findOne({
+      _id: req.session.user._id,
+      role: "user",
+      userStatus: "active",
+    }).select("-password");
+
+    if (!user) {
+      req.session.destroy();
+      return res.redirect("/login");
+    }
+    const { gameId, bets } = req.body;
+    if (!gameId || !bets || !bets.length) {
+      return res.json({ success: false, message: "Invalid bet data ❌" });
+    }
+
+    /* ================= GAME CHECK ================= */
+    const game = await Game.findById(gameId);
+    if (!game || game.isDeleted) {
+      return res.json({ success: false, message: "Invalid game ❌" });
+    }
+
+    /* ================= TOTAL AMOUNT ================= */
+    const totalAmount = bets.reduce((sum, b) => sum + Number(b.amount || 0), 0);
+    if (user.wallet < totalAmount) {
+      return res.json({ success: false, message: "Insufficient balance ❌" });
+    }
+
+    /* ================= DEDUCT WALLET ================= */
+    user.wallet -= totalAmount;
+    await user.save();
+
+    /* ================= SAVE BET ================= */
+    const now = moment().tz("Asia/Kolkata");
+    await JackpotCentreJodiDigitBet.create({
+      userId: user._id,
+      gameId,
+      gameName: game.gameName,
+      bets,
+      totalAmount,
+      playedDate: now.format("YYYY-MM-DD"),
+      playedTime: now.format("HH:mm"),
+      playedWeekday: now.format("dddd")
+    });
+
+    return res.json({ success: true, message: `Bet placed ₹${totalAmount} ✅` });
+  } catch (err) {
+    console.error("CenterJodiDigitBet Error:", err);
+    res.json({ success: false, message: "Server error ❌" });
+  }
+}

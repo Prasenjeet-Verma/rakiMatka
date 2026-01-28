@@ -1,30 +1,35 @@
 const mongoose = require("mongoose");
 
-const jodiDigitItemSchema = new mongoose.Schema({
+const rightDigitItemSchema = new mongoose.Schema({
   openDigit: { type: String, required: true }, // User can type any number
   amount: { type: Number, required: true, min: 1 }
 });
 
-const jodiDigitBulkBetSchema = new mongoose.Schema(
+const rightDigitBetSchema = new mongoose.Schema(
   {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     gameId: { type: mongoose.Schema.Types.ObjectId, ref: "Game", required: true },
     gameName: { type: String, required: true },
+    mainGame: {
+      type: String,
+      default: "JACKPOT",
+      immutable: true
+    },
     /* 🔒 FIXED GAME TYPE */
     gameType: {
       type: String,
-      default: "JODI_DIGIT_BULK",
+      default: "RIGHT_DIGIT",
       immutable: true
     },
 
     bets: {
-      type: [jodiDigitItemSchema],
+      type: [rightDigitItemSchema],
       required: true,
       validate: [arr => arr.length > 0, "At least one bet required"]
     },
 
     totalAmount: { type: Number, default: 0 },
-    
+
     resultStatus: {
       type: String,
       enum: ["PENDING", "WIN", "LOSS"],
@@ -39,4 +44,4 @@ const jodiDigitBulkBetSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("JodiDigitBulkBet", jodiDigitBulkBetSchema);
+module.exports = mongoose.model("RightDigitBet", rightDigitBetSchema);

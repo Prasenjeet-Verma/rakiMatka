@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Desawar UI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+    <style type="text/tailwindcss">
+      @layer components {
+        /* Custom Digit Card Style */
+        .digit-card {
+          @apply relative basis-[30%] aspect-[4/3] bg-[#005c4b] text-white rounded-xl 
+                       flex items-center justify-center text-3xl font-medium shadow-md 
+                       cursor-pointer transition-all active:scale-95 select-none;
+        }
+        /* The small bet amount badge */
+        .badge {
+          @apply absolute top-1 right-2 sm:top-2 sm:right-3 text-[10px] sm:text-xs opacity-80 font-normal;
+        }
+      }
+      .g-hide-scroll::-webkit-scrollbar {
+        display: none;
+      }
+      .g-hide-scroll {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      input[type="number"]::-webkit-inner-spin-button,
+      input[type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+
+      .g-full-height {
+        height: 100vh;
+        height: -webkit-fill-available;
+      }
+      .tp-hidden {
+        display: none !important;
+      }
+
+      .g-bg-teal {
+        background-color: #005c4b;
+      }
+      .g-text-teal {
+        color: #005c4b;
+      }
+      .g-border-teal {
+        border-color: #005c4b;
+      }
+      /* Removes the up/down arrows from number inputs */
+      input::-webkit-outer-spin-button,
+      input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+      input[type="number"] {
+        -moz-appearance: textfield;
+      }
+      .hidden {
+        display: none;
+      }
+      #scroll-area::-webkit-scrollbar {
+        display: none;
+      }
+      #scroll-area {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateX(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      .entry-anim {
+        animation: slideIn 0.25s ease-out forwards;
+      }
+      /* Custom UI for Radio Markers */
+      input[type="radio"]:checked + .radio-indicator {
+        border-color: #005c4b;
+      }
+      input[type="radio"]:checked + .radio-indicator::after {
+        content: "";
+        display: block;
+        width: 10px;
+        height: 10px;
+        background: #005c4b;
+        border-radius: 50%;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+    </style>
+  </head>
+
+  <body class="bg-white">
+    <div class="min-h-screen">
+      <!-- HEADER -->
+      <div
+        class="bg-teal-800 text-white px-4 py-4 rounded-b-3xl shadow-lg flex items-center justify-center relative"
+      >
+        <a href="/userDashboard">
+          <button class="absolute left-4 top-4">
+            <i class="fa fa-arrow-left text-xl"></i>
+          </button>
+        </a>
+        <span class="font-semibold text-xl tracking-wide">JACKPOT - <%= game.gameName %></span>
+      </div>
+
+      <!-- BUTTON GRID -->
+      <div class="p-8 grid grid-cols-2 gap-12 place-items-center mt-4">
+
+        
+        <!-- LEFT DIGIT -->
+        <div
+          id="btnJodiDigitBulk"
+          class="relative w-44 h-44 cursor-pointer active:scale-95 transition"
+        >
+          <div
+            class="w-full h-full rounded-full bg-teal-800 border-4 border-red-500 shadow-xl flex items-center justify-center"
+          >
+            <i class="fa-solid fa-angles-left text-white text-5xl"></i>
+          </div>
+
+          <div
+            class="absolute -bottom-5 left-1/2 -translate-x-1/2 bg-red-500 text-white px-7 py-1 rounded-full shadow-lg font-semibold"
+          >
+            Left Digit
+          </div>
+        </div>
+
+        <!-- RIGHT DIGIT -->
+        <div
+          id="btnSinglePanna"
+          class="relative w-44 h-44 cursor-pointer active:scale-95 transition"
+        >
+          <div
+            class="w-full h-full rounded-full bg-teal-800 border-4 border-red-500 shadow-xl flex items-center justify-center"
+          >
+            <i class="fa-solid fa-angles-right text-white text-5xl"></i>
+          </div>
+
+          <div
+            class="absolute -bottom-5 left-1/2 -translate-x-1/2 bg-red-500 text-white px-7 py-1 rounded-full shadow-lg font-semibold"
+          >
+            Right Digit
+          </div>
+        </div>
+      </div>
+
+      <!-- BOTTOM CENTER JODI-->
+      <div id="btnCenterGame" class="flex justify-center mt-10">
+        <div
+          class="relative w-52 h-52 cursor-pointer active:scale-95 transition"
+        >
+          <div
+            class="w-full h-full rounded-full bg-teal-800 border-4 border-red-500 shadow-xl flex items-center justify-center"
+          >
+            <span class="text-white text-5xl font-bold tracking-widest"
+              >&lt;&gt;</span
+            >
+          </div>
+
+          <div
+            class="absolute -bottom-5 left-1/2 -translate-x-1/2 bg-red-500 text-white px-10 py-1 rounded-full shadow-lg font-semibold"
+          >
+            Jodi Digit
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ===================================== Left Digit ================================ -->
+   <main id="jodiDigitBulk" data-game-id="<%= game._id %>" data-game-name="<%= game.gameName %>"
+    class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
+    <!-- HEADER -->
+    <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
+      <div class="flex items-center gap-3">
+        <i id="closeJodiDigitBulk" class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
+        <h1 class="text-lg font-semibold">Left Digit - <%= game.gameName %>
+        </h1>
+      </div>
+    </header>
+
+    <!-- FORM AREA -->
+    <div class="px-5 pt-8 space-y-8 flex-1 overflow-y-auto">
+
+      <!-- OPEN DIGIT -->
+      <div class="flex justify-between items-center">
+        <h2 class="text-xl font-bold text-gray-900">Open Digit</h2>
+        <input type="number" placeholder="Enter Digit"
+          class="w-52 px-4 py-3 rounded-xl shadow-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-700 font-semibold" />
+      </div>
+
+      <!-- POINTS -->
+      <div class="flex justify-between items-center">
+        <h2 class="text-xl font-bold text-gray-900">Points</h2>
+        <input type="number" placeholder="Enter Point"
+          class="w-52 px-4 py-3 rounded-xl shadow-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-700 font-semibold" />
+      </div>
+
+      <!-- ADD BUTTON -->
+      <div class="flex justify-end pt-6">
+        <button id="addBetBtn"
+          class="bg-teal-800 text-white text-xl font-bold px-20 py-4 rounded-2xl shadow-lg active:scale-95 transition">
+          Add
+        </button>
+      </div>
+
+      <!-- LIVE BETS LIST -->
+      <div id="liveBetsContainer" class="space-y-2 mt-6">
+        <!-- Added bets will appear here -->
+      </div>
+
+    </div>
+
+    <!-- BOTTOM BAR -->
+    <div class="border-t-2 border-teal-800 bg-white py-4">
+      <div class="flex justify-around text-center font-semibold text-lg">
+        <div>
+          <div>Bids</div>
+          <div id="bidsCount" class="text-gray-600">0</div>
+        </div>
+        <div>
+          <div>Amount</div>
+          <div id="amountTotal" class="text-gray-600">0</div>
+        </div>
+      </div>
+      <!-- SUBMIT BUTTON -->
+      <div class="flex justify-center mt-4">
+        <button id="submitBetBtn"
+          class="bg-green-600 text-white text-xl font-bold px-20 py-4 rounded-2xl shadow-lg active:scale-95 transition">
+          Submit
+        </button>
+      </div>
+    </div>
+  </main>
+
+
+   <!-- ===================================== Right Digit ================================ -->
+<main id="rightDigitBulk"
+  data-game-id="<%= game._id %>"
+  data-game-name="<%= game.gameName %>"
+  class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
+
+  <!-- HEADER -->
+  <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
+    <div class="flex items-center gap-3">
+      <i id="closeRightDigitBulk" class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
+      <h1 class="text-lg font-semibold">
+        Right Digit - <%= game.gameName %>
+      </h1>
+    </div>
+  </header>
+
+  <!-- FORM AREA -->
+  <div class="px-5 pt-8 space-y-8 flex-1 overflow-y-auto">
+
+    <!-- OPEN DIGIT -->
+    <div class="flex justify-between items-center">
+      <h2 class="text-xl font-bold text-gray-900">Open Digit</h2>
+      <input
+        type="number"
+        placeholder="Enter Digit"
+        class="w-52 px-4 py-3 rounded-xl shadow-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-700 font-semibold"
+      />
+    </div>
+
+    <!-- POINTS -->
+    <div class="flex justify-between items-center">
+      <h2 class="text-xl font-bold text-gray-900">Points</h2>
+      <input
+        type="number"
+        placeholder="Enter Point"
+        class="w-52 px-4 py-3 rounded-xl shadow-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-700 font-semibold"
+      />
+    </div>
+
+    <!-- ADD BUTTON -->
+    <div class="flex justify-end pt-6">
+      <button
+        id="addRightDigitBetBtn"
+        class="bg-teal-800 text-white text-xl font-bold px-20 py-4 rounded-2xl shadow-lg active:scale-95 transition">
+        Add
+      </button>
+    </div>
+
+    <!-- LIVE BETS LIST -->
+    <div id="rightDigitLiveBetsContainer" class="space-y-2 mt-6"></div>
+
+  </div>
+
+  <!-- BOTTOM BAR -->
+  <div class="border-t-2 border-teal-800 bg-white py-4">
+    <div class="flex justify-around text-center font-semibold text-lg">
+      <div>
+        <div>Bids</div>
+        <div id="rightDigitBidsCount" class="text-gray-600">0</div>
+      </div>
+      <div>
+        <div>Amount</div>
+        <div id="rightDigitAmountTotal" class="text-gray-600">0</div>
+      </div>
+    </div>
+
+    <!-- SUBMIT BUTTON -->
+    <div class="flex justify-center mt-4">
+      <button
+        id="submitRightDigitBetBtn"
+        class="bg-green-600 text-white text-xl font-bold px-20 py-4 rounded-2xl shadow-lg active:scale-95 transition">
+        Submit
+      </button>
+    </div>
+  </div>
+</main>
+
+    <!-- ===================================== Jodi Digit ================================ -->
+<!-- ===================================== Center Game ================================ -->
+<main id="centerGameBulk"
+  data-game-id="<%= game._id %>"
+  data-game-name="<%= game.gameName %>"
+  class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
+
+  <!-- HEADER -->
+  <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
+    <div class="flex items-center gap-3">
+      <i id="closeCenterGameBulk" class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
+      <h1 class="text-lg font-semibold">
+        Center Game - <%= game.gameName %>
+      </h1>
+    </div>
+  </header>
+
+  <!-- FORM AREA -->
+  <div class="px-5 pt-8 space-y-8 flex-1 overflow-y-auto">
+
+    <!-- CENTER GAME DIGIT -->
+    <div class="flex justify-between items-center">
+      <h2 class="text-xl font-bold text-gray-900">Open Digit</h2>
+      <input
+        type="number"
+        placeholder="Enter Center"
+        class="w-52 px-4 py-3 rounded-xl shadow-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-700 font-semibold"
+      />
+    </div>
+
+    <!-- POINTS -->
+    <div class="flex justify-between items-center">
+      <h2 class="text-xl font-bold text-gray-900">Points</h2>
+      <input
+        type="number"
+        placeholder="Enter Point"
+        class="w-52 px-4 py-3 rounded-xl shadow-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-700 font-semibold"
+      />
+    </div>
+
+    <!-- ADD BUTTON -->
+    <div class="flex justify-end pt-6">
+      <button
+        id="addCenterGameBetBtn"
+        class="bg-teal-800 text-white text-xl font-bold px-20 py-4 rounded-2xl shadow-lg active:scale-95 transition">
+        Add
+      </button>
+    </div>
+
+    <!-- LIVE BETS LIST -->
+    <div id="centerGameLiveBetsContainer" class="space-y-2 mt-6"></div>
+
+  </div>
+
+  <!-- BOTTOM BAR -->
+  <div class="border-t-2 border-teal-800 bg-white py-4">
+    <div class="flex justify-around text-center font-semibold text-lg">
+      <div>
+        <div>Bids</div>
+        <div id="centerGameBidsCount" class="text-gray-600">0</div>
+      </div>
+      <div>
+        <div>Amount</div>
+        <div id="centerGameAmountTotal" class="text-gray-600">0</div>
+      </div>
+    </div>
+
+    <!-- SUBMIT BUTTON -->
+    <div class="flex justify-center mt-4">
+      <button
+        id="submitCenterGameBetBtn"
+        class="bg-green-600 text-white text-xl font-bold px-20 py-4 rounded-2xl shadow-lg active:scale-95 transition">
+        Submit
+      </button>
+    </div>
+  </div>
+</main>
+
+
+ <script src="/js/leftDigit.js"></script>
+ <script src="/js/rightDigit.js"></script>
+ <script src="/js/centerGameJodi.js"></script>
+    <script src="/js/userMainGame.js"></script>
+  </body>
+</html>
