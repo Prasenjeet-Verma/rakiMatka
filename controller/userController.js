@@ -1021,47 +1021,118 @@ exports.placeSingleBulkDigitBet = async (req, res) => {
 /* ================= PLACE JODI DIGIT BET ================= */
 exports.placeJodiDigitBet = async (req, res) => {
   let user;
+
   try {
-    if (!req.session.isLoggedIn || !req.session.user || req.session.user.role !== "user") {
-      return res.redirect("/login");
+    /* ================= AUTH ================= */
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.user ||
+      req.session.user.role !== "user"
+    ) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized ❌",
+      });
     }
 
-    user = await User.findOne({ _id: req.session.user._id, role: "user", userStatus: "active" });
+    user = await User.findOne({
+      _id: req.session.user._id,
+      role: "user",
+      userStatus: "active",
+    });
+
     if (!user) {
       req.session.destroy();
-      return res.redirect("/login");
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized ❌",
+      });
     }
+    // ================= EXTRA SAFETY =================
+    if (res.headersSent) return; // ✅ Add here, before wallet deduction / DB write
 
+    /* ================= PAYLOAD ================= */
     const { gameId, gameName, bets } = req.body;
+
     if (!gameId || !Array.isArray(bets) || bets.length === 0) {
-      return res.status(400).json({ success: false, message: "Invalid bet data" });
+      return res.status(400).json({
+        success: false,
+        message: "Invalid bet data ❌",
+      });
     }
 
     let totalAmount = 0;
+
     for (const bet of bets) {
       if (
-        typeof bet.mainNo !== "number" || bet.mainNo < 0 || bet.mainNo > 9 ||
-        !bet.underNo || !/^[0-9]{2}$/.test(bet.underNo) ||
-        typeof bet.amount !== "number" || bet.amount <= 0
+        typeof bet.mainNo !== "number" ||
+        bet.mainNo < 0 ||
+        bet.mainNo > 9 ||
+        !bet.underNo ||
+        !/^[0-9]{2}$/.test(bet.underNo) ||
+        typeof bet.amount !== "number" ||
+        bet.amount <= 0
       ) {
-        return res.status(400).json({ success: false, message: "Invalid bet" });
+        return res.status(400).json({
+          success: false,
+          message: "Invalid bet ❌",
+        });
       }
+
       totalAmount += bet.amount;
     }
 
+    /* ================= GAME ================= */
     const game = await Game.findById(gameId);
+
     if (!game || game.isDeleted) {
-      return res.status(400).json({ success: false, message: "Invalid game" });
+      return res.status(400).json({
+        success: false,
+        message: "Invalid game ❌",
+      });
     }
 
+    /* ================= OPEN / CLOSE TIME CHECK ================= */
+const now = moment().tz("Asia/Kolkata").seconds(0).milliseconds(0);
+const today = now.format("dddd").toLowerCase();
+
+const schedule = game.schedule?.[today];
+
+if (!schedule || !schedule.isActive) {
+  return res.status(400).json({
+    success: false,
+    message: "Market closed today ❌",
+  });
+}
+
+const openMoment = moment
+  .tz(
+    `${now.format("YYYY-MM-DD")} ${schedule.openTime}`,
+    "YYYY-MM-DD HH:mm",
+    "Asia/Kolkata"
+  )
+  .seconds(0)
+  .milliseconds(0);
+
+// ❗ JODI DIGIT = OPEN ONLY
+if (now.isSameOrAfter(openMoment)) {
+  return res.status(400).json({
+    success: false,
+    message: "Jodi Digit Open Time Over ❌",
+  });
+}
+    /* ================= WALLET ================= */
     if (user.wallet < totalAmount) {
-      return res.status(400).json({ success: false, message: "Insufficient balance" });
+      return res.status(400).json({
+        success: false,
+        message: "Insufficient balance ❌",
+      });
     }
 
-    const now = moment().tz("Asia/Kolkata");
     user.wallet -= totalAmount;
     await user.save();
 
+    /* ================= SAVE BET ================= */
     const betDoc = new JodiDigitBet({
       userId: user._id,
       gameId,
@@ -1070,22 +1141,37 @@ exports.placeJodiDigitBet = async (req, res) => {
       totalAmount,
       playedDate: now.format("YYYY-MM-DD"),
       playedTime: now.format("HH:mm"),
-      playedWeekday: now.format("dddd")
+      playedWeekday: now.format("dddd"),
     });
 
     await betDoc.save();
 
-    res.json({ success: true, message: `Jodi Digit bet placed ₹${totalAmount}`, wallet: user.wallet });
+    return res.json({
+      success: true,
+      message: `Jodi Digit bet placed ₹${totalAmount} ✅`,
+      wallet: user.wallet,
+    });
 
   } catch (err) {
     console.error("❌ JODI DIGIT ERROR:", err);
-    if (user) {
-      user.wallet += req.body?.bets?.reduce((s, b) => s + (b.amount || 0), 0);
+
+    /* ================= REFUND SAFETY ================= */
+    if (user && Array.isArray(req.body?.bets)) {
+      const refund = req.body.bets.reduce(
+        (sum, b) => sum + (b.amount || 0),
+        0
+      );
+      user.wallet += refund;
       await user.save();
     }
-    res.status(500).json({ success: false, message: "Server error" });
+
+    return res.status(500).json({
+      success: false,
+      message: "Server error ❌",
+    });
   }
 };
+
 
 
 exports.placeJodiDigitBulkBet = async (req, res) => {
@@ -2099,47 +2185,44 @@ return res.status(201).json({
 
 exports.placeSPMotorBet = async (req, res) => {
   try {
-    // ================= AUTH =================
-    if (!req.session?.isLoggedIn || !req.session.user || req.session.user.role !== "user") {
-      return res.status(401).json({ success: false, message: "Login required ❌" });
+    if (!req.session?.isLoggedIn || req.session.user.role !== "user") {
+      return res.json({ success: false, message: "Login required ❌" });
     }
 
-    const user = await User.findOne({
-      _id: req.session.user._id,
-      role: "user",
-      userStatus: "active",
-    });
+    const user = await User.findById(req.session.user._id);
+    if (!user) return res.json({ success: false, message: "User not found ❌" });
 
-    if (!user) return res.status(401).json({ success: false, message: "User not found ❌" });
-
-    // ================= BODY =================
     const { gameId, gameName, bets } = req.body;
-    if (!gameId || !gameName || !Array.isArray(bets) || bets.length === 0) {
-      return res.json({ success: false, message: "No bets provided ❌" });
+    if (!bets || !bets.length) {
+      return res.json({ success: false, message: "No bets ❌" });
     }
 
-    // ================= GAME SCHEDULE =================
     const game = await Game.findById(gameId);
-    if (!game || game.isDeleted) return res.json({ success: false, message: "Invalid game ❌" });
+    if (!game) return res.json({ success: false, message: "Invalid game ❌" });
 
     const now = moment().tz("Asia/Kolkata");
     const today = now.format("dddd").toLowerCase();
     const schedule = game.schedule?.[today];
+    if (!schedule?.isActive) {
+      return res.json({ success: false, message: "Market closed ❌" });
+    }
 
-    if (!schedule?.isActive) return res.json({ success: false, message: "Market closed today ❌" });
-
-    // ================= BET VALIDATION =================
     let totalAmount = 0;
 
-    for (const bet of bets) {
-      const { session, openDigit, points } = bet;
+    for (const b of bets) {
+      const { session, mainNo, underNos, perUnderNosPoints, totalPoints } = b;
 
-      // ----- BASIC CHECKS -----
-      if (!session || !["OPEN", "CLOSE"].includes(session) || openDigit === undefined || typeof points !== "number" || points <= 0) {
+      if (
+        !["OPEN", "CLOSE"].includes(session) ||
+        typeof mainNo !== "number" ||
+        mainNo < 0 || mainNo > 9 ||
+        !Array.isArray(underNos) ||
+        perUnderNosPoints <= 0 ||
+        totalPoints <= 0
+      ) {
         return res.json({ success: false, message: "Invalid bet data ❌" });
       }
 
-      // ----- OPEN SESSION LOCK -----
       if (session === "OPEN") {
         const openMoment = moment.tz(
           `${now.format("YYYY-MM-DD")} ${schedule.openTime}`,
@@ -2151,43 +2234,132 @@ exports.placeSPMotorBet = async (req, res) => {
         }
       }
 
-      totalAmount += points;
+      totalAmount += totalPoints;
     }
 
-    // ================= WALLET CHECK =================
-    if (user.wallet < totalAmount) return res.json({ success: false, message: "Insufficient wallet balance ❌" });
+    if (user.wallet < totalAmount) {
+      return res.json({ success: false, message: "Insufficient balance ❌" });
+    }
+
     user.wallet -= totalAmount;
     await user.save();
 
-    // ================= SAVE BET =================
     await SPMotorBet.create({
       userId: user._id,
       gameId,
       gameName,
-      bets: bets.map(b => ({
-        session: b.session,
-        openDigit: b.openDigit,
-        points: b.points,
-        totalAmount: b.points,
-      })),
+      bets,
       totalAmount,
       playedDate: now.format("YYYY-MM-DD"),
       playedTime: now.format("HH:mm"),
       playedWeekday: now.format("dddd"),
-      resultStatus: "PENDING",
+      resultStatus: "PENDING"
     });
 
-    return res.json({ success: true, message: `SP Motor bet placed ₹${totalAmount} ✅` });
+    return res.json({
+      success: true,
+      message: `SP Motor bet placed ₹${totalAmount} ✅`
+    });
 
   } catch (err) {
     console.error("SP MOTOR ERROR:", err);
-    return res.status(500).json({ success: false, message: "Server error ❌" });
+    return res.status(500).json({
+      success: false,
+      message: "Server error ❌"
+    });
   }
 };
 
-exports.placeDPMotorBet = async (req,res,next) => {
-    try {
-    // ================= AUTH =================
+exports.placeDPMotorBet = async (req, res) => {
+  try {
+    if (!req.session?.isLoggedIn || req.session.user.role !== "user") {
+      return res.json({ success: false, message: "Login required ❌" });
+    }
+
+    const user = await User.findById(req.session.user._id);
+    if (!user) return res.json({ success: false, message: "User not found ❌" });
+
+    const { gameId, gameName, bets } = req.body;
+    if (!bets || !bets.length) {
+      return res.json({ success: false, message: "No bets ❌" });
+    }
+
+    const game = await Game.findById(gameId);
+    if (!game) return res.json({ success: false, message: "Invalid game ❌" });
+
+    const now = moment().tz("Asia/Kolkata");
+    const today = now.format("dddd").toLowerCase();
+    const schedule = game.schedule?.[today];
+    if (!schedule?.isActive) {
+      return res.json({ success: false, message: "Market closed ❌" });
+    }
+
+    let totalAmount = 0;
+
+    for (const b of bets) {
+      const { session, mainNo, underNos, perUnderNosPoints, totalPoints } = b;
+
+      if (
+        !["OPEN", "CLOSE"].includes(session) ||
+        typeof mainNo !== "number" ||
+        mainNo < 0 || mainNo > 9 ||
+        !Array.isArray(underNos) ||
+        perUnderNosPoints <= 0 ||
+        totalPoints <= 0
+      ) {
+        return res.json({ success: false, message: "Invalid bet data ❌" });
+      }
+
+      if (session === "OPEN") {
+        const openMoment = moment.tz(
+          `${now.format("YYYY-MM-DD")} ${schedule.openTime}`,
+          "YYYY-MM-DD HH:mm",
+          "Asia/Kolkata"
+        );
+        if (now.isSameOrAfter(openMoment)) {
+          return res.json({ success: false, message: "Open session closed ❌" });
+        }
+      }
+
+      totalAmount += totalPoints;
+    }
+
+    if (user.wallet < totalAmount) {
+      return res.json({ success: false, message: "Insufficient balance ❌" });
+    }
+
+    user.wallet -= totalAmount;
+    await user.save();
+
+    await DPMotorBet.create({
+      userId: user._id,
+      gameId,
+      gameName,
+      bets,
+      totalAmount,
+      playedDate: now.format("YYYY-MM-DD"),
+      playedTime: now.format("HH:mm"),
+      playedWeekday: now.format("dddd"),
+      resultStatus: "PENDING"
+    });
+
+    return res.json({
+      success: true,
+      message: `DP Motor bet placed ₹${totalAmount} ✅`
+    });
+
+  } catch (err) {
+    console.error("DP MOTOR ERROR:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Server error ❌"
+    });
+  }
+};
+
+exports.placeSpDpTpBet = async (req, res) => {
+  try {
+    /* ================= AUTH ================= */
     if (!req.session?.isLoggedIn || !req.session.user || req.session.user.role !== "user") {
       return res.status(401).json({ success: false, message: "Login required ❌" });
     }
@@ -2200,13 +2372,14 @@ exports.placeDPMotorBet = async (req,res,next) => {
 
     if (!user) return res.status(401).json({ success: false, message: "User not found ❌" });
 
-    // ================= BODY =================
+    /* ================= BODY ================= */
     const { gameId, gameName, bets } = req.body;
+
     if (!gameId || !gameName || !Array.isArray(bets) || bets.length === 0) {
       return res.json({ success: false, message: "No bets provided ❌" });
     }
 
-    // ================= GAME SCHEDULE =================
+    /* ================= GAME ================= */
     const game = await Game.findById(gameId);
     if (!game || game.isDeleted) return res.json({ success: false, message: "Invalid game ❌" });
 
@@ -2216,179 +2389,48 @@ exports.placeDPMotorBet = async (req,res,next) => {
 
     if (!schedule?.isActive) return res.json({ success: false, message: "Market closed today ❌" });
 
-    // ================= BET VALIDATION =================
+    /* ================= VALIDATION ================= */
     let totalAmount = 0;
 
     for (const bet of bets) {
-      const { session, openDigit, points } = bet;
+      const { session, type, mainNo, underNos, perUnderNosPoints, totalPoints } = bet;
 
-      // ----- BASIC CHECKS -----
-      if (!session || !["OPEN", "CLOSE"].includes(session) || openDigit === undefined || typeof points !== "number" || points <= 0) {
+      if (
+        !session || !["Open", "Close"].includes(session) ||
+        !type || !["SP", "DP", "TP"].includes(type) ||
+        typeof mainNo !== "number" || mainNo < 0 || mainNo > 9 ||
+        !Array.isArray(underNos) || underNos.length === 0 || !underNos.every(n => /^[0-9]{3}$/.test(n)) ||
+        typeof perUnderNosPoints !== "number" || perUnderNosPoints <= 0 ||
+        typeof totalPoints !== "number" || totalPoints <= 0
+      ) {
         return res.json({ success: false, message: "Invalid bet data ❌" });
       }
 
       // ----- OPEN SESSION LOCK -----
-      if (session === "OPEN") {
-        const openMoment = moment.tz(
-          `${now.format("YYYY-MM-DD")} ${schedule.openTime}`,
-          "YYYY-MM-DD HH:mm",
-          "Asia/Kolkata"
-        );
+      if (session === "Open") {
+        const openMoment = moment.tz(`${now.format("YYYY-MM-DD")} ${schedule.openTime}`, "YYYY-MM-DD HH:mm", "Asia/Kolkata");
         if (now.isSameOrAfter(openMoment)) {
           return res.json({ success: false, message: "Open session closed ❌" });
         }
       }
 
-      totalAmount += points;
+      totalAmount += totalPoints;
     }
 
-    // ================= WALLET CHECK =================
-    if (user.wallet < totalAmount) return res.json({ success: false, message: "Insufficient wallet balance ❌" });
-    user.wallet -= totalAmount;
-    await user.save();
-
-    // ================= SAVE BET =================
-    await DPMotorBet.create({
-      userId: user._id,
-      gameId,
-      gameName,
-      bets: bets.map(b => ({
-        session: b.session,
-        openDigit: b.openDigit,
-        points: b.points,
-        totalAmount: b.points,
-      })),
-      totalAmount,
-      playedDate: now.format("YYYY-MM-DD"),
-      playedTime: now.format("HH:mm"),
-      playedWeekday: now.format("dddd"),
-      resultStatus: "PENDING",
-    });
-
-    return res.json({ success: true, message: `DP Motor bet placed ₹${totalAmount} ✅` });
-
-  } catch (err) {
-    console.error("DP MOTOR ERROR:", err);
-    return res.status(500).json({ success: false, message: "Server error ❌" });
-  }
-}
-
-exports.placeSpDpTpBet = async (req, res, next) => {
-  try {
-    // ================= AUTH =================
-    if (
-      !req.session?.isLoggedIn ||
-      !req.session.user ||
-      req.session.user.role !== "user"
-    ) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Login required ❌" });
+    /* ================= WALLET CHECK ================= */
+    if (user.wallet < totalAmount) {
+      return res.json({ success: false, message: "Insufficient wallet balance ❌" });
     }
-
-    const user = await User.findOne({
-      _id: req.session.user._id,
-      role: "user",
-      userStatus: "active",
-    });
-
-    if (!user)
-      return res
-        .status(401)
-        .json({ success: false, message: "User not found ❌" });
-
-    // ================= BODY =================
-    const { gameId, gameName, bets } = req.body;
-
-    if (!gameId || !gameName || !Array.isArray(bets) || bets.length === 0) {
-      return res.json({
-        success: false,
-        message: "No bets provided ❌",
-      });
-    }
-
-    // ================= GAME =================
-    const game = await Game.findById(gameId);
-    if (!game || game.isDeleted)
-      return res.json({
-        success: false,
-        message: "Invalid game ❌",
-      });
-
-    const now = moment().tz("Asia/Kolkata");
-    const today = now.format("dddd").toLowerCase();
-    const schedule = game.schedule?.[today];
-
-    if (!schedule?.isActive)
-      return res.json({
-        success: false,
-        message: "Market closed today ❌",
-      });
-
-    // ================= VALIDATION =================
-    let totalAmount = 0;
-
-    for (const bet of bets) {
-      const { session, choose, openDigit, points } = bet;
-
-      // ----- BASIC -----
-      if (
-        !session ||
-        !["Open", "Close"].includes(session) ||
-        !Array.isArray(choose) ||
-        choose.length === 0 ||
-        choose.some(c => !["SP", "DP", "TP"].includes(c)) ||
-        typeof openDigit !== "number" ||
-        openDigit < 0 ||
-        typeof points !== "number" ||
-        points <= 0
-      ) {
-        return res.json({
-          success: false,
-          message: "Invalid bet data ❌",
-        });
-      }
-
-      // ----- OPEN SESSION LOCK -----
-      if (session === "Open") {
-        const openMoment = moment.tz(
-          `${now.format("YYYY-MM-DD")} ${schedule.openTime}`,
-          "YYYY-MM-DD HH:mm",
-          "Asia/Kolkata"
-        );
-
-        if (now.isSameOrAfter(openMoment)) {
-          return res.json({
-            success: false,
-            message: "Open session closed ❌",
-          });
-        }
-      }
-
-      totalAmount += points;
-    }
-
-    // ================= WALLET =================
-    if (user.wallet < totalAmount)
-      return res.json({
-        success: false,
-        message: "Insufficient wallet balance ❌",
-      });
 
     user.wallet -= totalAmount;
     await user.save();
 
-    // ================= SAVE BET =================
+    /* ================= SAVE BET ================= */
     await spdptpBet.create({
       userId: user._id,
       gameId,
       gameName,
-      bets: bets.map(b => ({
-        session: b.session,
-        choose: b.choose,
-        openDigit: b.openDigit,
-        points: b.points,
-      })),
+      bets,
       totalAmount,
       playedDate: now.format("YYYY-MM-DD"),
       playedTime: now.format("HH:mm"),
@@ -2396,17 +2438,14 @@ exports.placeSpDpTpBet = async (req, res, next) => {
       resultStatus: "PENDING",
     });
 
-    return res.json({
-      success: true,
-      message: `SP DP TP bet placed ₹${totalAmount} ✅`,
-    });
+    return res.json({ success: true, message: `SP DP TP bet placed ₹${totalAmount} ✅` });
+
   } catch (err) {
     console.error("SPDPTP ERROR:", err);
-    return res
-      .status(500)
-      .json({ success: false, message: "Server error ❌" });
+    return res.status(500).json({ success: false, message: "Server error ❌" });
   }
 };
+
 
 exports.placeRedBracketBet = async (req, res, next) => {
   try {
@@ -3306,4 +3345,102 @@ try {
     console.error("CenterJodiDigitBet Error:", err);
     res.json({ success: false, message: "Server error ❌" });
   }
-}
+};
+
+
+/* ===== IMPORT ALL BET MODELS ===== */
+const betModels = [
+  require("../model/SingleDigitBet"),
+  require("../model/SingleBulkDigitBet"),
+  require("../model/JodiDigitBet"),
+  require("../model/JodiDigitBulkBet"),
+  require("../model/SinglePannaBet"),
+  require("../model/SinglePannaBulkBet"),
+  require("../model/DoublePannaBet"),
+  require("../model/DoublePannaBulkBet"),
+  require("../model/TriplePannaBet"),
+  require("../model/OddEvenBet"),
+  require("../model/HalfSangamBet"),
+  require("../model/FullSangamBet"),
+  require("../model/SPMotorBet"),
+  require("../model/DPMotorBet"),
+  require("../model/spdptpBet"),
+  require("../model/RedBracketBet"),
+  require("../model/StarlineSingleDigitBet"),
+  require("../model/StarlineSinglePannaBet"),
+  require("../model/StarlineDoublePannaBet"),
+  require("../model/StarlineTriplePannaBet"),
+  require("../model/JackpotLeftDigitBet"),
+  require("../model/JackpotRightDigitBet"),
+  require("../model/JackpotCentreJodiDigitBet"),
+];
+
+exports.getUserWinHistory = async (req, res, next) => {
+  try {
+    /* 🔐 AUTH */
+    if (!req.session.isLoggedIn || req.session.user.role !== "user") {
+      return res.redirect("/login");
+    }
+
+    const user = await User.findOne({
+      _id: req.session.user._id,
+      userStatus: "active",
+    });
+
+    if (!user) return res.redirect("/login");
+
+    /* ===== QUERY PARAMS ===== */
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search || "";
+    const market = req.query.market || "All";
+
+    /* ===== FETCH ALL WINS ===== */
+    let allWins = [];
+
+    for (const Model of betModels) {
+      const data = await Model.find({
+        userId: user._id,
+        resultStatus: "WIN",
+      }).lean();
+
+      allWins.push(...data);
+    }
+
+    /* ===== SEARCH FILTER ===== */
+    if (search) {
+      allWins = allWins.filter(bet =>
+        JSON.stringify(bet).toLowerCase().includes(search.toLowerCase())
+      );
+    }
+
+    /* ===== MARKET FILTER ===== */
+    if (market !== "All") {
+      allWins = allWins.filter(bet => bet.mainGame === market.toUpperCase());
+    }
+
+    /* ===== SORT ===== */
+    allWins.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    /* ===== PAGINATION ===== */
+    const totalRecords = allWins.length;
+    const totalPages = Math.ceil(totalRecords / limit);
+    const start = (page - 1) * limit;
+    const paginatedData = limit === 9999 ? allWins : allWins.slice(start, start + limit);
+
+    /* ===== RENDER ===== */
+    res.render("User/userWinHistory", {
+      user,
+      winHistory: paginatedData,
+      page,
+      limit,
+      totalPages,
+      totalRecords,
+      search,
+      market,
+    });
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+};

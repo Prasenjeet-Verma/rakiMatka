@@ -36,6 +36,11 @@ const triplePannaBetSchema = new mongoose.Schema(
       type: String,
       required: true
     },
+        mainGame: {
+      type: String,
+      default: "MAIN_GAME",
+      immutable: true
+    },
     gameType: {
       type: String,
       default: "TRIPLE_PANNA",

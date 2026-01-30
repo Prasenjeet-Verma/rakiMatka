@@ -6,18 +6,37 @@ const spdptpItemSchema = new mongoose.Schema({
     enum: ["Open", "Close"],
     required: true,
   },
-  choose: {
-    type: [String],
+
+  type: {
+    type: String,
     enum: ["SP", "DP", "TP"],
     required: true,
   },
-  openDigit: {
+
+  mainNo: {
     type: Number,
     required: true,
+    min: 0,
+    max: 9,
   },
-  points: {
+
+  underNos: {
+    type: [String], // array of 3-digit numbers
+    required: true,
+    validate: {
+      validator: arr => arr.every(n => /^[0-9]{3}$/.test(n)),
+      message: "Each underNo must be 3 digits",
+    },
+  },
+  perUnderNosPoints: {
     type: Number,
     required: true,
+    min: 1
+  },
+  totalPoints: {
+    type: Number,
+    required: true,
+    min: 1,
   },
 });
 
@@ -28,34 +47,47 @@ const spdptpBetSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+
     gameId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Game",
       required: true,
     },
+
     gameName: {
       type: String,
       required: true,
     },
+
+    mainGame: {
+      type: String,
+      default: "MAIN_GAME",
+      immutable: true,
+    },
+
     gameType: {
       type: String,
       default: "SP_DP_TP",
       immutable: true,
     },
+
     bets: {
       type: [spdptpItemSchema],
       required: true,
       validate: [arr => arr.length > 0, "At least one bet required"],
     },
+
     totalAmount: {
       type: Number,
       default: 0,
     },
+
     resultStatus: {
       type: String,
       enum: ["PENDING", "WIN", "LOSS"],
       default: "PENDING",
     },
+
     playedDate: String,
     playedTime: String,
     playedWeekday: String,
@@ -63,14 +95,16 @@ const spdptpBetSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Automatically calculate totalPoints per bet and totalAmount
 spdptpBetSchema.pre("validate", function () {
   if (Array.isArray(this.bets)) {
-    this.totalAmount = this.bets.reduce(
-      (sum, b) => sum + b.points,
-      0
-    );
+    this.bets.forEach(b => {
+      if (Array.isArray(b.underNos)) {
+        b.totalPoints = b.totalPoints || 0;
+      }
+    });
+    this.totalAmount = this.bets.reduce((sum, b) => sum + b.totalPoints, 0);
   }
 });
-
 
 module.exports = mongoose.model("spdptpBet", spdptpBetSchema);

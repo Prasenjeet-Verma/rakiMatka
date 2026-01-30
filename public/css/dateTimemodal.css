@@ -1,0 +1,59 @@
+.form-container {
+  background-color: #e5e7eb; /* Light gray background like the image */
+
+  padding: 20px;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border-radius: 4px;
+}
+
+/* Custom styling for inputs to match the flat white look */
+.custom-input {
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background-color: white;
+  color: #111827;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.custom-input:focus {
+  border-color: #6b7280;
+}
+
+/* Styling the date icon specifically for webkit browsers to ensure it looks standard */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+  transition: 0.2s;
+}
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+.btn-history {
+  width: 100%;
+  background-color: #5d7079; /* The specific slate/teal color from image */
+  color: white;
+  padding: 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.btn-history:hover {
+  background-color: #4b5a62;
+}
+
+.btn-history:active {
+  transform: translateY(1px);
+}

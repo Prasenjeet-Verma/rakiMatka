@@ -39,13 +39,21 @@ const jodiDigitBetSchema = new mongoose.Schema(
       type: String,
       required: true
     },
-
+    mainGame: {
+      type: String,
+      default: "MAIN_GAME",
+      immutable: true
+    },
     gameType: {
       type: String,
       default: "JODI_DIGIT",
       immutable: true
     },
-
+    mode: {
+      type: String,
+      default: "OPEN",
+      immutable: true
+    },
     bets: {
       type: [underNoItemSchema],
       required: true,

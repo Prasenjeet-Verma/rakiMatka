@@ -10,6 +10,11 @@ const jodiDigitBulkBetSchema = new mongoose.Schema(
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     gameId: { type: mongoose.Schema.Types.ObjectId, ref: "Game", required: true },
     gameName: { type: String, required: true },
+        mainGame: {
+      type: String,
+      default: "MAIN_GAME",
+      immutable: true
+    },
     /* 🔒 FIXED GAME TYPE */
     gameType: {
       type: String,

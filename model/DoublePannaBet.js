@@ -48,7 +48,11 @@ const doublePannaBetSchema = new mongoose.Schema(
       type: String,
       required: true
     },
-
+    mainGame: {
+      type: String,
+      default: "MAIN_GAME",
+      immutable: true
+    },
     /* 🔒 FIXED GAME TYPE */
     gameType: {
       type: String,

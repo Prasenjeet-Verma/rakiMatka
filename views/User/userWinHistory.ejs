@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Sri Ram Matka - Win History </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+      <link rel="stylesheet" href="/css/dateTimemodal.css">
+      <link rel="stylesheet" href="/css/adminDashbord.css" />
+  </head>
+
+  <body class="bg-white">
+    <div class="min-h-screen">
+      <!-- HEADER -->
+      <div
+        class="bg-teal-800 text-white px-4 py-4 rounded-b-3xl shadow-lg flex items-center justify-center relative"
+      >
+        <a href="/userDashboard">
+          <button class="absolute left-4 top-4">
+            <i class="fa fa-arrow-left text-xl"></i>
+          </button>
+        </a>
+        <span class="font-semibold text-xl tracking-wide">WIN HISTORY </span>
+      </div>
+
+<!-- ======================== User Date & Time ============================== -->
+      
+      <div class="form-container relative top-1">
+        <!-- Data Source Dropdown -->
+        <select class="custom-input text-gray-600">
+            <option value="" disabled selected>Data Source</option>
+            <option value="source1">Live Data</option>
+            <option value="source2">Backup Data</option>
+            <option value="source3">Old Data</option>
+        </select>
+
+        <!-- Start Date Input -->
+        <!-- Value set to match screenshot: 2025-12-02 -->
+        <input type="date" class="custom-input" id="startDate" value="2025-12-02">
+
+        <!-- End Date Input -->
+        <!-- Value set to match screenshot: 2025-12-10 -->
+        <input type="date" class="custom-input" id="endDate" value="2025-12-10">
+
+        <!-- Get History Button -->
+        <button class="btn-history" onclick="getHistory()">
+            Get History
+        </button>
+      </div>
+
+      <!-- ======================== Bid History ======================== -->
+      <record class="bg-gray-100 p-4">
+        <div class="bg-white rounded-lg shadow p-4">
+          <!-- HEADER -->
+          <div
+            class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4"
+          >
+            <div class="flex items-center gap-2">
+              <h2 class="font-semibold">Win History</h2>
+              <select class="border rounded px-2 py-1 text-sm">
+                <option>All</option>
+                <option>Main Market</option>
+                <option>Starline</option>
+                <option>Jackpot</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- CONTROLS -->
+          <div
+            class="flex justify-around md:flex-row md:items-center md:justify-between gap-4 mb-4"
+          >
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="text-sm">Show</span>
+              <select class="border rounded px-2 py-1 text-sm">
+                <option>10</option>
+                <option>50</option>
+                <option>100</option>
+                <option>All</option>
+              </select>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <label class="text-sm">Search:</label>
+              <input
+                type="text"
+                class="border rounded px-2 py-1 text-sm w-40"
+              />
+            </div>
+          </div>
+
+          <!-- TABLE -->
+          <div class="overflow-x-auto">
+            <table class="min-w-[1400px] w-full border text-sm">
+              <thead class="bg-gray-100">
+                <tr>
+                  <th class="border px-3 py-2 text-left">ID</th>
+                  <th class="border px-3 py-2 text-left">Game Type</th>
+                  <th class="border px-3 py-2 text-left">Market</th>
+                  <th class="border px-3 py-2 text-left">Session</th>
+                  <th class="border px-3 py-2 text-left">Amount</th>
+                  <th class="border px-3 py-2 text-left">Digits</th>
+                  <th class="border px-3 py-2 text-left">Game Name</th>
+                  <th class="border px-3 py-2 text-left">Game Status</th>
+                  <th class="border px-3 py-2 text-left">Placed on</th>
+                </tr>
+              </thead>
+
+              <tbody>
+  <% if (winHistory.length === 0) { %>
+    <tr>
+      <td colspan="9" class="text-center py-4 text-gray-500">
+        No Win History Found
+      </td>
+    </tr>
+  <% } %>
+
+  <% winHistory.forEach((bet, index) => { %>
+    <tr class="<%= index % 2 === 0 ? 'bg-blue-50' : '' %>">
+      <td class="border px-3 py-2">
+        <%= ((page - 1) * limit) + index + 1 %>
+      </td>
+
+      <td class="border px-3 py-2">
+        <%= bet.mainGame || "MAIN" %>
+      </td>
+
+      <td class="border px-3 py-2">
+        <%= bet.gameName || "-" %>
+      </td>
+
+      <td class="border px-3 py-2">
+        <%= bet.bets?.[0]?.mode || bet.bets?.[0]?.session || "-" %>
+      </td>
+
+      <td class="border px-3 py-2">
+        ₹ <%= bet.totalAmount %>
+      </td>
+
+      <td class="border px-3 py-2">
+        <%= bet.bets?.[0]?.number 
+            || bet.bets?.[0]?.openDigit 
+            || bet.bets?.[0]?.underNo 
+            || "-" %>
+      </td>
+
+      <td class="border px-3 py-2">
+        <%= bet.gameType %>
+      </td>
+
+      <td class="border px-3 py-2">
+        <span class="bg-green-600 text-white text-xs px-2 py-1 rounded">
+          Win
+        </span>
+      </td>
+
+      <td class="border px-3 py-2">
+        <%= new Date(bet.createdAt).toLocaleString() %>
+      </td>
+    </tr>
+  <% }) %>
+</tbody>
+
+            </table>
+          </div>
+
+          <!-- FOOTER -->
+          <div
+            class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-4 text-sm"
+          >
+<p>
+  Showing 
+  <%= (page - 1) * limit + 1 %> 
+  to 
+  <%= Math.min(page * limit, totalRecords) %> 
+  of 
+  <%= totalRecords %> entries
+</p>
+
+<div class="flex gap-2">
+  <% if (page > 1) { %>
+    <a href="?page=<%= page - 1 %>&limit=<%= limit %>" class="border px-3 py-1 rounded">
+      Previous
+    </a>
+  <% } %>
+
+  <span class="border px-3 py-1 bg-gray-200"><%= page %></span>
+
+  <% if (page < totalPages) { %>
+    <a href="?page=<%= page + 1 %>&limit=<%= limit %>" class="border px-3 py-1 rounded">
+      Next
+    </a>
+  <% } %>
+</div>
+
+          </div>
+        </div>
+      </record>
+
+
+    </div>
+    <script src="/js/dateTimemodal.js"> </script>
+  </body>
+</html>

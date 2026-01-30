@@ -58,7 +58,11 @@ const fullSangamSchema = new mongoose.Schema(
       ref: "Game",
       required: true,
     },
-
+    mainGame: {
+      type: String,
+      default: "MAIN_GAME",
+      immutable: true
+    },
     gameType: {
       type: String,
       default: "FULL_SANGAM",

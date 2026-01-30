@@ -1,77 +1,55 @@
 const mongoose = require("mongoose");
 
-/* ================= SP MOTOR ITEM SCHEMA ================= */
 const dpMotorItemSchema = new mongoose.Schema({
   session: {
-    type: String,           // "OPEN" or "CLOSE"
+    type: String,
     enum: ["OPEN", "CLOSE"],
-    required: true,
+    required: true
   },
-  openDigit: {
-    type: Number,           // user input digit
-    required: true,
+  mainNo: {
+    type: Number,
+    min: 0,
+    max: 9,
+    required: true
   },
-  points: {
-    type: Number,           // user points
-    required: true,
-    min: 1,
+  underNos: {
+    type: [String],
+    required: true
   },
-  totalAmount: {
-    type: Number,           // same as points
+  perUnderNosPoints: {
+    type: Number,
     required: true,
-    min: 1,
+    min: 1
   },
+  totalPoints: {
+    type: Number,
+    required: true
+  }
 });
 
-/* ================= DP MOTOR BET SCHEMA ================= */
-const dpMotorBetSchema = new mongoose.Schema(
-  {
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-    gameId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Game",
-      required: true,
-    },
-    gameName: {
-      type: String,
-      required: true,
-    },
-    gameType: {
-      type: String,
-      default: "DP_MOTOR",
-      immutable: true,
-    },
-    bets: {
-      type: [dpMotorItemSchema],
-      required: true,
-      validate: [arr => arr.length > 0, "At least one bet required"],
-    },
-    totalAmount: {
-      type: Number,
-      required: true,
-    },
-    resultStatus: {
-      type: String,
-      enum: ["PENDING", "WIN", "LOSS"],
-      default: "PENDING",
-    },
-    playedDate: String,
-    playedTime: String,
-    playedWeekday: String,
-  },
-  { timestamps: true }
-);
+const dpMotorBetSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  gameId: { type: mongoose.Schema.Types.ObjectId, ref: "Game", required: true },
+  gameName: { type: String, required: true },
 
-/* ===== PRE-SAVE HOOK: CALCULATE TOTAL AMOUNT ===== */
-dpMotorBetSchema.pre("validate", function () {
-  this.totalAmount = this.bets.reduce(
-    (sum, b) => sum + (b.totalAmount || b.points || 0),
-    0
-  );
-});
+  mainGame: { type: String, default: "MAIN_GAME", immutable: true },
+  gameType: { type: String, default: "DP_MOTOR", immutable: true },
+
+  bets: {
+    type: [dpMotorItemSchema],
+    required: true
+  },
+
+  totalAmount: { type: Number, required: true },
+  resultStatus: {
+    type: String,
+    enum: ["PENDING", "WIN", "LOSS"],
+    default: "PENDING"
+  },
+
+  playedDate: String,
+  playedTime: String,
+  playedWeekday: String
+}, { timestamps: true });
 
 module.exports = mongoose.model("DPMotorBet", dpMotorBetSchema);

@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Milan Morning</title>
-   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.43/moment-timezone-with-data.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
@@ -354,9 +354,13 @@
       </div>
     </div>
   </main>
+
+
   <!-- ===================================== Jodi Digit ================================ -->
 
   <main id="jodiDigit" data-game-id="<%= game._id %>" data-game-name="<%= game.gameName %>"
+    data-open-time="<%= todaySchedule ? todaySchedule.openTime : '' %>"
+    data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>"
     class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
     <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl shadow-md">
       <div class="flex items-center gap-3">
@@ -383,12 +387,14 @@
           <span id="jodiTotalAmount">0</span>
         </div>
       </div>
-      <button onclick="submitJodiBids()"
+      <button id="submitJodiBtn" onclick="submitJodiBids()"
         class="bg-[#005c4b] hover:opacity-90 text-white px-10 py-3 rounded-xl font-bold transition-all active:scale-95 shadow-lg">
         Submit Bid
       </button>
     </footer>
   </main>
+
+
   <!-- ===================================== Jodi Digit Bulk ================================ -->
   <main id="jodiDigitBulk" data-game-id="<%= game._id %>" data-game-name="<%= game.gameName %>"
     class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
@@ -465,7 +471,8 @@
     <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
       <div class="flex items-center gap-3">
         <i id="closeSinglePanna" class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
-        <h1 class="text-lg font-semibold">Single Panna - <%= game.gameName %></h1>
+        <h1 class="text-lg font-semibold">Single Panna - <%= game.gameName %>
+        </h1>
       </div>
     </header>
 
@@ -517,13 +524,15 @@
   <!-- ===================================== Single Panna Bulk ================================ !-->
   <main id="singlePannaBulk" data-game-id="<%= game._id %>" data-game-name="<%= game.gameName %>"
     data-open-time="<%= todaySchedule ? todaySchedule.openTime : '' %>"
-    data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>" class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full ">
+    data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>"
+    class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full ">
     <!-- HEADER -->
 
     <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
       <div class="flex items-center gap-3">
         <i id="closeSinglePannaBulk" class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
-        <h1 class="text-lg font-semibold">Single Panna Bulk - <%= game.gameName %></h1>
+        <h1 class="text-lg font-semibold">Single Panna Bulk - <%= game.gameName %>
+        </h1>
       </div>
     </header>
     <div class="bg-zinc-300 md:p-8 w-[100%]">
@@ -614,17 +623,19 @@
 
   </main>
 
-  
+
   <!-- ===================================== Double Panna ================================ -->
   <main id="DoublePanna" data-game-id="<%= game._id %>" data-game-name="<%= game.gameName %>"
     data-open-time="<%= todaySchedule ? todaySchedule.openTime : '' %>"
-    data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>"class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
+    data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>"
+    class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
     <!-- HEADER -->
 
     <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
       <div class="flex items-center gap-3">
         <i id="closeDoublePanna" class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
-        <h1 class="text-lg font-semibold">Double Panna - <%= game.gameName %></h1>
+        <h1 class="text-lg font-semibold">Double Panna - <%= game.gameName %>
+        </h1>
       </div>
     </header>
 
@@ -674,13 +685,15 @@
   <!-- ===================================== Double Panna Bulk ================================ -->
   <main id="DoublePannaBulk" data-game-id="<%= game._id %>" data-game-name="<%= game.gameName %>"
     data-open-time="<%= todaySchedule ? todaySchedule.openTime : '' %>"
-    data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>" class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
+    data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>"
+    class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
     <!-- HEADER -->
 
     <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
       <div class="flex items-center gap-3">
         <i id="closeDoublePannaBulk" class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
-        <h1 class="text-lg font-semibold">Double Panna Bulk - <%= game.gameName %></h1>
+        <h1 class="text-lg font-semibold">Double Panna Bulk - <%= game.gameName %>
+        </h1>
       </div>
     </header>
 
@@ -751,13 +764,15 @@
 
   <main id="triplePanna" data-game-id="<%= game._id %>" data-game-name="<%= game.gameName %>"
     data-open-time="<%= todaySchedule ? todaySchedule.openTime : '' %>"
-    data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>" class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
+    data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>"
+    class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
     <!-- HEADER -->
 
     <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
       <div class="flex items-center gap-3">
         <i id="closeTriplePanna" class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
-        <h1 class="text-lg font-semibold">Triple Panna - <%= game.gameName %></h1>
+        <h1 class="text-lg font-semibold">Triple Panna - <%= game.gameName %>
+        </h1>
       </div>
     </header>
     <div class="bg-gray-100 min-h-screen flex justify-center items-start md:items-center">
@@ -811,18 +826,20 @@
 
   </main>
 
-  
+
   <!-- ===================================== Odd Even ================================ -->
 
   <main id="oddEven" data-game-id="<%= game._id %>" data-game-name="<%= game.gameName %>"
     data-open-time="<%= todaySchedule ? todaySchedule.openTime : '' %>"
-    data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>" class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
+    data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>"
+    class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
     <!-- HEADER -->
 
     <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
       <div class="flex items-center gap-3">
         <i id="closeOddEven" class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
-        <h1 class="text-lg font-semibold">Odd Even - <%= game.gameName %></h1>
+        <h1 class="text-lg font-semibold">Odd Even - <%= game.gameName %>
+        </h1>
       </div>
     </header>
 
@@ -924,13 +941,15 @@
 
   <main id="halfSugam" data-game-id="<%= game._id %>" data-game-name="<%= game.gameName %>"
     data-open-time="<%= todaySchedule ? todaySchedule.openTime : '' %>"
-    data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>" class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
+    data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>"
+    class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
     <!-- HEADER -->
 
     <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
       <div class="flex items-center gap-3">
         <i id="closeHalfSugam" class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
-        <h1 class="text-lg font-semibold">Half Sangam - <%= game.gameName %></h1>
+        <h1 class="text-lg font-semibold">Half Sangam - <%= game.gameName %>
+        </h1>
       </div>
     </header>
 
@@ -984,15 +1003,13 @@
           Add
         </button>
       </div>
-        <!-- ================== SUBMIT BUTTON ================== -->
+      <!-- ================== SUBMIT BUTTON ================== -->
 
     </div>
-  <button
-    id="HalfSangamSubmit"
-    name="HalfSangamSubmit"
-    class="bg-green-600 text-white text-xl font-bold px-20 py-4 rounded-2xl shadow-lg active:scale-95 transition">
-    Submit
-  </button>
+    <button id="HalfSangamSubmit" name="HalfSangamSubmit"
+      class="bg-green-600 text-white text-xl font-bold px-20 py-4 rounded-2xl shadow-lg active:scale-95 transition">
+      Submit
+    </button>
     <!-- BOTTOM BAR -->
     <div class="border-t-2 border-teal-800 bg-white py-4">
       <div class="flex justify-around text-center font-semibold text-lg">
@@ -1013,13 +1030,15 @@
 
   <main id="fullSugam" data-game-id="<%= game._id %>" data-game-name="<%= game.gameName %>"
     data-open-time="<%= todaySchedule ? todaySchedule.openTime : '' %>"
-    data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>" class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
+    data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>"
+    class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
     <!-- HEADER -->
 
     <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
       <div class="flex items-center gap-3">
         <i id="closeFullSugam" class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
-        <h1 class="text-lg font-semibold">Full Sangam - <%= game.gameName %></h1>
+        <h1 class="text-lg font-semibold">Full Sangam - <%= game.gameName %>
+        </h1>
       </div>
     </header>
 
@@ -1055,18 +1074,14 @@
           Add
         </button>
       </div>
-<!-- SUBMIT BUTTON -->
-<div class="flex justify-center pt-8">
-  <button
-    id="fullSangam"
-    name="fullSangam"
-    type="submit"
-    class="bg-gradient-to-r from-purple-700 to-indigo-700 text-white
+      <!-- SUBMIT BUTTON -->
+      <div class="flex justify-center pt-8">
+        <button id="fullSangam" name="fullSangam" type="submit" class="bg-gradient-to-r from-purple-700 to-indigo-700 text-white
            text-xl font-bold px-24 py-4 rounded-2xl shadow-xl
            active:scale-95 transition-all duration-150">
-    Submit
-  </button>
-</div>
+          Submit
+        </button>
+      </div>
 
 
     </div>
@@ -1087,104 +1102,18 @@
   </main>
 
 
-<!-- ===================================== SP Motor ================================ -->
-
-<main id="sPMotor " data-game-id="<%= game._id %>" data-game-name="<%= game.gameName %>"
-  data-open-time="<%= todaySchedule ? todaySchedule.openTime : '' %>"
-  data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>" class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
-  <!-- HEADER -->
-
-  <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
-    <div class="flex items-center gap-3">
-      <i id="closeSPMotor " class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
-      <h1 class="text-lg font-semibold">SP Motor - <%= game.gameName %></h1>
-    </div>
-  </header>
-
-  <!-- FORM -->
-  <div class="px-5 pt-8 space-y-8 flex-1">
-    <!-- CHOOSE SESSION -->
-    <div class="flex justify-between items-center">
-      <h2 class="text-xl font-bold text-gray-900">Choose<br />Session</h2>
-
-      <div class="flex space-x-6">
-        <label class="flex items-center space-x-2">
-          <input type="radio" name="spmotor_session" checked class="accent-teal-700 w-5 h-5" />
-          <span class="font-semibold text-lg">Open</span>
-        </label>
-
-        <label class="flex items-center space-x-2">
-          <input type="radio" name="spmotor_session" class="accent-gray-400 w-5 h-5" />
-          <span class="font-semibold text-lg text-gray-600">Close</span>
-        </label>
-      </div>
-    </div>
-
-    <!-- OPEN DIGIT -->
-    <div class="flex justify-between items-center">
-      <h2 class="text-xl font-bold text-gray-900">Open Digit:</h2>
-
-      <input type="number" id="spmotor_opendigit" placeholder="Enter Digit"
-        class="w-52 px-4 py-3 rounded-xl shadow-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-700 font-semibold" />
-    </div>
-
-    <!-- POINTS -->
-    <div class="flex justify-between items-center">
-      <h2 class="text-xl font-bold text-gray-900">Points</h2>
-
-      <input type="number" id="spmotor_points" placeholder="Enter Point"
-        class="w-52 px-4 py-3 rounded-xl shadow-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-700 font-semibold" />
-    </div>
-
-    <!-- ADD BUTTON -->
-    <div class="flex justify-end pt-6">
-      <button id="spmotor_addbtn"
-        class="bg-teal-800 text-white text-xl font-bold px-20 py-4 rounded-2xl shadow-lg active:scale-95 transition">
-        Add
-      </button>
-    </div>
-
-    <!-- SUBMIT BUTTON -->
-    <div class="flex justify-center pt-8">
-      <button
-        id="spmotor_submitbtn"
-        name="spmotor_submit"
-        type="submit"
-        class="bg-gradient-to-r from-purple-700 to-indigo-700 text-white
-               text-xl font-bold px-24 py-4 rounded-2xl shadow-xl
-               active:scale-95 transition-all duration-150">
-        Submit
-      </button>
-    </div>
-  </div>
-
-  <!-- BOTTOM BAR -->
-  <div class="border-t-2 border-teal-800 bg-white py-4">
-    <div class="flex justify-around text-center font-semibold text-lg">
-      <div>
-        <div>Bids</div>
-        <div class="spmotor_totalbids text-gray-600">0</div>
-      </div>
-      <div>
-        <div>Amount</div>
-        <div class="spmotor_totalamount text-gray-600">0</div>
-      </div>
-    </div>
-  </div>
-</main>
-
-
-  <!-- ===================================== DP Motor ================================ -->
-
-  <main id="dPMotor " data-game-id="<%= game._id %>" data-game-name="<%= game.gameName %>"
+  <!-- ===================================== SP Motor ================================ -->
+  <main id="sPMotor " data-game-id="<%= game._id %>" data-game-name="<%= game.gameName %>"
     data-open-time="<%= todaySchedule ? todaySchedule.openTime : '' %>"
-    data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>" class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
+    data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>"
+    class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
     <!-- HEADER -->
 
     <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
       <div class="flex items-center gap-3">
-        <i id="closeDPMotor " class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
-        <h1 class="text-lg font-semibold">DP Motor - <%= game.gameName %></h1>
+        <i id="closeSPMotor " class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
+        <h1 class="text-lg font-semibold">SP Motor - <%= game.gameName %>
+        </h1>
       </div>
     </header>
 
@@ -1196,51 +1125,67 @@
 
         <div class="flex space-x-6">
           <label class="flex items-center space-x-2">
-            <input type="radio" name="dpmotor_session" checked class="accent-teal-700 w-5 h-5" />
+            <input type="radio" name="spmotor_session" value="OPEN" checked class="accent-teal-700 w-5 h-5" />
             <span class="font-semibold text-lg">Open</span>
           </label>
 
           <label class="flex items-center space-x-2">
-            <input type="radio" name="dpmotor_session" class="accent-gray-400 w-5 h-5" />
+            <input type="radio" name="spmotor_session" value="CLOSE" class="accent-gray-400 w-5 h-5" />
             <span class="font-semibold text-lg text-gray-600">Close</span>
           </label>
         </div>
       </div>
 
-      <!-- OPEN DIGIT -->
-      <div class="flex justify-between items-center">
-        <h2 class="text-xl font-bold text-gray-900">Open Digit:</h2>
-
-        <input type="number" placeholder="Enter Digit" name="dpOpenDigit" id="dpmotor_opendigit"
-          class="w-52 px-4 py-3 rounded-xl shadow-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-700 font-semibold" />
-      </div>
+    <!-- MAIN DIGIT -->
+    <div class="flex justify-between items-center">
+      <h2 class="text-xl font-bold">Main Digit</h2>
+      <input
+         id="spmotor_opendigit"
+        type="text"
+        inputmode="numeric"
+        maxlength="1"
+        placeholder="0-9"
+        class="w-40 px-4 py-3 border rounded-xl font-bold"
+      />
+    </div>
 
       <!-- POINTS -->
       <div class="flex justify-between items-center">
         <h2 class="text-xl font-bold text-gray-900">Points</h2>
 
-        <input type="number" placeholder="Enter Point" id="dpmotor_points" name="dpPoints"
+        <input type="number" id="spmotor_points" placeholder="Enter Point"
           class="w-52 px-4 py-3 rounded-xl shadow-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-700 font-semibold" />
       </div>
 
       <!-- ADD BUTTON -->
       <div class="flex justify-end pt-6">
-        <button id="dpmotor_addbtn"
+        <button id="spmotor_addbtn"
           class="bg-teal-800 text-white text-xl font-bold px-20 py-4 rounded-2xl shadow-lg active:scale-95 transition">
           Add
         </button>
       </div>
-      <!-- SUBMIT BUTTON (CENTER) -->
-<div class="flex justify-center pt-6">
-  <button
-    type="submit"
-    id="dpmotor_submitbtn"
-    name="dpmotor_submit"
-    class="bg-teal-800 text-white text-xl font-bold px-24 py-4 rounded-2xl shadow-lg active:scale-95 transition">
-    Submit
-  </button>
-</div>
 
+       <!-- TABLE -->
+    <table class="w-full text-center border mt-4">
+      <thead class="bg-gray-100 font-bold">
+        <tr>
+          <td>Digit</td>
+          <td>Amount</td>
+          <td>Session</td>
+          <td>Action</td>
+        </tr>
+      </thead>
+      <tbody id="dpTable"></tbody>
+    </table>
+
+      <!-- SUBMIT BUTTON -->
+      <div class="flex justify-center pt-8">
+        <button id="spmotor_submitbtn" type="submit" class="bg-gradient-to-r from-purple-700 to-indigo-700 text-white
+               text-xl font-bold px-24 py-4 rounded-2xl shadow-xl
+               active:scale-95 transition-all duration-150">
+          Submit
+        </button>
+      </div>
     </div>
 
     <!-- BOTTOM BAR -->
@@ -1248,31 +1193,122 @@
       <div class="flex justify-around text-center font-semibold text-lg">
         <div>
           <div>Bids</div>
-          <div class="dpmotor_totalbids text-gray-600">0</div>
+          <div class="spmotor_totalbids text-gray-600">0</div>
         </div>
         <div>
           <div>Amount</div>
-          <div class="dpmotor_totalamount text-gray-600">0</div>
+          <div class="spmotor_totalamount text-gray-600">0</div>
         </div>
       </div>
     </div>
   </main>
 
-  
-  <!-- ===================================== SP DP TP ================================ -->
+
+  <!-- ===================================== DP Motor ================================ -->
+
+  <main id="dPMotor "
+  data-game-id="<%= game._id %>"
+  data-game-name="<%= game.gameName %>"
+  data-open-time="<%= todaySchedule ? todaySchedule.openTime : '' %>"
+  class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
+
+  <!-- HEADER -->
+  <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
+    <div class="flex items-center gap-3">
+      <i id="closeDPMotor " class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
+      <h1 class="text-lg font-semibold">DP Motor - <%= game.gameName %></h1>
+    </div>
+  </header>
+
+  <div class="px-5 pt-8 space-y-6 flex-1">
+
+    <!-- SESSION -->
+    <div class="flex justify-between items-center">
+      <h2 class="text-xl font-bold">Choose Session</h2>
+      <div class="flex gap-6">
+        <label><input type="radio" name="dpmotor_session" value="OPEN" checked> Open</label>
+        <label><input type="radio" name="dpmotor_session" value="CLOSE"> Close</label>
+      </div>
+    </div>
+
+    <!-- MAIN DIGIT -->
+    <div class="flex justify-between items-center">
+      <h2 class="text-xl font-bold">Main Digit</h2>
+      <input
+        id="dpmotor_opendigit"
+        type="text"
+        inputmode="numeric"
+        maxlength="1"
+        placeholder="0-9"
+        class="w-40 px-4 py-3 border rounded-xl font-bold"
+      />
+    </div>
+
+    <!-- POINTS -->
+    <div class="flex justify-between items-center">
+      <h2 class="text-xl font-bold">Points</h2>
+      <input id="dpmotor_points" type="number"
+        class="w-40 px-4 py-3 border rounded-xl font-bold" />
+    </div>
+
+    <!-- ADD -->
+    <div class="flex justify-end">
+      <button id="dpmotor_addbtn"
+        class="bg-teal-800 text-white px-14 py-3 rounded-xl font-bold">
+        Add
+      </button>
+    </div>
+
+    <!-- TABLE -->
+    <table class="w-full text-center border mt-4">
+      <thead class="bg-gray-100 font-bold">
+        <tr>
+          <td>Digit</td>
+          <td>Amount</td>
+          <td>Session</td>
+          <td>Action</td>
+        </tr>
+      </thead>
+      <tbody id="dpTable"></tbody>
+    </table>
+
+    <!-- SUBMIT -->
+    <div class="flex justify-center pt-6">
+      <button id="dpmotor_submitbtn"
+        class="bg-teal-800 text-white px-24 py-4 rounded-xl font-bold">
+        Submit
+      </button>
+    </div>
+  </div>
+
+  <!-- BOTTOM -->
+  <div class="border-t py-4">
+    <div class="flex justify-around font-bold">
+      <div>Bids <div class="dpmotor_totalbids">0</div></div>
+      <div>Amount <div class="dpmotor_totalamount">0</div></div>
+    </div>
+  </div>
+</main>
+
+  <!-- ========================= SP DP TP ========================= -->
   <main id="sPDPTP " data-game-id="<%= game._id %>" data-game-name="<%= game.gameName %>"
     data-open-time="<%= todaySchedule ? todaySchedule.openTime : '' %>"
-    data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>" class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
+    data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>"
+    class="bg-white min-h-screen flex flex-col fixed top-0 w-full hidden">
+
     <!-- HEADER -->
     <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
       <div class="flex items-center gap-3">
         <i id="closeSPDPTP" class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
-        <h1 class="text-lg font-semibold">SP DP TP - <%= game.gameName %></h1>
+        <h1 class="text-lg font-semibold">
+          SP DP TP - <%= game.gameName %>
+        </h1>
       </div>
     </header>
 
-    <!-- FORM AREA -->
-    <div class="p-6 space-y-8">
+    <!-- FORM + TABLE (SCROLLABLE) -->
+    <div class="flex-1 overflow-y-auto p-6 space-y-8">
+
       <!-- Choose Session -->
       <div class="flex items-center justify-between">
         <span class="font-semibold text-lg">Choose Session</span>
@@ -1309,59 +1345,78 @@
 
       <!-- Open Digit -->
       <div class="flex items-center justify-between">
-        <span class="font-semibold text-lg">Open Digit:</span>
-        <input type="number" placeholder="Enter Digit" name="spdptpopen_Digit" id="spdptpopen_Digit"
-          class="w-48 px-4 py-3 rounded-xl shadow-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-700" />
+        <span class="font-semibold text-lg">Main Digit</span>
+        <input type="number" id="spdptpopen_Digit" placeholder="0 - 9" maxlength="1"
+          oninput="this.value = this.value.slice(0,1)" class="w-48 px-4 py-3 rounded-xl shadow-md border
+  focus:outline-none focus:ring-2 focus:ring-teal-700" />
+
       </div>
 
       <!-- Points -->
       <div class="flex items-center justify-between">
         <span class="font-semibold text-lg">Points</span>
-        <input type="number" placeholder="Enter Point" name="spdptp_Points" id="spdptp_Points"
-          class="w-48 px-4 py-3 rounded-xl shadow-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-700" />
+        <input type="number" id="spdptp_Points" placeholder="Enter Points" class="w-48 px-4 py-3 rounded-xl shadow-md border
+        focus:outline-none focus:ring-2 focus:ring-teal-700" />
       </div>
 
       <!-- ADD BUTTON -->
-      <button id="spdptpAddBtn"
-        class="w-full bg-teal-800 text-white py-4 rounded-2xl font-semibold text-lg shadow-lg active:scale-95 transition">
+      <button id="spdptpAddBtn" class="w-full bg-teal-800 text-white py-4 rounded-2xl
+      font-semibold text-lg shadow-lg active:scale-95 transition">
         Add
       </button>
-            <!-- SUBMIT BUTTON (CENTER) -->
-<div class="flex justify-center pt-6">
-  <button
-    type="submit"
-    id="spdptp_submitbtn"
-    name="spdptp_submit"
-    class="bg-teal-800 text-white text-xl font-bold px-24 py-4 rounded-2xl shadow-lg active:scale-95 transition">
-    Submit
-  </button>
-</div>
+
+      <!-- TABLE -->
+      <table class="w-full text-center mt-6 border">
+        <thead class="bg-gray-100">
+          <tr class="border-b font-bold">
+            <td>Digit</td>
+            <td>Choose</td>
+            <td>Amount</td>
+            <td>Session</td>
+            <td>Action</td>
+          </tr>
+        </thead>
+        <tbody id="spdptpTable"></tbody>
+      </table>
+
     </div>
 
-    <!-- FOOTER BAR -->
-    <div class="mt-auto border-t flex justify-around py-4 text-center">
+    <!-- SUBMIT (STICKY) -->
+    <div class="sticky bottom-0 bg-white border-t py-4 flex justify-center">
+      <button id="spdptp_submitbtn" class="bg-teal-800 text-white text-xl font-bold
+      px-24 py-4 rounded-2xl shadow-lg active:scale-95 transition">
+        Submit
+      </button>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="border-t flex justify-around py-4 text-center bg-white">
       <div>
         <p class="font-semibold">Bids</p>
         <p class="spdptp_totalbids text-lg">0</p>
       </div>
       <div>
         <p class="font-semibold">Amount</p>
-        <p class="spdptp_totalbids  text-lg">0</p>
+        <p class="spdptp_totalbids text-lg">0</p>
       </div>
     </div>
+
   </main>
 
-  
+
+
   <!-- ===================================== Red Bracket ================================ -->
 
   <main id="redBracket" data-game-id="<%= game._id %>" data-game-name="<%= game.gameName %>"
     data-open-time="<%= todaySchedule ? todaySchedule.openTime : '' %>"
-    data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>" class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
+    data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>"
+    class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
     <!-- HEADER -->
     <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
       <div class="flex items-center gap-3">
         <i id="closeRedBracket" class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
-        <h1 class="text-lg font-semibold"> Red Bracket - <%= game.gameName %></h1>
+        <h1 class="text-lg font-semibold"> Red Bracket - <%= game.gameName %>
+        </h1>
       </div>
     </header>
     <div class="bg-slate-50 font-sans text-slate-900 min-h-screen ">
