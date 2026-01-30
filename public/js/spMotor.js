@@ -23,7 +23,7 @@ const pointsInput = document.getElementById("spmotor_points");
 const addBtn = document.getElementById("spmotor_addbtn");
 const submitBtn = document.getElementById("spmotor_submitbtn");
 
-const tableBody = document.getElementById("dpTable");
+const tableBody = document.getElementById("spTable");
 
 const sessionRadios = main.querySelectorAll(
   "input[name='spmotor_session']"
