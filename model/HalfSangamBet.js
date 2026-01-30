@@ -7,7 +7,7 @@ const halfSangamItemSchema = new mongoose.Schema({
     enum: ["OPEN", "CLOSE"],
     required: true,
   },
-  openDigit: {
+  openPanna: {
     type: Number,
     required: true,
   },

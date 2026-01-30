@@ -1,98 +1,76 @@
 const mongoose = require("mongoose");
 
-/* ========== SINGLE FULL SANGAM BID ITEM ========== */
-const fullSangamBidItemSchema = new mongoose.Schema(
-  {
-openPana: {
-  type: String,
-  required: true,
-  match: /^\d+$/   // only digits, any length
-},
-closePana: {
-  type: String,
-  required: true,
-  match: /^\d+$/   // only digits, any length
-},
-
-    points: {
-      type: Number,
-      required: true,
-      min: 1,
-    },
-
-    totalAmount: {
-      type: Number,
-      required: true,
-      min: 1,
-    },
-
-    playedDate: {
-      type: String,
-      required: true,
-    },
-
-    playedTime: {
-      type: String,
-      required: true,
-    },
-
-    playedWeekday: {
-      type: String,
-      required: true,
-    },
+/* ================= FULL SANGAM ITEM SCHEMA ================= */
+const fullSangamItemSchema = new mongoose.Schema({
+  openPanna: {
+    type: Number,
+    required: true,
   },
-  { _id: false }
-);
+  closePanna: {
+    type: Number,
+    required: true,
+  },
+  totalAmount: {
+    type: Number,
+    required: true,
+    min: 1,
+  },
+});
 
-/* ========== FULL SANGAM SUBMIT SCHEMA ========== */
-const fullSangamSchema = new mongoose.Schema(
+/* ================= FULL SANGAM BET SCHEMA ================= */
+const fullSangamBetSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
-
     gameId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Game",
       required: true,
     },
+    gameName: {
+      type: String,
+      required: true,
+    },
     mainGame: {
       type: String,
       default: "MAIN_GAME",
-      immutable: true
+      immutable: true,
     },
     gameType: {
       type: String,
       default: "FULL_SANGAM",
       immutable: true,
     },
-
-    totalBids: {
-      type: Number,
+    bets: {
+      type: [fullSangamItemSchema],
       required: true,
-      min: 1,
+      validate: [arr => arr.length > 0, "At least one bet required"],
     },
-
     totalAmount: {
       type: Number,
       required: true,
-      min: 1,
     },
-
-    bids: {
-      type: [fullSangamBidItemSchema],
-      validate: v => v.length > 0,
-    },
-
     resultStatus: {
       type: String,
-      enum: ["PENDING", "WIN", "LOSE"],
+      enum: ["PENDING", "WIN", "LOSS"],
       default: "PENDING",
     },
+    playedDate: String,
+    playedTime: String,
+    playedWeekday: String,
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model("FullSangam", fullSangamSchema);
+/* ===== PRE-SAVE HOOK (SAFE) ===== */
+fullSangamBetSchema.pre("validate", function () {
+  this.totalAmount = this.bets.reduce(
+    (sum, b) => sum + (b.totalAmount || 0),
+    0
+  );
+});
+
+module.exports = mongoose.model("FullSangamBet", fullSangamBetSchema);

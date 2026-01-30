@@ -16,7 +16,7 @@ const DoublePannaBulkBet = require("../model/DoublePannaBulkBet");
 const TriplePannaBet = require("../model/TriplePannaBet");
 const OddEvenBet = require("../model/OddEvenBet");
 const HalfSangamBet = require("../model/HalfSangamBet");
-const FullSangam = require("../model/FullSangamBet");
+const FullSangamBet = require("../model/FullSangamBet");
 const SPMotorBet = require("../model/SPMotorBet");
 const DPMotorBet = require("../model/DPMotorBet");
 const spdptpBet = require("../model/spdptpBet");
@@ -2122,7 +2122,7 @@ exports.placeHalfSangamBet = async (req, res) => {
       gameName,
       bets: bets.map(b => ({
         session: b.session,
-        openDigit: b.openDigit,
+        openPanna: b.openDigit,
         closePanna: b.closePanna,
         totalAmount: b.totalAmount,
       })),
@@ -2149,15 +2149,18 @@ exports.placeHalfSangamBet = async (req, res) => {
 
 
 /* ================= PLACE FULL SANGAM BID ================= */
-exports.placeFullSangamBid = async (req, res, next) => {
+exports.placeFullSangamBet = async (req, res) => {
   try {
-    /* 🔐 AUTH CHECK */
+    /* ================= AUTH ================= */
     if (
-      !req.session.isLoggedIn ||
+      !req.session?.isLoggedIn ||
       !req.session.user ||
       req.session.user.role !== "user"
     ) {
-      return res.redirect("/login");
+      return res.status(401).json({
+        success: false,
+        message: "Login required ❌",
+      });
     }
 
     const user = await User.findOne({
@@ -2167,86 +2170,146 @@ exports.placeFullSangamBid = async (req, res, next) => {
     });
 
     if (!user) {
-      req.session.destroy();
-      return res.redirect("/login");
+      return res.status(401).json({
+        success: false,
+        message: "User not found ❌",
+      });
     }
 
-    /* 📦 BODY DATA */
-    const {
-      gameId,
-      gameType,
-      totalBids,
-      totalAmount,
-      bids,
-    } = req.body;
+    /* ================= BODY ================= */
+    const { gameId, gameName, bets } = req.body;
 
-    /* 🧪 VALIDATION */
-    if (!gameId || !Array.isArray(bids) || bids.length === 0) {
-      return res.status(400).json({ message: "Invalid bid data" });
+    if (!gameId || !gameName || !Array.isArray(bets) || bets.length === 0) {
+      return res.json({
+        success: false,
+        message: "No bets provided ❌",
+      });
     }
 
-    if (gameType !== "FULL_SANGAM") {
-      return res.status(400).json({ message: "Invalid game type" });
+    /* ================= GAME ================= */
+    const game = await Game.findById(gameId);
+    if (!game || game.isDeleted) {
+      return res.json({
+        success: false,
+        message: "Invalid game ❌",
+      });
     }
 
-    if (bids.length !== totalBids) {
-      return res.status(400).json({ message: "Total bids mismatch" });
+    const now = moment().tz("Asia/Kolkata");
+    const today = now.format("dddd").toLowerCase();
+    const schedule = game.schedule?.[today];
+
+    if (!schedule?.isActive) {
+      return res.json({
+        success: false,
+        message: "Market closed today ❌",
+      });
     }
 
-    const calculatedAmount = bids.reduce(
-      (sum, bid) => sum + Number(bid.points),
-      0
+    /* ================= OPEN TIME LOCK ================= */
+    const openMoment = moment.tz(
+      `${now.format("YYYY-MM-DD")} ${schedule.openTime}`,
+      "YYYY-MM-DD HH:mm",
+      "Asia/Kolkata"
     );
 
-    if (calculatedAmount !== totalAmount) {
-      return res.status(400).json({ message: "Total amount mismatch" });
+    if (now.isSameOrAfter(openMoment)) {
+      return res.json({
+        success: false,
+        message: "Game Closed ❌",
+      });
     }
 
-    /* 💰 WALLET CHECK */
-    if (user.walletBalance < totalAmount) {
-      return res.status(400).json({ message: "Insufficient wallet balance" });
+    /* ================= BET VALIDATION ================= */
+    let totalAmount = 0;
+
+    const formattedBets = [];
+
+    for (const bet of bets) {
+      const openPanna = Number(bet.openPanna);
+      const closePanna = Number(bet.closePanna);
+      const points = Number(bet.points);
+
+      if (
+        Number.isNaN(openPanna) ||
+        Number.isNaN(closePanna) ||
+        Number.isNaN(points) ||
+        points <= 0
+      ) {
+        return res.json({
+          success: false,
+          message: "Invalid bet data ❌",
+        });
+      }
+
+      // 3 digit check
+      if (
+        openPanna.toString().length !== 3 ||
+        closePanna.toString().length !== 3
+      ) {
+        return res.json({
+          success: false,
+          message: "Panna must be 3 digit ❌",
+        });
+      }
+
+      // same digit panna rule (111, 222, 444)
+      const o = openPanna.toString();
+      const c = closePanna.toString();
+
+      if (!(o[0] === o[1] && o[1] === o[2] && c[0] === c[1] && c[1] === c[2])) {
+        return res.json({
+          success: false,
+          message: "Only same digit panna allowed ❌",
+        });
+      }
+
+      totalAmount += points;
+
+      formattedBets.push({
+        openPanna,
+        closePanna,
+        totalAmount: points,
+      });
     }
 
-    /* 💳 WALLET DEBIT */
-    user.walletBalance -= totalAmount;
+    /* ================= WALLET ================= */
+    if (user.wallet < totalAmount) {
+      return res.json({
+        success: false,
+        message: "Insufficient wallet balance ❌",
+      });
+    }
+
+    user.wallet -= totalAmount;
     await user.save();
 
-    /* 🕒 TIME (JUST LIKE HALF SANGAM) */
-    const now = moment().tz("Asia/Kolkata");
-
-    /* 🧾 SAVE FULL SANGAM */
-    const fullSangam = await FullSangam.create({
+    /* ================= SAVE BET ================= */
+    await FullSangamBet.create({
       userId: user._id,
       gameId,
-      gameType: "FULL_SANGAM",
-      totalBids,
+      gameName,
+      bets: formattedBets,
       totalAmount,
-      bids,
-
-      // 👇 added only this part
       playedDate: now.format("YYYY-MM-DD"),
       playedTime: now.format("HH:mm"),
       playedWeekday: now.format("dddd"),
-
       resultStatus: "PENDING",
     });
 
-return res.status(201).json({
-  success: true,
-  message: `Full Sangam bid placed successfully ₹${totalAmount} ✅`,
-  totalAmount,
-  data: fullSangam,
-});
+    return res.json({
+      success: true,
+      message: `Full Sangam bet placed ₹${totalAmount} ✅`,
+    });
 
-
-  } catch (error) {
-    console.error("FULL_SANGAM_ERROR:", error);
+  } catch (err) {
+    console.error("FULL SANGAM ERROR:", err);
     return res.status(500).json({
-      message: "Server error while placing Full Sangam bid",
+      success: false,
+      message: "Server error ❌",
     });
   }
 };
-
 
 
 exports.placeSPMotorBet = async (req, res) => {

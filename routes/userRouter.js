@@ -26,7 +26,7 @@ userRouter.post("/double-panna-bulk/place-bet", userController.placeDoublePannaB
 userRouter.post("/triple-panna/place-bet", userController.placeTriplePannaBet);
 userRouter.post("/odd-even/place-bet", userController.placeOddEvenBet);
 userRouter.post("/half-sangam/place-bet", userController.placeHalfSangamBet);
-userRouter.post("/full-sangam/place-bid", userController.placeFullSangamBid);
+userRouter.post("/full-sangam/place-bet", userController.placeFullSangamBet);
 userRouter.post("/sp-motor/place-bet", userController.placeSPMotorBet);
 userRouter.post("/dp-motor/place-bet", userController.placeDPMotorBet);
 userRouter.post("/spdptp/place-bet", userController.placeSpDpTpBet);

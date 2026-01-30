@@ -1031,80 +1031,87 @@
 
 </main>
 
+
   <!-- ===================================== Full Sugam ================================ -->
 
-  <main id="fullSugam" data-game-id="<%= game._id %>" data-game-name="<%= game.gameName %>"
-    data-open-time="<%= todaySchedule ? todaySchedule.openTime : '' %>"
-    data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>"
-    class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
-    <!-- HEADER -->
+  <main id="fullSugam"
+  data-game-id="<%= game._id %>"
+  data-game-name="<%= game.gameName %>"
+  data-open-time="<%= todaySchedule ? todaySchedule.openTime : '' %>"
+  data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>"
+  class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
 
-    <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
-      <div class="flex items-center gap-3">
-        <i id="closeFullSugam" class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
-        <h1 class="text-lg font-semibold">Full Sangam - <%= game.gameName %>
-        </h1>
-      </div>
-    </header>
+  <!-- HEADER -->
+  <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
+    <div class="flex items-center gap-3">
+      <i id="closeFullSugam" class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
+      <h1 class="text-lg font-semibold">Full Sangam - <%= game.gameName %></h1>
+    </div>
+  </header>
 
-    <!-- FORM -->
-    <div class="px-5 pt-8 space-y-8 flex-1">
-      <!-- OPEN DIGIT -->
-      <div class="flex justify-between items-center">
-        <h2 class="text-xl font-bold text-gray-900">Open Pana</h2>
+  <!-- FORM -->
+  <div class="px-5 pt-6 space-y-6 flex-1">
 
-        <input type="number" placeholder="Enter Pana" required
-          class="w-52 px-4 py-3 rounded-xl shadow-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-700 font-semibold" />
-      </div>
-      <!-- CLOSE DIGIT -->
-      <div class="flex justify-between items-center">
-        <h2 class="text-xl font-bold text-gray-900">Close Pana</h2>
-
-        <input type="number" placeholder="Enter Pana" required
-          class="w-52 px-4 py-3 rounded-xl shadow-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-700 font-semibold" />
-      </div>
-
-      <!-- POINTS -->
-      <div class="flex justify-between items-center">
-        <h2 class="text-xl font-bold text-gray-900">Points</h2>
-
-        <input type="number" placeholder="Enter Point" required
-          class="w-52 px-4 py-3 rounded-xl shadow-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-700 font-semibold" />
-      </div>
-
-      <!-- ADD BUTTON -->
-      <div class="flex justify-end pt-6">
-        <button
-          class="bg-teal-800 text-white text-xl font-bold px-20 py-4 rounded-2xl shadow-lg active:scale-95 transition">
-          Add
-        </button>
-      </div>
-      <!-- SUBMIT BUTTON -->
-      <div class="flex justify-center pt-8">
-        <button id="fullSangam" name="fullSangam" type="submit" class="bg-gradient-to-r from-purple-700 to-indigo-700 text-white
-           text-xl font-bold px-24 py-4 rounded-2xl shadow-xl
-           active:scale-95 transition-all duration-150">
-          Submit
-        </button>
-      </div>
-
-
+    <!-- OPEN PANNA -->
+    <div class="flex justify-between items-center">
+      <h2 class="font-bold text-lg">Open Panna</h2>
+      <input id="openPannaFullSanagam" type="number" maxlength="3"
+        placeholder="3 digit" 
+        class="w-48 px-4 py-3 rounded-xl border shadow">
     </div>
 
-    <!-- BOTTOM BAR -->
-    <div class="border-t-2 border-teal-800 bg-white py-4">
-      <div class="flex justify-around text-center font-semibold text-lg">
-        <div>
-          <div>Bids</div>
-          <div class="text-gray-600">0</div>
-        </div>
-        <div>
-          <div>Amount</div>
-          <div class="text-gray-600">0</div>
-        </div>
-      </div>
+    <!-- CLOSE PANNA -->
+    <div class="flex justify-between items-center">
+      <h2 class="font-bold text-lg">Close Panna</h2>
+      <input id="closePannaFullSangam" type="number" readonly
+        class="w-48 px-4 py-3 rounded-xl border bg-gray-100">
     </div>
-  </main>
+
+    <!-- POINTS -->
+    <div class="flex justify-between items-center">
+      <h2 class="font-bold text-lg">Points</h2>
+      <input id="fullsangampoints" type="number" min="1"
+        class="w-48 px-4 py-3 rounded-xl border shadow">
+    </div>
+
+    <!-- ADD -->
+    <div class="flex justify-end">
+      <button id="fullsangamaddBid"
+        class="bg-teal-800 text-white px-10 py-3 rounded-xl font-bold">
+        Add
+      </button>
+    </div>
+
+    <!-- TABLE -->
+    <div class="overflow-x-auto">
+      <table class="w-full border text-center text-sm">
+        <thead class="bg-gray-200 font-bold">
+          <tr>
+            <th>Open Panna</th>
+            <th>Close Panna</th>
+            <th>Points</th>
+            <th>Delete</th>
+          </tr>
+        </thead>
+        <tbody id="fullsangambetTable"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- SUBMIT -->
+  <button id="fullSangamSubmit"
+    class="bg-green-600 text-white py-4 text-xl font-bold">
+    Submit
+  </button>
+
+  <!-- BOTTOM -->
+  <div class="border-t py-3 flex justify-around font-bold">
+    <div>Bids <span id="fullSangamBids">0</span></div>
+    <div>Amount ₹<span id="fullSangamAmount">0</span></div>
+  </div>
+
+</main>
 
 
   <!-- ===================================== SP Motor ================================ -->
