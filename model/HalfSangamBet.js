@@ -3,25 +3,20 @@ const mongoose = require("mongoose");
 /* ================= HALF SANGAM ITEM SCHEMA ================= */
 const halfSangamItemSchema = new mongoose.Schema({
   session: {
-    type: String,           // "OPEN" or "CLOSE"
+    type: String,
     enum: ["OPEN", "CLOSE"],
     required: true,
   },
   openDigit: {
-    type: Number,           // koi bhi number allowed
+    type: Number,
     required: true,
   },
   closePanna: {
-    type: Number,           // koi bhi number allowed
+    type: Number,
     required: true,
-  },
-  amount: {
-    type: Number,           // user ka bet amount
-    required: true,
-    min: 1,                 // amount 1 se kam nahi ho sakta
   },
   totalAmount: {
-    type: Number,           // same as amount for now, pre-save hook handle karega
+    type: Number,
     required: true,
     min: 1,
   },
@@ -44,10 +39,10 @@ const halfSangamBetSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-        mainGame: {
+    mainGame: {
       type: String,
       default: "MAIN_GAME",
-      immutable: true
+      immutable: true,
     },
     gameType: {
       type: String,
@@ -75,9 +70,12 @@ const halfSangamBetSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-/* ===== PRE-SAVE HOOK: CALCULATE TOTAL AMOUNT ===== */
+/* ===== PRE-SAVE HOOK (SAFE) ===== */
 halfSangamBetSchema.pre("validate", function () {
-  this.totalAmount = this.bets.reduce((sum, b) => sum + (b.totalAmount || b.amount || 0), 0);
+  this.totalAmount = this.bets.reduce(
+    (sum, b) => sum + (b.totalAmount || 0),
+    0
+  );
 });
 
 module.exports = mongoose.model("HalfSangamBet", halfSangamBetSchema);

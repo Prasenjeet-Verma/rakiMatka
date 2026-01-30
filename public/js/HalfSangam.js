@@ -1,12 +1,19 @@
 document.addEventListener("DOMContentLoaded", () => {
+
   /* ================= ELEMENTS ================= */
   const gameBox = document.getElementById("halfSugam");
-  const inputFields = gameBox.querySelectorAll('input[type="number"]');
-  const sessionRadios = gameBox.querySelectorAll('input[name="session"]');
-  const addBtn = gameBox.querySelector('button.bg-teal-800');
+  const openDigitInput = document.getElementById("openDigit");
+  const closePannaInput = document.getElementById("closePanna");
+  const pointsInput = document.getElementById("points");
+  const addBtn = document.getElementById("addBid");
   const submitBtn = document.getElementById("HalfSangamSubmit");
-  const closeBtn = document.getElementById("closeHalfSugam");
-  // const bidsDisplay = gameBox.querySelectorAll('.border-t div div.text-gray-600');
+  const betTable = document.getElementById("halfsangambetTable");
+  const sessionRadios = gameBox.querySelectorAll('input[name="session"]');
+
+  const bidsDisplay = {
+    totalBids: document.getElementById("halfSangamBids"),
+    totalAmount: document.getElementById("halfSangamAmount"),
+  };
 
   /* ================= STORE ================= */
   let bidRegistry = [];
@@ -26,7 +33,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function checkOpenLock() {
-    if (!gameBox) return;
     const openTime = gameBox.dataset.openTime;
     if (!serverTime || !openTime || openLocked) return;
 
@@ -34,16 +40,20 @@ document.addEventListener("DOMContentLoaded", () => {
       openLocked = true;
       showMessage("Open Session Closed ❌", "error");
 
-      // disable open radio
+      // disable OPEN radio
       sessionRadios.forEach(r => {
-        if (r.nextElementSibling.innerText === "Open") r.disabled = true;
+        if (r.nextElementSibling.innerText === "Open") {
+          r.disabled = true;
+        }
       });
 
-      // auto switch to close if user had open selected
+      // auto switch to CLOSE
       const checked = gameBox.querySelector('input[name="session"]:checked');
       if (checked && checked.nextElementSibling.innerText === "Open") {
         sessionRadios.forEach(r => {
-          if (r.nextElementSibling.innerText === "Close") r.checked = true;
+          if (r.nextElementSibling.innerText === "Close") {
+            r.checked = true;
+          }
         });
       }
     }
@@ -55,76 +65,127 @@ document.addEventListener("DOMContentLoaded", () => {
     checkOpenLock();
   }, 5000);
 
-  /* ================= MESSAGE ================= */
+  /* ================= TOAST MESSAGE ================= */
   function showMessage(msg, type = "success") {
     const box = document.createElement("div");
     box.innerText = msg;
+
     box.style.cssText = `
-      position:fixed;top:20px;left:50%;transform:translateX(-50%);
-      padding:12px 26px;border-radius:14px;
+      position:fixed;
+      top:20px;
+      left:50%;
+      transform:translateX(-50%);
+      padding:12px 26px;
+      border-radius:14px;
       background:${type === "success" ? "#16a34a" : "#dc2626"};
-      color:#fff;font-weight:700;z-index:9999
+      color:#fff;
+      font-weight:700;
+      z-index:9999;
+      box-shadow:0 10px 25px rgba(0,0,0,0.2);
     `;
+
     document.body.appendChild(box);
     setTimeout(() => box.remove(), 3000);
   }
 
-  /* ================= RENDER ================= */
-const bidsDisplay = {
-  totalBids: document.getElementById("halfSangamBids"),
-  totalAmount: document.getElementById("halfSangamAmount")
-};
+  /* ================= UI HELPERS ================= */
+  function refreshBottom() {
+    bidsDisplay.totalBids.innerText = bidRegistry.length;
+    bidsDisplay.totalAmount.innerText =
+      bidRegistry.reduce((s, b) => s + b.totalAmount, 0);
+  }
 
-function refreshBottomBar() {
-  bidsDisplay.totalBids.innerText = bidRegistry.length;
-  bidsDisplay.totalAmount.innerText = bidRegistry.reduce((sum, b) => sum + b.amount, 0);
-}
+  function renderTable() {
+    betTable.innerHTML = "";
+    bidRegistry.forEach((b, i) => {
+      betTable.innerHTML += `
+        <tr>
+          <td>${b.session}</td>
+          <td>${b.openDigit}</td>
+          <td>${b.closePanna}</td>
+          <td>${b.totalAmount}</td>
+          <td>
+            <i data-index="${i}"
+              class="fa-solid fa-trash text-red-600 cursor-pointer deleteBid"></i>
+          </td>
+        </tr>
+      `;
+    });
+    refreshBottom();
+  }
 
-
-  /* ================= ADD BID ================= */
-  addBtn.addEventListener("click", () => {
-    const session = gameBox.querySelector('input[name="session"]:checked')?.nextElementSibling.innerText;
-    if (!session) {
-      showMessage("Select session ❌", "error");
-      return;
+  /* ================= AUTO COPY OPEN → CLOSE ================= */
+  openDigitInput.addEventListener("input", () => {
+    if (openDigitInput.value.length > 3) {
+      openDigitInput.value = openDigitInput.value.slice(0, 3);
     }
 
-    if (session === "Open" && openLocked) {
-      showMessage("Open session closed ❌", "error");
-      return;
+    if (openDigitInput.value.length === 3) {
+      closePannaInput.value = openDigitInput.value;
+    } else {
+      closePannaInput.value = "";
     }
-
-    const openDigit = Number(inputFields[0].value);
-    const closePanna = Number(inputFields[1].value);
-    const amount = Number(inputFields[2].value);
-
-    if (isNaN(openDigit) || isNaN(closePanna) || isNaN(amount) || amount <= 0) {
-      showMessage("Fill all fields correctly ❌", "error");
-      return;
-    }
-
-    // add new object to bidRegistry
-    const newBid = {
-      session: session.toUpperCase(), // OPEN/CLOSE
-      openDigit,
-      closePanna,
-      amount,
-      totalAmount: amount,
-    };
-
-    bidRegistry.push(newBid);
-    showMessage(`Bid added for ${session} ✅`);
-    refreshBottomBar();
-
-    // optionally clear input fields
-    inputFields.forEach(f => f.value = '');
   });
 
+  /* ================= ADD BID ================= */
+  addBtn.onclick = () => {
+
+    const session =
+      gameBox.querySelector('input[name="session"]:checked')
+        ?.nextElementSibling.innerText.toUpperCase();
+
+    if (session === "OPEN" && openLocked) {
+      return showMessage("Open session closed ❌", "error");
+    }
+
+    const openDigit = openDigitInput.value;
+    const closePanna = closePannaInput.value;
+    const points = Number(pointsInput.value);
+
+    if (openDigit.length !== 3) {
+      return showMessage("Open Digit must be exactly 3 digits ❌", "error");
+    }
+
+    if (!points || points <= 0) {
+      return showMessage("Invalid points ❌", "error");
+    }
+
+    const existing = bidRegistry.find(b =>
+      b.session === session &&
+      b.openDigit === Number(openDigit) &&
+      b.closePanna === Number(closePanna)
+    );
+
+    if (existing) {
+      existing.totalAmount += points;
+    } else {
+      bidRegistry.push({
+        session,
+        openDigit: Number(openDigit),
+        closePanna: Number(closePanna),
+        totalAmount: points,
+      });
+    }
+
+    openDigitInput.value = "";
+    closePannaInput.value = "";
+    pointsInput.value = "";
+
+    renderTable();
+  };
+
+  /* ================= DELETE BID ================= */
+  betTable.onclick = e => {
+    if (e.target.classList.contains("deleteBid")) {
+      bidRegistry.splice(e.target.dataset.index, 1);
+      renderTable();
+    }
+  };
+
   /* ================= SUBMIT ================= */
-  submitBtn.addEventListener("click", async () => {
-    if (bidRegistry.length === 0) {
-      showMessage("Add at least one bid ❌", "error");
-      return;
+  submitBtn.onclick = async () => {
+    if (!bidRegistry.length) {
+      return showMessage("Add at least one bid ❌", "error");
     }
 
     try {
@@ -137,23 +198,17 @@ function refreshBottomBar() {
           bets: bidRegistry,
         }),
       });
+
       const data = await res.json();
+      showMessage(data.message, data.success ? "success" : "error");
+
       if (data.success) {
-        showMessage(data.message, "success");
         bidRegistry = [];
-        refreshBottomBar();
-      } else {
-        showMessage(data.message, "error");
+        renderTable();
       }
     } catch {
       showMessage("Server error ❌", "error");
     }
-  });
-
-  /* ================= CLOSE ================= */
-  if (closeBtn) closeBtn.onclick = () => {
-    bidRegistry = [];
-    refreshBottomBar();
-    gameBox.classList.add("hidden");
   };
+
 });

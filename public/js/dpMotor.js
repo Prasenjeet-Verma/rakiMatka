@@ -32,9 +32,12 @@ document.addEventListener("DOMContentLoaded", () => {
   let openLocked = false;
 
   /* ================= SINGLE DIGIT LOCK ================= */
-  mainDigitInput.addEventListener("input", () => {
-    mainDigitInput.value = mainDigitInput.value.replace(/[^0-9]/g, "").slice(0,1);
-  });
+mainDigitInput.addEventListener("input", () => {
+  mainDigitInput.value = mainDigitInput.value
+    .replace(/[^0-9,]/g, "")     // only digits & comma
+    .replace(/,+/g, ",")         // no multiple commas
+    .replace(/^,|,$/g, "");      // no comma at start/end
+});
 
   /* ================= MESSAGE ================= */
   function showMessage(msg, type="success") {
@@ -108,20 +111,46 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   /* ================= ADD ================= */
-  addBtn.onclick = () => {
-    const session = document.querySelector("input[name='dpmotor_session']:checked").value;
-    const mainNo = Number(mainDigitInput.value);
-    const points = Number(pointsInput.value);
+addBtn.onclick = () => {
+  const session = document.querySelector("input[name='dpmotor_session']:checked").value;
+  const points = Number(pointsInput.value);
 
-    if (session === "OPEN" && openLocked)
-      return showMessage("Open session closed ❌","error");
+  if (session === "OPEN" && openLocked)
+    return showMessage("Open session closed ❌","error");
 
-    if (mainNo < 0 || mainNo > 9 || points <= 0)
-      return showMessage("Invalid input ❌","error");
+  if (points <= 0)
+    return showMessage("Invalid points ❌","error");
 
+  /* ===== 🔥 UPDATED PART START ===== */
+
+  const raw = mainDigitInput.value.trim();
+  let mainNos = [];
+
+  if (raw.includes(",")) {
+    // case: 1,4,6
+    mainNos = raw
+      .split(",")
+      .map(n => Number(n))
+      .filter(n => n >= 0 && n <= 9);
+  } else {
+    // case: 1234
+    mainNos = raw
+      .split("")
+      .map(n => Number(n))
+      .filter(n => n >= 0 && n <= 9);
+  }
+
+  // remove duplicate digits
+  mainNos = [...new Set(mainNos)];
+
+  if (!mainNos.length)
+    return showMessage("Invalid digit input ❌","error");
+
+  /* ===== 🔥 UPDATED PART END ===== */
+
+  mainNos.forEach(mainNo => {
     const underNos = DP_MOTOR_MAP[mainNo];
 
-    // ✅ CORRECT CHECK: mainNo + session
     const existing = rows.filter(
       r => r.session === session && r.mainNo === mainNo
     );
@@ -134,15 +163,16 @@ document.addEventListener("DOMContentLoaded", () => {
           digit: d,
           amount: points,
           session,
-          mainNo   // 🔥 IMPORTANT
+          mainNo
         });
       });
     }
+  });
 
-    refreshTable();
-    mainDigitInput.value="";
-    pointsInput.value="";
-  };
+  refreshTable();
+  mainDigitInput.value = "";
+  pointsInput.value = "";
+};
 
   /* ================= SUBMIT ================= */
   submitBtn.onclick = async () => {

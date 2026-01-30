@@ -938,93 +938,98 @@
 
 
   <!-- ===================================== Half Sangam ================================ -->
+<main id="halfSugam"
+  data-game-id="<%= game._id %>"
+  data-game-name="<%= game.gameName %>"
+  data-open-time="<%= todaySchedule ? todaySchedule.openTime : '' %>"
+  data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>"
+  class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
 
-  <main id="halfSugam" data-game-id="<%= game._id %>" data-game-name="<%= game.gameName %>"
-    data-open-time="<%= todaySchedule ? todaySchedule.openTime : '' %>"
-    data-close-time="<%= todaySchedule ? todaySchedule.closeTime : '' %>"
-    class="bg-white min-h-screen flex flex-col hidden fixed top-0 w-full">
-    <!-- HEADER -->
-
-    <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
-      <div class="flex items-center gap-3">
-        <i id="closeHalfSugam" class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
-        <h1 class="text-lg font-semibold">Half Sangam - <%= game.gameName %>
-        </h1>
-      </div>
-    </header>
-
-    <!-- FORM -->
-    <div class="px-5 pt-8 space-y-8 flex-1">
-      <!-- CHOOSE SESSION -->
-      <div class="flex justify-between items-center">
-        <h2 class="text-xl font-bold text-gray-900">Choose<br />Session</h2>
-
-        <div class="flex space-x-6">
-          <label class="flex items-center space-x-2">
-            <input type="radio" name="session" required checked class="accent-teal-700 w-5 h-5" />
-            <span class="font-semibold text-lg">Open</span>
-          </label>
-
-          <label class="flex items-center space-x-2">
-            <input type="radio" name="session" required class="accent-gray-400 w-5 h-5" />
-            <span class="font-semibold text-lg text-gray-600">Close</span>
-          </label>
-        </div>
-      </div>
-
-      <!-- OPEN DIGIT -->
-      <div class="flex justify-between items-center">
-        <h2 class="text-xl font-bold text-gray-900">Open Digit:</h2>
-
-        <input type="number" placeholder="Enter Digit" required
-          class="w-52 px-4 py-3 rounded-xl shadow-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-700 font-semibold" />
-      </div>
-
-      <!-- OPEN DIGIT -->
-      <div class="flex justify-between items-center">
-        <h2 class="text-xl font-bold text-gray-900">Close Panna</h2>
-
-        <input type="number" placeholder="Enter Panna" required
-          class="w-52 px-4 py-3 rounded-xl shadow-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-700 font-semibold" />
-      </div>
-
-      <!-- POINTS -->
-      <div class="flex justify-between items-center">
-        <h2 class="text-xl font-bold text-gray-900">Points</h2>
-
-        <input type="number" placeholder="Enter Point" required
-          class="w-52 px-4 py-3 rounded-xl shadow-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-700 font-semibold" />
-      </div>
-
-      <!-- ADD BUTTON -->
-      <div class="flex justify-end pt-6">
-        <button
-          class="bg-teal-800 text-white text-xl font-bold px-20 py-4 rounded-2xl shadow-lg active:scale-95 transition">
-          Add
-        </button>
-      </div>
-      <!-- ================== SUBMIT BUTTON ================== -->
-
+  <!-- HEADER -->
+  <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
+    <div class="flex items-center gap-3">
+      <i id="closeHalfSugam" class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
+      <h1 class="text-lg font-semibold">Half Sangam - <%= game.gameName %></h1>
     </div>
-    <button id="HalfSangamSubmit" name="HalfSangamSubmit"
-      class="bg-green-600 text-white text-xl font-bold px-20 py-4 rounded-2xl shadow-lg active:scale-95 transition">
-      Submit
-    </button>
-    <!-- BOTTOM BAR -->
-    <div class="border-t-2 border-teal-800 bg-white py-4">
-      <div class="flex justify-around text-center font-semibold text-lg">
-        <div>
-          <div>Bids</div>
-          <div id="halfSangamBids" class="text-gray-600">0</div>
-        </div>
-        <div>
-          <div>Amount</div>
-          <div id="halfSangamAmount" class="text-gray-600">0</div>
-        </div>
-      </div>
-    </div>
-  </main>
+  </header>
 
+  <!-- FORM -->
+  <div class="px-5 pt-6 space-y-6 flex-1">
+
+    <!-- SESSION -->
+    <div class="flex justify-between items-center">
+      <h2 class="text-xl font-bold">Choose Session</h2>
+      <label class="flex gap-2 items-center">
+        <input type="radio" name="session" checked class="accent-teal-700 w-5 h-5">
+        <span class="font-semibold">Open</span>
+      </label>
+      <label class="flex gap-2 items-center">
+        <input type="radio" name="session" class="accent-gray-400 w-5 h-5">
+        <span class="font-semibold text-gray-600">Close</span>
+      </label>
+    </div>
+
+    <!-- OPEN DIGIT -->
+    <div class="flex justify-between items-center">
+      <h2 class="font-bold text-lg">Open Digit</h2>
+      <input id="openDigit" type="number" maxlength="3"
+        placeholder="3 digit"
+        class="w-48 px-4 py-3 rounded-xl border shadow">
+    </div>
+
+    <!-- CLOSE PANNA -->
+    <div class="flex justify-between items-center">
+      <h2 class="font-bold text-lg">Close Panna</h2>
+      <input id="closePanna" type="number" readonly
+        class="w-48 px-4 py-3 rounded-xl border bg-gray-100">
+    </div>
+
+    <!-- POINTS -->
+    <div class="flex justify-between items-center">
+      <h2 class="font-bold text-lg">Points</h2>
+      <input id="points" type="number" min="1"
+        class="w-48 px-4 py-3 rounded-xl border shadow">
+    </div>
+
+    <!-- ADD -->
+    <div class="flex justify-end">
+      <button id="addBid"
+        class="bg-teal-800 text-white px-10 py-3 rounded-xl font-bold">
+        Add
+      </button>
+    </div>
+
+    <!-- TABLE -->
+    <div class="overflow-x-auto">
+      <table class="w-full border text-center text-sm">
+        <thead class="bg-gray-200 font-bold">
+          <tr>
+            <th>Session</th>
+            <th>Open Digit</th>
+            <th>Close Panna</th>
+            <th>Points</th>
+            <th>Delete</th>
+          </tr>
+        </thead>
+        <tbody id="halfsangambetTable"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- SUBMIT -->
+  <button id="HalfSangamSubmit"
+    class="bg-green-600 text-white py-4 text-xl font-bold">
+    Submit
+  </button>
+
+  <!-- BOTTOM -->
+  <div class="border-t py-3 flex justify-around font-bold">
+    <div>Bids <span id="halfSangamBids">0</span></div>
+    <div>Amount ₹<span id="halfSangamAmount">0</span></div>
+  </div>
+
+</main>
 
   <!-- ===================================== Full Sugam ================================ -->
 
@@ -1143,7 +1148,6 @@
          id="spmotor_opendigit"
         type="text"
         inputmode="numeric"
-        maxlength="1"
         placeholder="0-9"
         class="w-40 px-4 py-3 border rounded-xl font-bold"
       />
@@ -1238,7 +1242,6 @@
         id="dpmotor_opendigit"
         type="text"
         inputmode="numeric"
-        maxlength="1"
         placeholder="0-9"
         class="w-40 px-4 py-3 border rounded-xl font-bold"
       />
