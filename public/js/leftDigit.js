@@ -1,109 +1,147 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const gameBox = document.getElementById("jodiDigitBulk");
+
+  const gameBox = document.getElementById("leftDigitGame");
+  const openBtn = document.getElementById("btnJodiDigitBulk");
   const closeBtn = document.getElementById("closeJodiDigitBulk");
-  const openInput = gameBox.querySelector('input[placeholder="Enter Digit"]');
-  const pointsInput = gameBox.querySelector('input[placeholder="Enter Point"]');
-  const bidsDisplay = document.getElementById("bidsCount");
-  const amountDisplay = document.getElementById("amountTotal");
-  const addBtn = document.getElementById("addBetBtn");
-  const liveBetsContainer = document.getElementById("liveBetsContainer");
-  const submitBtn = document.getElementById("submitBetBtn");
+
+  const openInput = document.getElementById("leftDigit_openDigit");
+  const pointsInput = document.getElementById("leftDigit_points");
+  const addBtn = document.getElementById("leftDigit_addBtn");
+  const submitBtn = document.getElementById("leftDigit_submitBtn");
+
+  const tableBody = document.getElementById("leftDigitLiveBets");
+  const totalBidsEl = document.getElementById("leftDigit_totalBids");
+  const totalAmountEl = document.getElementById("leftDigit_totalAmount");
 
   let bets = [];
+  let serverTime = null;
+  let gameClosed = false;
 
-  // ================= MESSAGE BOX =================
-  function showMessage(message, type = "success") {
-    const old = document.getElementById("jsMsgBox");
-    if (old) old.remove();
+  /* ========== OPEN / CLOSE ========== */
+  openBtn.onclick = () => gameBox.classList.remove("hidden");
+  closeBtn.onclick = () => gameBox.classList.add("hidden");
+
+  /* ========== 1 DIGIT ONLY ========== */
+  openInput.addEventListener("input", () => {
+    let v = openInput.value.replace(/[^0-9]/g, "");
+    if (v.length > 1) v = v[0];
+    openInput.value = v;
+  });
+
+  /* ========== MESSAGE ========== */
+  function showMessage(msg, type="success") {
     const box = document.createElement("div");
-    box.id = "jsMsgBox";
-    box.innerText = message;
-    Object.assign(box.style, {
-      position: "fixed",
-      top: "20px",
-      left: "50%",
-      transform: "translateX(-50%)",
-      padding: "12px 24px",
-      borderRadius: "12px",
-      color: "#fff",
-      fontWeight: "600",
-      zIndex: "9999",
-      boxShadow: "0 10px 25px rgba(0,0,0,.25)",
-      background: type === "success" ? "#16a34a" : "#dc2626",
-    });
+    box.innerText = msg;
+    box.style.cssText = `
+      position:fixed;top:20px;left:50%;
+      transform:translateX(-50%);
+      padding:12px 26px;border-radius:12px;
+      background:${type==="success"?"#16a34a":"#dc2626"};
+      color:#fff;font-weight:700;z-index:9999`;
     document.body.appendChild(box);
-    setTimeout(() => { box.style.opacity = 0; box.style.top = "0px"; }, 4500);
-    setTimeout(() => box.remove(), 5000);
+    setTimeout(()=>box.remove(),3000);
   }
 
-  // ================= OPEN / CLOSE =================
-  closeBtn.addEventListener("click", () => gameBox.classList.add("hidden"));
+  /* ========== REFRESH TABLE ========== */
+  function refreshTable() {
+    tableBody.innerHTML = "";
+    let totalAmount = 0;
 
-  // ================= LIVE UPDATE =================
-  function updateLivePreview() {
-    bidsDisplay.innerText = openInput.value || "0";
-    amountDisplay.innerText = pointsInput.value || "0";
+    bets.forEach((b,i) => {
+      totalAmount += b.amount;
+      tableBody.innerHTML += `
+        <tr>
+          <td>${b.openDigit}</td>
+          <td>${b.amount}</td>
+          <td>
+            <i class="fa-solid fa-trash text-red-600 cursor-pointer" data-i="${i}"></i>
+          </td>
+        </tr>`;
+    });
+
+    totalBidsEl.innerText = bets.length;
+    totalAmountEl.innerText = totalAmount;
   }
-  openInput.addEventListener("input", updateLivePreview);
-  pointsInput.addEventListener("input", updateLivePreview);
 
-  // ================= ADD BET =================
-  addBtn.addEventListener("click", () => {
-    const openDigit = openInput.value.trim();
+  tableBody.onclick = e => {
+    if (e.target.dataset.i !== undefined) {
+      bets.splice(e.target.dataset.i,1);
+      refreshTable();
+    }
+  };
+
+  /* ========== ADD BET ========== */
+  addBtn.onclick = () => {
+    if (gameClosed) return showMessage("Game Closed ❌","error");
+
+    const digit = openInput.value;
     const points = Number(pointsInput.value);
 
-    if (!openDigit) return showMessage("Enter valid open digit ❌", "error");
-    if (isNaN(points) || points <= 0) return showMessage("Enter valid points ❌", "error");
+    if (!digit) return showMessage("Enter digit 0-9 ❌","error");
+    if (!points || points <= 0) return showMessage("Enter valid points ❌","error");
 
-    bets.push({ openDigit, amount: points });
+    const existing = bets.find(b => b.openDigit === digit);
+    if (existing) {
+      existing.amount += points;
+    } else {
+      bets.push({ openDigit: digit, amount: points });
+    }
 
-    // Add to live list
-    const betDiv = document.createElement("div");
-    betDiv.classList.add("flex", "justify-between", "items-center", "bg-gray-100", "p-3", "rounded-lg");
-    betDiv.innerHTML = `
-      <span class="font-semibold">#${bets.length} - ${openDigit}</span>
-      <span class="font-semibold">₹${points}</span>
-    `;
-    liveBetsContainer.appendChild(betDiv);
-
-    // Reset inputs
     openInput.value = "";
     pointsInput.value = "";
-    bidsDisplay.innerText = "0";
-    amountDisplay.innerText = "0";
+    refreshTable();
+  };
 
-    showMessage(`Added ${openDigit} - ₹${points} ✅`);
-  });
-
-  // ================= SUBMIT BET =================
-  submitBtn.addEventListener("click", async () => {
-    if (bets.length === 0) return showMessage("Add at least one bet ❌", "error");
-
-    const payload = {
-      gameId: gameBox.dataset.gameId,
-      gameName: gameBox.dataset.gameName,
-      bets
-    };
-
+  /* ========== SERVER TIME CLOSE ========== */
+  async function syncServerTime() {
     try {
-      const res = await fetch("/left-digit/place-bet", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
+      const r = await fetch("/server-time");
+      const d = await r.json();
+      if (d.success) serverTime = d.time;
+    } catch {}
+  }
 
-      if (data.success) {
-        showMessage(data.message || "Bet placed ✅");
-        bets = [];
-        bidsDisplay.innerText = "0";
-        amountDisplay.innerText = "0";
-        liveBetsContainer.innerHTML = "";
-      } else {
-        showMessage(data.message || "Bet failed ❌", "error");
-      }
-    } catch {
-      showMessage("Server error ❌", "error");
+  function checkClose() {
+    const openTime = gameBox.dataset.openTime;
+    if (!serverTime || !openTime || gameClosed) return;
+    if (serverTime >= openTime) {
+      gameClosed = true;
+      showMessage("Game Closed ❌","error");
+      openInput.disabled = true;
+      pointsInput.disabled = true;
+      addBtn.disabled = true;
+      submitBtn.disabled = true;
     }
-  });
+  }
+
+  syncServerTime().then(checkClose);
+  setInterval(async () => {
+    await syncServerTime();
+    checkClose();
+  }, 5000);
+
+  /* ========== SUBMIT ========== */
+  submitBtn.onclick = async () => {
+    if (!bets.length) return showMessage("No bets ❌","error");
+    if (gameClosed) return showMessage("Game Closed ❌","error");
+
+    const res = await fetch("/left-digit/place-bet", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify({
+        gameId: gameBox.dataset.gameId,
+        gameName: gameBox.dataset.gameName,
+        bets
+      })
+    });
+
+    const data = await res.json();
+    showMessage(data.message, data.success?"success":"error");
+
+    if (data.success) {
+      bets = [];
+      refreshTable();
+    }
+  };
+
 });

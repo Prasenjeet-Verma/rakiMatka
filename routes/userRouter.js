@@ -41,7 +41,7 @@ userRouter.post("/starline-triple-panna/place-bet", userController.placeStarline
 userRouter.get("/playjackpot/:id", userController.getJackpotPlayGamePage);
 userRouter.post("/right-digit/place-bet", userController.placeJackpotRightDigitBet);
 userRouter.post("/left-digit/place-bet", userController.placeJackpotLeftDigitBet);
-userRouter.post("/center-game/place-bet", userController.placeJackpotCenterJodiDigitBet);
+userRouter.post("/center-jodi-digit/place-bet", userController.placeJackpotCenterJodiDigitBet);
 // User Win History Route
 userRouter.get("/user-win-history", userController.getUserWinHistory);
 module.exports = userRouter;

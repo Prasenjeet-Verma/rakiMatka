@@ -25,9 +25,9 @@ const starlineSingleDigitBet = require("../model/StarlineSingleDigitBet");
 const StarlineSinglePannaBet = require("../model/StarlineSinglePannaBet")
 const StarlineDoublePannaBet = require("../model/StarlineDoublePannaBet");
 const StarlineTripplePannaBet = require("../model/StarlineTriplePannaBet");
-const LeftDigitBet = require ("../model/JackpotLeftDigitBet");
-const RightDigitBet = require ("../model/JackpotRightDigitBet");
-const JackpotCentreJodiDigitBet = require ("../model/JackpotCentreJodiDigitBet");
+const LeftDigitBet = require("../model/JackpotLeftDigitBet");
+const RightDigitBet = require("../model/JackpotRightDigitBet");
+const JackpotCentreJodiDigitBet = require("../model/JackpotCentreJodiDigitBet");
 exports.UserHomePage = async (req, res, next) => {
   try {
     // This will be either the user object or undefined
@@ -90,33 +90,33 @@ exports.getUserDashboardPage = async (req, res, next) => {
     const games = await Game.find({ isDeleted: false }).lean();
 
     // ===================== 🎯 PROCESS GAMES =====================
-const processedGames = games
-  .filter((game) => {
-    const d = game.schedule?.[todayKey];
-    return d && d.isActive && d.closeTime;
-  })
-  .map((game) => {
-    const d = game.schedule[todayKey];
+    const processedGames = games
+      .filter((game) => {
+        const d = game.schedule?.[todayKey];
+        return d && d.isActive && d.closeTime;
+      })
+      .map((game) => {
+        const d = game.schedule[todayKey];
 
-    const nowMinutes = now.hours() * 60 + now.minutes();
+        const nowMinutes = now.hours() * 60 + now.minutes();
 
-    const [ch, cm] = d.closeTime.split(":").map(Number);
-    const closeMinutes = ch * 60 + cm;
+        const [ch, cm] = d.closeTime.split(":").map(Number);
+        const closeMinutes = ch * 60 + cm;
 
-    // 🔥 SIMPLE & CORRECT LOGIC
-    const isRunning = nowMinutes <= closeMinutes;
+        // 🔥 SIMPLE & CORRECT LOGIC
+        const isRunning = nowMinutes <= closeMinutes;
 
-    return {
-      _id: game._id,
-      gameName: game.gameName,
-      openTime: moment(d.openTime, "HH:mm").format("hh:mm A"), // admin open time (display)
-      closeTime: moment(d.closeTime, "HH:mm").format("hh:mm A"),
-      isRunning,
-      statusText: isRunning ? "Market Running" : "Market Closed",
-      isStarline: game.isStarline || false,
-      isJackpot: game.isJackpot || false,
-    };
-  });
+        return {
+          _id: game._id,
+          gameName: game.gameName,
+          openTime: moment(d.openTime, "HH:mm").format("hh:mm A"), // admin open time (display)
+          closeTime: moment(d.closeTime, "HH:mm").format("hh:mm A"),
+          isRunning,
+          statusText: isRunning ? "Market Running" : "Market Closed",
+          isStarline: game.isStarline || false,
+          isJackpot: game.isJackpot || false,
+        };
+      });
 
 
 
@@ -1093,34 +1093,34 @@ exports.placeJodiDigitBet = async (req, res) => {
     }
 
     /* ================= OPEN / CLOSE TIME CHECK ================= */
-const now = moment().tz("Asia/Kolkata").seconds(0).milliseconds(0);
-const today = now.format("dddd").toLowerCase();
+    const now = moment().tz("Asia/Kolkata").seconds(0).milliseconds(0);
+    const today = now.format("dddd").toLowerCase();
 
-const schedule = game.schedule?.[today];
+    const schedule = game.schedule?.[today];
 
-if (!schedule || !schedule.isActive) {
-  return res.status(400).json({
-    success: false,
-    message: "Market closed today ❌",
-  });
-}
+    if (!schedule || !schedule.isActive) {
+      return res.status(400).json({
+        success: false,
+        message: "Market closed today ❌",
+      });
+    }
 
-const openMoment = moment
-  .tz(
-    `${now.format("YYYY-MM-DD")} ${schedule.openTime}`,
-    "YYYY-MM-DD HH:mm",
-    "Asia/Kolkata"
-  )
-  .seconds(0)
-  .milliseconds(0);
+    const openMoment = moment
+      .tz(
+        `${now.format("YYYY-MM-DD")} ${schedule.openTime}`,
+        "YYYY-MM-DD HH:mm",
+        "Asia/Kolkata"
+      )
+      .seconds(0)
+      .milliseconds(0);
 
-// ❗ JODI DIGIT = OPEN ONLY
-if (now.isSameOrAfter(openMoment)) {
-  return res.status(400).json({
-    success: false,
-    message: "Jodi Digit Open Time Over ❌",
-  });
-}
+    // ❗ JODI DIGIT = OPEN ONLY
+    if (now.isSameOrAfter(openMoment)) {
+      return res.status(400).json({
+        success: false,
+        message: "Jodi Digit Open Time Over ❌",
+      });
+    }
     /* ================= WALLET ================= */
     if (user.wallet < totalAmount) {
       return res.status(400).json({
@@ -1401,16 +1401,16 @@ exports.placeSinglePannaBet = async (req, res) => {
 
 /* ================= PANNA MAP ================= */
 const patti_map = {
-  0: [127,136,145,190,235,280,370,479,460,569,389,578],
-  1: [128,137,146,236,245,290,380,470,489,560,678,579],
-  2: [129,138,147,156,237,246,345,390,480,570,679,589],
-  3: [120,139,148,157,238,247,256,346,490,580,670,689],
-  4: [130,149,158,167,239,248,257,347,356,590,680,789],
-  5: [140,159,168,230,249,258,267,348,357,456,690,780],
-  6: [123,150,169,178,240,259,268,349,358,457,367,790],
-  7: [124,160,179,250,269,278,340,359,368,458,467,890],
-  8: [125,134,170,189,260,279,350,369,378,459,567,468],
-  9: [126,135,180,234,270,289,360,379,450,469,478,568],
+  0: [127, 136, 145, 190, 235, 280, 370, 479, 460, 569, 389, 578],
+  1: [128, 137, 146, 236, 245, 290, 380, 470, 489, 560, 678, 579],
+  2: [129, 138, 147, 156, 237, 246, 345, 390, 480, 570, 679, 589],
+  3: [120, 139, 148, 157, 238, 247, 256, 346, 490, 580, 670, 689],
+  4: [130, 149, 158, 167, 239, 248, 257, 347, 356, 590, 680, 789],
+  5: [140, 159, 168, 230, 249, 258, 267, 348, 357, 456, 690, 780],
+  6: [123, 150, 169, 178, 240, 259, 268, 349, 358, 457, 367, 790],
+  7: [124, 160, 179, 250, 269, 278, 340, 359, 368, 458, 467, 890],
+  8: [125, 134, 170, 189, 260, 279, 350, 369, 378, 459, 567, 468],
+  9: [126, 135, 180, 234, 270, 289, 360, 379, 450, 469, 478, 568],
 };
 
 exports.placeSinglePannaBulkBet = async (req, res, next) => {
@@ -1420,10 +1420,10 @@ exports.placeSinglePannaBulkBet = async (req, res, next) => {
       return res.status(401).json({ success: false, message: "Login required ❌" });
     }
 
-    const user = await User.findOne({ 
-      _id: req.session.user._id, 
-      role: "user", 
-      userStatus: "active" 
+    const user = await User.findOne({
+      _id: req.session.user._id,
+      role: "user",
+      userStatus: "active"
     }).select("-password");
 
     if (!user) return res.status(401).json({ success: false, message: "User not found ❌" });
@@ -1653,16 +1653,16 @@ exports.placeDoublePannaBet = async (req, res) => {
 
 /* ================= PANNA MAP ================= */
 const patti_map_DPB = {
-  0: [550,668,244,299,226,488,677,118,334],
-  1: [100,119,155,227,335,344,399,588,669],
-  2: [200,110,228,255,336,499,660,688,778],
-  3: [300,166,229,337,355,445,599,779,788],
-  4: [400,112,220,266,338,446,455,699,770],
-  5: [500,113,122,177,339,366,447,799,889],
-  6: [600,114,277,330,448,466,556,880,899],
-  7: [700,115,133,188,223,377,449,557,566],
-  8: [800,116,224,233,288,440,477,558,990],
-  9: [900,117,144,199,225,388,559,577,667],
+  0: [550, 668, 244, 299, 226, 488, 677, 118, 334],
+  1: [100, 119, 155, 227, 335, 344, 399, 588, 669],
+  2: [200, 110, 228, 255, 336, 499, 660, 688, 778],
+  3: [300, 166, 229, 337, 355, 445, 599, 779, 788],
+  4: [400, 112, 220, 266, 338, 446, 455, 699, 770],
+  5: [500, 113, 122, 177, 339, 366, 447, 799, 889],
+  6: [600, 114, 277, 330, 448, 466, 556, 880, 899],
+  7: [700, 115, 133, 188, 223, 377, 449, 557, 566],
+  8: [800, 116, 224, 233, 288, 440, 477, 558, 990],
+  9: [900, 117, 144, 199, 225, 388, 559, 577, 667],
 };
 
 exports.placeDoublePannaBulkBet = async (req, res, next) => {
@@ -1672,10 +1672,10 @@ exports.placeDoublePannaBulkBet = async (req, res, next) => {
       return res.status(401).json({ success: false, message: "Login required ❌" });
     }
 
-    const user = await User.findOne({ 
-      _id: req.session.user._id, 
-      role: "user", 
-      userStatus: "active" 
+    const user = await User.findOne({
+      _id: req.session.user._id,
+      role: "user",
+      userStatus: "active"
     }).select("-password");
 
     if (!user) return res.status(401).json({ success: false, message: "User not found ❌" });
@@ -1800,7 +1800,7 @@ exports.placeTriplePannaBet = async (req, res, next) => {
     // ✅ VALIDATION & OPEN TIME LOCK
     for (const b of bets) {
       if (
-        typeof b.number !== "string" || 
+        typeof b.number !== "string" ||
         !/^[0-9]{3}$/.test(b.number) || // triple digit check
         typeof b.amount !== "number" ||
         b.amount <= 0 ||
@@ -2727,8 +2727,8 @@ exports.placeRedBracketBet = async (req, res, next) => {
 };
 
 // Starline game code
-exports.getStarLinePlayGamePage = async (req,res,next) => {
-   try {
+exports.getStarLinePlayGamePage = async (req, res, next) => {
+  try {
     // 🔐 User Security Check
     if (
       !req.session.isLoggedIn ||
@@ -2784,7 +2784,7 @@ exports.getStarLinePlayGamePage = async (req,res,next) => {
 
 
 exports.placeStarlineSingleDigitBet = async (req, res, next) => {
-   try {
+  try {
     // ✅ AUTH CHECK
     if (!req.session.isLoggedIn || !req.session.user || req.session.user.role !== "user") {
       return res.redirect("/login");
@@ -2884,8 +2884,8 @@ exports.placeStarlineSingleDigitBet = async (req, res, next) => {
   }
 }
 
-exports.placeStarlineSinglePannaBet = async (req,res,next) => {
- try {
+exports.placeStarlineSinglePannaBet = async (req, res, next) => {
+  try {
     /* ================= AUTH ================= */
     if (
       !req.session.isLoggedIn ||
@@ -3024,8 +3024,8 @@ exports.placeStarlineSinglePannaBet = async (req,res,next) => {
 };
 
 
-exports.placeStarlineDoublePannaBet = async (req,res,next) => {
-try {
+exports.placeStarlineDoublePannaBet = async (req, res, next) => {
+  try {
     /* ================= AUTH ================= */
     if (
       !req.session.isLoggedIn ||
@@ -3164,7 +3164,7 @@ try {
 };
 
 exports.placeStarlineTriplePannaBet = async (req, res, next) => {
-   try {
+  try {
     // ✅ AUTH CHECK
     if (!req.session.isLoggedIn || !req.session.user || req.session.user.role !== "user") {
       return res.redirect("/login");
@@ -3205,7 +3205,7 @@ exports.placeStarlineTriplePannaBet = async (req, res, next) => {
     // ✅ VALIDATION & OPEN TIME LOCK
     for (const b of bets) {
       if (
-        typeof b.number !== "string" || 
+        typeof b.number !== "string" ||
         !/^[0-9]{3}$/.test(b.number) || // triple digit check
         typeof b.amount !== "number" ||
         b.amount <= 0 ||
@@ -3263,8 +3263,8 @@ exports.placeStarlineTriplePannaBet = async (req, res, next) => {
 };
 
 //Jackpot Game Data Submit Controller function Start Here
-exports.getJackpotPlayGamePage = async (req,res,next) => {
-   try {
+exports.getJackpotPlayGamePage = async (req, res, next) => {
+  try {
     // 🔐 User Security Check
     if (
       !req.session.isLoggedIn ||
@@ -3315,55 +3315,32 @@ exports.getJackpotPlayGamePage = async (req,res,next) => {
     console.log(error);
     res.status(500).send("Server error");
   }
-}
+};
 
+exports.placeJackpotRightDigitBet = async (req, res) => {
+  try {
+    const user = await User.findById(req.session.user._id);
+    if (!user) return res.json({ success: false, message: "User not found ❌" });
 
-
-exports.placeJackpotRightDigitBet = async (req, res, next) => {
-try {
-
-    /* ================= AUTH ================= */
-    if (
-      !req.session.isLoggedIn ||
-      !req.session.user ||
-      req.session.user.role !== "user"
-    ) {
-      return res.redirect("/login");
-    }
-
-    const user = await User.findOne({
-      _id: req.session.user._id,
-      role: "user",
-      userStatus: "active",
-    }).select("-password");
-
-    if (!user) {
-      req.session.destroy();
-      return res.redirect("/login");
-    }
     const { gameId, bets } = req.body;
-    if (!gameId || !bets || !bets.length) {
-      return res.json({ success: false, message: "Invalid bet data ❌" });
-    }
+    if (!gameId || !bets?.length) return res.json({ success: false, message: "Invalid bet ❌" });
 
-    /* ================= GAME CHECK ================= */
     const game = await Game.findById(gameId);
-    if (!game || game.isDeleted) {
-      return res.json({ success: false, message: "Invalid game ❌" });
+    if (!game || game.isDeleted) return res.json({ success: false, message: "Invalid game ❌" });
+
+    // Check openTime
+    const now = moment().tz("Asia/Kolkata");
+    const openTime = game.schedule?.[now.format("dddd").toLowerCase()]?.openTime;
+    if (openTime && now.format("HH:mm") >= openTime) {
+      return res.json({ success: false, message: "Game closed ❌" });
     }
 
-    /* ================= TOTAL AMOUNT ================= */
     const totalAmount = bets.reduce((sum, b) => sum + Number(b.amount || 0), 0);
-    if (user.wallet < totalAmount) {
-      return res.json({ success: false, message: "Insufficient balance ❌" });
-    }
+    if (user.wallet < totalAmount) return res.json({ success: false, message: "Insufficient balance ❌" });
 
-    /* ================= DEDUCT WALLET ================= */
     user.wallet -= totalAmount;
     await user.save();
 
-    /* ================= SAVE BET ================= */
-    const now = moment().tz("Asia/Kolkata");
     await RightDigitBet.create({
       userId: user._id,
       gameId,
@@ -3376,6 +3353,7 @@ try {
     });
 
     return res.json({ success: true, message: `Bet placed ₹${totalAmount} ✅` });
+
   } catch (err) {
     console.error("RightDigitBet Error:", err);
     res.json({ success: false, message: "Server error ❌" });
@@ -3383,50 +3361,29 @@ try {
 };
 
 exports.placeJackpotLeftDigitBet = async (req, res, next) => {
-try {
+  try {
+    const user = await User.findById(req.session.user._id);
+    if (!user) return res.json({ success: false, message: "User not found ❌" });
 
-    /* ================= AUTH ================= */
-    if (
-      !req.session.isLoggedIn ||
-      !req.session.user ||
-      req.session.user.role !== "user"
-    ) {
-      return res.redirect("/login");
-    }
-
-    const user = await User.findOne({
-      _id: req.session.user._id,
-      role: "user",
-      userStatus: "active",
-    }).select("-password");
-
-    if (!user) {
-      req.session.destroy();
-      return res.redirect("/login");
-    }
     const { gameId, bets } = req.body;
-    if (!gameId || !bets || !bets.length) {
-      return res.json({ success: false, message: "Invalid bet data ❌" });
-    }
+    if (!gameId || !bets?.length) return res.json({ success: false, message: "Invalid bet ❌" });
 
-    /* ================= GAME CHECK ================= */
     const game = await Game.findById(gameId);
-    if (!game || game.isDeleted) {
-      return res.json({ success: false, message: "Invalid game ❌" });
+    if (!game || game.isDeleted) return res.json({ success: false, message: "Invalid game ❌" });
+
+    // Check openTime
+    const now = moment().tz("Asia/Kolkata");
+    const openTime = game.schedule?.[now.format("dddd").toLowerCase()]?.openTime;
+    if (openTime && now.format("HH:mm") >= openTime) {
+      return res.json({ success: false, message: "Game closed ❌" });
     }
 
-    /* ================= TOTAL AMOUNT ================= */
     const totalAmount = bets.reduce((sum, b) => sum + Number(b.amount || 0), 0);
-    if (user.wallet < totalAmount) {
-      return res.json({ success: false, message: "Insufficient balance ❌" });
-    }
+    if (user.wallet < totalAmount) return res.json({ success: false, message: "Insufficient balance ❌" });
 
-    /* ================= DEDUCT WALLET ================= */
     user.wallet -= totalAmount;
     await user.save();
 
-    /* ================= SAVE BET ================= */
-    const now = moment().tz("Asia/Kolkata");
     await LeftDigitBet.create({
       userId: user._id,
       gameId,
@@ -3439,6 +3396,7 @@ try {
     });
 
     return res.json({ success: true, message: `Bet placed ₹${totalAmount} ✅` });
+
   } catch (err) {
     console.error("LeftDigitBet Error:", err);
     res.json({ success: false, message: "Server error ❌" });
@@ -3446,50 +3404,43 @@ try {
 };
 
 exports.placeJackpotCenterJodiDigitBet = async (req, res, next) => {
-try {
+  try {
+    const user = await User.findById(req.session.user._id);
+    if (!user) return res.json({ success: false, message: "User not found ❌" });
 
-    /* ================= AUTH ================= */
-    if (
-      !req.session.isLoggedIn ||
-      !req.session.user ||
-      req.session.user.role !== "user"
-    ) {
-      return res.redirect("/login");
-    }
-
-    const user = await User.findOne({
-      _id: req.session.user._id,
-      role: "user",
-      userStatus: "active",
-    }).select("-password");
-
-    if (!user) {
-      req.session.destroy();
-      return res.redirect("/login");
-    }
     const { gameId, bets } = req.body;
-    if (!gameId || !bets || !bets.length) {
-      return res.json({ success: false, message: "Invalid bet data ❌" });
-    }
+    if (!gameId || !bets?.length) return res.json({ success: false, message: "Invalid bet ❌" });
 
-    /* ================= GAME CHECK ================= */
     const game = await Game.findById(gameId);
-    if (!game || game.isDeleted) {
-      return res.json({ success: false, message: "Invalid game ❌" });
-    }
+    if (!game || game.isDeleted) return res.json({ success: false, message: "Invalid game ❌" });
 
-    /* ================= TOTAL AMOUNT ================= */
+    // Check openTime
+    const now = moment().tz("Asia/Kolkata");
+    const openTime = game.schedule?.[now.format("dddd").toLowerCase()]?.openTime;
+    if (openTime && now.format("HH:mm") >= openTime) {
+      return res.json({ success: false, message: "Game closed ❌" });
+    }
+    for (const bet of bets) {
+      if (!/^[0-9]{2}$/.test(bet.openDigit)) {
+        return res.json({
+          success: false,
+          message: "Invalid Jodi Digit ❌"
+        });
+      }
+
+      if (!bet.amount || bet.amount <= 0) {
+        return res.json({
+          success: false,
+          message: "Invalid bet amount ❌"
+        });
+      }
+    }
     const totalAmount = bets.reduce((sum, b) => sum + Number(b.amount || 0), 0);
-    if (user.wallet < totalAmount) {
-      return res.json({ success: false, message: "Insufficient balance ❌" });
-    }
+    if (user.wallet < totalAmount) return res.json({ success: false, message: "Insufficient balance ❌" });
 
-    /* ================= DEDUCT WALLET ================= */
     user.wallet -= totalAmount;
     await user.save();
 
-    /* ================= SAVE BET ================= */
-    const now = moment().tz("Asia/Kolkata");
     await JackpotCentreJodiDigitBet.create({
       userId: user._id,
       gameId,
@@ -3502,8 +3453,9 @@ try {
     });
 
     return res.json({ success: true, message: `Bet placed ₹${totalAmount} ✅` });
+
   } catch (err) {
-    console.error("CenterJodiDigitBet Error:", err);
+    console.error("JodiDigitBet Error:", err);
     res.json({ success: false, message: "Server error ❌" });
   }
 };
