@@ -1,13 +1,15 @@
 document.addEventListener("DOMContentLoaded", () => {
-
   /* ================= ELEMENTS ================= */
   const gameBox = document.getElementById("halfSugam");
+
   const openDigitInput = document.getElementById("openDigit");
   const closePannaInput = document.getElementById("closePanna");
   const pointsInput = document.getElementById("points");
+
   const addBtn = document.getElementById("addBid");
   const submitBtn = document.getElementById("HalfSangamSubmit");
   const betTable = document.getElementById("halfsangambetTable");
+
   const sessionRadios = gameBox.querySelectorAll('input[name="session"]');
 
   const bidsDisplay = {
@@ -17,55 +19,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ================= STORE ================= */
   let bidRegistry = [];
-
-  /* ================= SERVER TIME ================= */
   let serverTime = null;
-  let openLocked = false;
+  let gameClosed = false;
 
-  async function syncServerTime() {
-    try {
-      const res = await fetch("/server-time");
-      const data = await res.json();
-      if (data.success) serverTime = data.time;
-    } catch {
-      console.error("Server time fetch failed");
-    }
-  }
-
-  function checkOpenLock() {
-    const openTime = gameBox.dataset.openTime;
-    if (!serverTime || !openTime || openLocked) return;
-
-    if (serverTime >= openTime) {
-      openLocked = true;
-      showMessage("Open Session Closed ❌", "error");
-
-      // disable OPEN radio
-      sessionRadios.forEach(r => {
-        if (r.nextElementSibling.innerText === "Open") {
-          r.disabled = true;
-        }
-      });
-
-      // auto switch to CLOSE
-      const checked = gameBox.querySelector('input[name="session"]:checked');
-      if (checked && checked.nextElementSibling.innerText === "Open") {
-        sessionRadios.forEach(r => {
-          if (r.nextElementSibling.innerText === "Close") {
-            r.checked = true;
-          }
-        });
-      }
-    }
-  }
-
-  syncServerTime().then(checkOpenLock);
-  setInterval(async () => {
-    await syncServerTime();
-    checkOpenLock();
-  }, 5000);
-
-  /* ================= TOAST MESSAGE ================= */
+  /* ================= TOAST ================= */
   function showMessage(msg, type = "success") {
     const box = document.createElement("div");
     box.innerText = msg;
@@ -88,11 +45,47 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => box.remove(), 3000);
   }
 
-  /* ================= UI HELPERS ================= */
+  /* ================= SERVER TIME ================= */
+  async function syncServerTime() {
+    try {
+      const res = await fetch("/server-time");
+      const data = await res.json();
+      if (data.success) serverTime = data.time;
+    } catch {
+      console.error("Server time fetch failed");
+    }
+  }
+
+  function checkGameClosed() {
+    const openTime = gameBox.dataset.openTime;
+    if (!serverTime || !openTime || gameClosed) return;
+
+    if (serverTime >= openTime) {
+      gameClosed = true;
+      showMessage("Game Closed ❌", "error");
+
+      addBtn.disabled = true;
+      submitBtn.disabled = true;
+      addBtn.classList.add("opacity-50");
+      submitBtn.classList.add("opacity-50");
+
+      sessionRadios.forEach((r) => (r.disabled = true));
+    }
+  }
+
+  syncServerTime().then(checkGameClosed);
+  setInterval(async () => {
+    await syncServerTime();
+    checkGameClosed();
+  }, 5000);
+
+  /* ================= HELPERS ================= */
   function refreshBottom() {
     bidsDisplay.totalBids.innerText = bidRegistry.length;
-    bidsDisplay.totalAmount.innerText =
-      bidRegistry.reduce((s, b) => s + b.totalAmount, 0);
+    bidsDisplay.totalAmount.innerText = bidRegistry.reduce(
+      (s, b) => s + b.totalAmount,
+      0,
+    );
   }
 
   function renderTable() {
@@ -101,8 +94,8 @@ document.addEventListener("DOMContentLoaded", () => {
       betTable.innerHTML += `
         <tr>
           <td>${b.session}</td>
-          <td>${b.openDigit}</td>
-          <td>${b.closePanna}</td>
+           <td>${b.openPanna}</td>
+           <td>${b.closeDigit}</td>
           <td>${b.totalAmount}</td>
           <td>
             <i data-index="${i}"
@@ -114,46 +107,57 @@ document.addEventListener("DOMContentLoaded", () => {
     refreshBottom();
   }
 
-  /* ================= AUTO COPY OPEN → CLOSE ================= */
+  /* ================= INPUT RULES ================= */
+
+  // OPEN PANNA → exactly 3 digits
   openDigitInput.addEventListener("input", () => {
+    openDigitInput.value = openDigitInput.value.replace(/[^0-9]/g, "");
     if (openDigitInput.value.length > 3) {
       openDigitInput.value = openDigitInput.value.slice(0, 3);
     }
+  });
 
-    if (openDigitInput.value.length === 3) {
-      closePannaInput.value = openDigitInput.value;
-    } else {
-      closePannaInput.value = "";
+  // CLOSE DIGIT → only 1 digit (0–9)
+  closePannaInput.removeAttribute("readonly");
+
+  closePannaInput.addEventListener("input", () => {
+    closePannaInput.value = closePannaInput.value.replace(/[^0-9]/g, "");
+    if (closePannaInput.value.length > 1) {
+      closePannaInput.value = closePannaInput.value.slice(0, 1);
     }
   });
 
   /* ================= ADD BID ================= */
   addBtn.onclick = () => {
-
-    const session =
-      gameBox.querySelector('input[name="session"]:checked')
-        ?.nextElementSibling.innerText.toUpperCase();
-
-    if (session === "OPEN" && openLocked) {
-      return showMessage("Open session closed ❌", "error");
+    if (gameClosed) {
+      return showMessage("Game Closed ❌", "error");
     }
 
-    const openDigit = openDigitInput.value;
-    const closePanna = closePannaInput.value;
+    const session = gameBox
+      .querySelector('input[name="session"]:checked')
+      ?.nextElementSibling.innerText.toUpperCase();
+
+    const openPanna = openDigitInput.value;
+    const closeDigit = closePannaInput.value;
     const points = Number(pointsInput.value);
 
-    if (openDigit.length !== 3) {
-      return showMessage("Open Digit must be exactly 3 digits ❌", "error");
+    if (!/^\d{3}$/.test(openPanna)) {
+      return showMessage("Open Panna must be 3 digits ❌", "error");
+    }
+
+    if (!/^\d{1}$/.test(closeDigit)) {
+      return showMessage("Close Digit must be single digit (0-9) ❌", "error");
     }
 
     if (!points || points <= 0) {
       return showMessage("Invalid points ❌", "error");
     }
 
-    const existing = bidRegistry.find(b =>
-      b.session === session &&
-      b.openDigit === Number(openDigit) &&
-      b.closePanna === Number(closePanna)
+    const existing = bidRegistry.find(
+      (b) =>
+        b.session === session &&
+        b.openPanna === Number(openPanna) &&
+        b.closeDigit === Number(closeDigit),
     );
 
     if (existing) {
@@ -161,8 +165,8 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       bidRegistry.push({
         session,
-        openDigit: Number(openDigit),
-        closePanna: Number(closePanna),
+        openPanna: Number(openPanna),
+        closeDigit: Number(closeDigit),
         totalAmount: points,
       });
     }
@@ -174,8 +178,8 @@ document.addEventListener("DOMContentLoaded", () => {
     renderTable();
   };
 
-  /* ================= DELETE BID ================= */
-  betTable.onclick = e => {
+  /* ================= DELETE ================= */
+  betTable.onclick = (e) => {
     if (e.target.classList.contains("deleteBid")) {
       bidRegistry.splice(e.target.dataset.index, 1);
       renderTable();
@@ -184,6 +188,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ================= SUBMIT ================= */
   submitBtn.onclick = async () => {
+    if (gameClosed) {
+      return showMessage("Game Closed ❌", "error");
+    }
+
     if (!bidRegistry.length) {
       return showMessage("Add at least one bid ❌", "error");
     }
@@ -210,5 +218,4 @@ document.addEventListener("DOMContentLoaded", () => {
       showMessage("Server error ❌", "error");
     }
   };
-
 });

@@ -1999,7 +1999,7 @@ exports.placeOddEvenBet = async (req, res) => {
 /* ================= PLACE HALF SANGAM BET ================= */
 exports.placeHalfSangamBet = async (req, res) => {
   try {
-    /* ================= AUTH CHECK ================= */
+    /* ================= AUTH ================= */
     if (
       !req.session?.isLoggedIn ||
       !req.session.user ||
@@ -2017,11 +2017,12 @@ exports.placeHalfSangamBet = async (req, res) => {
       userStatus: "active",
     });
 
-    if (!user)
+    if (!user) {
       return res.status(401).json({
         success: false,
         message: "User not found ❌",
       });
+    }
 
     /* ================= BODY ================= */
     const { gameId, gameName, bets } = req.body;
@@ -2053,18 +2054,38 @@ exports.placeHalfSangamBet = async (req, res) => {
       });
     }
 
+    /* ================= FULL GAME TIME LOCK ================= */
+    const openMoment = moment.tz(
+      `${now.format("YYYY-MM-DD")} ${schedule.openTime}`,
+      "YYYY-MM-DD HH:mm",
+      "Asia/Kolkata"
+    );
+
+    if (now.isSameOrAfter(openMoment)) {
+      return res.json({
+        success: false,
+        message: "Game Closed ❌",
+      });
+    }
+
     /* ================= BET VALIDATION ================= */
     let totalAmount = 0;
+    const formattedBets = [];
 
     for (const bet of bets) {
-      const { session, openDigit, closePanna, totalAmount: betAmount } = bet;
+      const {
+        session,
+        openPanna,        // ✅ frontend se yahi aa raha hai
+        closeDigit,       // ✅ frontend se yahi aa raha hai
+        totalAmount: betAmount,
+      } = bet;
 
-      // BASIC
+      // BASIC TYPE SAFETY
       if (
         !session ||
         !["OPEN", "CLOSE"].includes(session) ||
-        typeof openDigit !== "number" ||
-        typeof closePanna !== "number" ||
+        typeof openPanna !== "number" ||
+        typeof closeDigit !== "number" ||
         typeof betAmount !== "number" ||
         betAmount <= 0
       ) {
@@ -2074,34 +2095,30 @@ exports.placeHalfSangamBet = async (req, res) => {
         });
       }
 
-      // 3 DIGIT SAFETY (backend)
-      if (
-        openDigit.toString().length !== 3 ||
-        closePanna.toString().length !== 3
-      ) {
+      // OPEN PANNA → exactly 3 digit (100–999)
+      if (openPanna < 100 || openPanna > 999) {
         return res.json({
           success: false,
-          message: "Digits must be 3 digit ❌",
+          message: "Open Panna must be exactly 3 digits ❌",
         });
       }
 
-      // OPEN SESSION LOCK
-      if (session === "OPEN") {
-        const openMoment = moment.tz(
-          `${now.format("YYYY-MM-DD")} ${schedule.openTime}`,
-          "YYYY-MM-DD HH:mm",
-          "Asia/Kolkata"
-        );
-
-        if (now.isSameOrAfter(openMoment)) {
-          return res.json({
-            success: false,
-            message: "Open session closed ❌",
-          });
-        }
+      // CLOSE DIGIT → single digit (0–9)
+      if (closeDigit < 0 || closeDigit > 9) {
+        return res.json({
+          success: false,
+          message: "Close Digit must be single digit (0-9) ❌",
+        });
       }
 
       totalAmount += betAmount;
+
+      formattedBets.push({
+        session,
+        openPanna,
+        closeDigit,
+        totalAmount: betAmount,
+      });
     }
 
     /* ================= WALLET ================= */
@@ -2120,13 +2137,8 @@ exports.placeHalfSangamBet = async (req, res) => {
       userId: user._id,
       gameId,
       gameName,
-      bets: bets.map(b => ({
-        session: b.session,
-        openPanna: b.openDigit,
-        closePanna: b.closePanna,
-        totalAmount: b.totalAmount,
-      })),
-      totalAmount,
+      bets: formattedBets,
+      totalAmount, // ⚠️ schema pre-validate bhi recalc karega (anti-tamper)
       playedDate: now.format("YYYY-MM-DD"),
       playedTime: now.format("HH:mm"),
       playedWeekday: now.format("dddd"),
@@ -2146,7 +2158,6 @@ exports.placeHalfSangamBet = async (req, res) => {
     });
   }
 };
-
 
 /* ================= PLACE FULL SANGAM BID ================= */
 exports.placeFullSangamBet = async (req, res) => {
@@ -2254,15 +2265,15 @@ exports.placeFullSangamBet = async (req, res) => {
       }
 
       // same digit panna rule (111, 222, 444)
-      const o = openPanna.toString();
-      const c = closePanna.toString();
+      // const o = openPanna.toString();
+      // const c = closePanna.toString();
 
-      if (!(o[0] === o[1] && o[1] === o[2] && c[0] === c[1] && c[1] === c[2])) {
-        return res.json({
-          success: false,
-          message: "Only same digit panna allowed ❌",
-        });
-      }
+      // if (!(o[0] === o[1] && o[1] === o[2] && c[0] === c[1] && c[1] === c[2])) {
+      //   return res.json({
+      //     success: false,
+      //     message: "Only same digit panna allowed ❌",
+      //   });
+      // }
 
       totalAmount += points;
 

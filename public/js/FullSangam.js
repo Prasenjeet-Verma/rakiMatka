@@ -102,10 +102,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* ================= PANNA RULE ================= */
-  function isValidPanna(panna) {
-    if (panna.length !== 3) return false;
-    return panna[0] === panna[1] && panna[1] === panna[2];
-  }
+function isValidPanna(panna) {
+  return /^\d{3}$/.test(panna);
+}
 
   /* ================= AUTO COPY ================= */
   openPannaInput.addEventListener("input", () => {
@@ -128,7 +127,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const points     = Number(pointsInput.value);
 
     if (!isValidPanna(openPanna)) {
-      return showMessage("Only same digit panna allowed (111,222,444)", "error");
+      return showMessage("Panna must be exactly 3 digits (e.g. 123, 456)", "error");
     }
 
     if (!points || points <= 0) {
