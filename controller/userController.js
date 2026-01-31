@@ -1172,68 +1172,89 @@ if (now.isSameOrAfter(openMoment)) {
   }
 };
 
-
-
 exports.placeJodiDigitBulkBet = async (req, res) => {
   try {
-
-    /* ================= AUTH ================= */
-    if (
-      !req.session.isLoggedIn ||
-      !req.session.user ||
-      req.session.user.role !== "user"
-    ) {
-      return res.redirect("/login");
+    // ✅ Login & role check
+    if (!req.session?.isLoggedIn || req.session.user.role !== "user") {
+      return res.json({ success: false, message: "Login required ❌" });
     }
 
-    const user = await User.findOne({
-      _id: req.session.user._id,
-      role: "user",
-      userStatus: "active",
-    }).select("-password");
+    const user = await User.findById(req.session.user._id);
+    if (!user) return res.json({ success: false, message: "User not found ❌" });
 
-    if (!user) {
-      req.session.destroy();
-      return res.redirect("/login");
-    }
-    const { gameId, bets } = req.body;
-    if (!gameId || !bets || !bets.length) {
-      return res.json({ success: false, message: "Invalid bet data ❌" });
+    const { gameId, gameName, bets } = req.body;
+    if (!bets || !bets.length) {
+      return res.json({ success: false, message: "No bets ❌" });
     }
 
-    /* ================= GAME CHECK ================= */
     const game = await Game.findById(gameId);
-    if (!game || game.isDeleted) {
-      return res.json({ success: false, message: "Invalid game ❌" });
+    if (!game) return res.json({ success: false, message: "Invalid game ❌" });
+
+    // ✅ Current time in IST
+    const now = moment().tz("Asia/Kolkata");
+    const today = now.format("dddd").toLowerCase();
+    const schedule = game.schedule?.[today];
+
+    if (!schedule?.isActive) {
+      return res.json({ success: false, message: "Market closed ❌" });
     }
 
-    /* ================= TOTAL AMOUNT ================= */
-    const totalAmount = bets.reduce((sum, b) => sum + Number(b.amount || 0), 0);
+    let totalAmount = 0;
+
+    for (const b of bets) {
+      const { mainNo, underNos, perUnderNosPoints, totalPoints } = b;
+
+      // ✅ Validate mainNo
+      if (typeof mainNo !== "number" || mainNo < 0 || mainNo > 9) {
+        return res.json({ success: false, message: "Invalid main number ❌" });
+      }
+
+      // ✅ Validate underNos
+      if (!Array.isArray(underNos) || !underNos.length) {
+        return res.json({ success: false, message: "Invalid under numbers ❌" });
+      }
+
+      // ✅ Validate points
+      if (perUnderNosPoints <= 0 || totalPoints <= 0) {
+        return res.json({ success: false, message: "Invalid points ❌" });
+      }
+
+      totalAmount += totalPoints;
+    }
+
+    // ✅ Wallet check
     if (user.wallet < totalAmount) {
       return res.json({ success: false, message: "Insufficient balance ❌" });
     }
 
-    /* ================= DEDUCT WALLET ================= */
+    // ✅ Deduct wallet
     user.wallet -= totalAmount;
     await user.save();
 
-    /* ================= SAVE BET ================= */
-    const now = moment().tz("Asia/Kolkata");
+    // ✅ Save bet in DB
     await JodiDigitBulkBet.create({
       userId: user._id,
       gameId,
-      gameName: game.gameName,
+      gameName,
       bets,
       totalAmount,
       playedDate: now.format("YYYY-MM-DD"),
       playedTime: now.format("HH:mm"),
-      playedWeekday: now.format("dddd")
+      playedWeekday: now.format("dddd"),
+      resultStatus: "PENDING"
     });
 
-    return res.json({ success: true, message: `Bet placed ₹${totalAmount} ✅` });
+    return res.json({
+      success: true,
+      message: `Jodi Digit Bulk bet placed ₹${totalAmount} ✅`
+    });
+
   } catch (err) {
-    console.error("JodiDigitBulkBet Error:", err);
-    res.json({ success: false, message: "Server error ❌" });
+    console.error("JODI DIGIT BULK ERROR:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Server error ❌"
+    });
   }
 };
 

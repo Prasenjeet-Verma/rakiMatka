@@ -1,47 +1,50 @@
 const mongoose = require("mongoose");
 
-const jodiDigitItemSchema = new mongoose.Schema({
-  openDigit: { type: String, required: true }, // User can type any number
-  amount: { type: Number, required: true, min: 1 }
+const jodiDigitBulkItemSchema = new mongoose.Schema({
+  mainNo: {
+    type: Number,
+    min: 0,
+    max: 9,
+    required: true
+  },
+  underNos: {
+    type: [String],
+    required: true
+  },
+  perUnderNosPoints: {
+    type: Number,
+    required: true,
+    min: 1
+  },
+  totalPoints: {
+    type: Number,
+    required: true
+  }
 });
 
-const jodiDigitBulkBetSchema = new mongoose.Schema(
-  {
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    gameId: { type: mongoose.Schema.Types.ObjectId, ref: "Game", required: true },
-    gameName: { type: String, required: true },
-        mainGame: {
-      type: String,
-      default: "MAIN_GAME",
-      immutable: true
-    },
-    /* 🔒 FIXED GAME TYPE */
-    gameType: {
-      type: String,
-      default: "JODI_DIGIT_BULK",
-      immutable: true
-    },
+const jodiDigitBulkBetSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  gameId: { type: mongoose.Schema.Types.ObjectId, ref: "Game", required: true },
+  gameName: { type: String, required: true },
 
-    bets: {
-      type: [jodiDigitItemSchema],
-      required: true,
-      validate: [arr => arr.length > 0, "At least one bet required"]
-    },
+  mainGame: { type: String, default: "MAIN_GAME", immutable: true },
+  gameType: { type: String, default: "JODI_DIGIT_BULK", immutable: true },
 
-    totalAmount: { type: Number, default: 0 },
-    
-    resultStatus: {
-      type: String,
-      enum: ["PENDING", "WIN", "LOSS"],
-      default: "PENDING"
-    },
-
-
-    playedDate: { type: String },   // YYYY-MM-DD
-    playedTime: { type: String },   // HH:mm
-    playedWeekday: { type: String } // Monday, Tuesday...
+  bets: {
+    type: [jodiDigitBulkItemSchema],
+    required: true
   },
-  { timestamps: true }
-);
+
+  totalAmount: { type: Number, required: true },
+  resultStatus: {
+    type: String,
+    enum: ["PENDING", "WIN", "LOSS"],
+    default: "PENDING"
+  },
+
+  playedDate: String,
+  playedTime: String,
+  playedWeekday: String
+}, { timestamps: true });
 
 module.exports = mongoose.model("JodiDigitBulkBet", jodiDigitBulkBetSchema);
