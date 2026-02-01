@@ -10,8 +10,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const submitBtn = document.getElementById("HalfSangamSubmit");
   const betTable = document.getElementById("halfsangambetTable");
 
-  const sessionRadios = gameBox.querySelectorAll('input[name="session"]');
-
   const bidsDisplay = {
     totalBids: document.getElementById("halfSangamBids"),
     totalAmount: document.getElementById("halfSangamAmount"),
@@ -68,8 +66,6 @@ document.addEventListener("DOMContentLoaded", () => {
       submitBtn.disabled = true;
       addBtn.classList.add("opacity-50");
       submitBtn.classList.add("opacity-50");
-
-      sessionRadios.forEach((r) => (r.disabled = true));
     }
   }
 
@@ -84,7 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
     bidsDisplay.totalBids.innerText = bidRegistry.length;
     bidsDisplay.totalAmount.innerText = bidRegistry.reduce(
       (s, b) => s + b.totalAmount,
-      0,
+      0
     );
   }
 
@@ -93,9 +89,8 @@ document.addEventListener("DOMContentLoaded", () => {
     bidRegistry.forEach((b, i) => {
       betTable.innerHTML += `
         <tr>
-          <td>${b.session}</td>
-           <td>${b.openPanna}</td>
-           <td>${b.closeDigit}</td>
+          <td>${b.openPanna}</td>
+          <td>${b.closeDigit}</td>
           <td>${b.totalAmount}</td>
           <td>
             <i data-index="${i}"
@@ -117,9 +112,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // CLOSE DIGIT → only 1 digit (0–9)
+  // CLOSE DIGIT → single digit
   closePannaInput.removeAttribute("readonly");
-
   closePannaInput.addEventListener("input", () => {
     closePannaInput.value = closePannaInput.value.replace(/[^0-9]/g, "");
     if (closePannaInput.value.length > 1) {
@@ -133,10 +127,6 @@ document.addEventListener("DOMContentLoaded", () => {
       return showMessage("Game Closed ❌", "error");
     }
 
-    const session = gameBox
-      .querySelector('input[name="session"]:checked')
-      ?.nextElementSibling.innerText.toUpperCase();
-
     const openPanna = openDigitInput.value;
     const closeDigit = closePannaInput.value;
     const points = Number(pointsInput.value);
@@ -146,7 +136,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (!/^\d{1}$/.test(closeDigit)) {
-      return showMessage("Close Digit must be single digit (0-9) ❌", "error");
+      return showMessage("Close Digit must be single digit ❌", "error");
     }
 
     if (!points || points <= 0) {
@@ -154,17 +144,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const existing = bidRegistry.find(
-      (b) =>
-        b.session === session &&
+      b =>
         b.openPanna === Number(openPanna) &&
-        b.closeDigit === Number(closeDigit),
+        b.closeDigit === Number(closeDigit)
     );
 
     if (existing) {
       existing.totalAmount += points;
     } else {
       bidRegistry.push({
-        session,
         openPanna: Number(openPanna),
         closeDigit: Number(closeDigit),
         totalAmount: points,

@@ -2094,17 +2094,9 @@ exports.placeHalfSangamBet = async (req, res) => {
     const formattedBets = [];
 
     for (const bet of bets) {
-      const {
-        session,
-        openPanna,        // ✅ frontend se yahi aa raha hai
-        closeDigit,       // ✅ frontend se yahi aa raha hai
-        totalAmount: betAmount,
-      } = bet;
+      const { openPanna, closeDigit, totalAmount: betAmount } = bet;
 
-      // BASIC TYPE SAFETY
       if (
-        !session ||
-        !["OPEN", "CLOSE"].includes(session) ||
         typeof openPanna !== "number" ||
         typeof closeDigit !== "number" ||
         typeof betAmount !== "number" ||
@@ -2116,7 +2108,6 @@ exports.placeHalfSangamBet = async (req, res) => {
         });
       }
 
-      // OPEN PANNA → exactly 3 digit (100–999)
       if (openPanna < 100 || openPanna > 999) {
         return res.json({
           success: false,
@@ -2124,18 +2115,16 @@ exports.placeHalfSangamBet = async (req, res) => {
         });
       }
 
-      // CLOSE DIGIT → single digit (0–9)
       if (closeDigit < 0 || closeDigit > 9) {
         return res.json({
           success: false,
-          message: "Close Digit must be single digit (0-9) ❌",
+          message: "Close Digit must be single digit ❌",
         });
       }
 
       totalAmount += betAmount;
 
       formattedBets.push({
-        session,
         openPanna,
         closeDigit,
         totalAmount: betAmount,
@@ -2159,7 +2148,7 @@ exports.placeHalfSangamBet = async (req, res) => {
       gameId,
       gameName,
       bets: formattedBets,
-      totalAmount, // ⚠️ schema pre-validate bhi recalc karega (anti-tamper)
+      totalAmount,
       playedDate: now.format("YYYY-MM-DD"),
       playedTime: now.format("HH:mm"),
       playedWeekday: now.format("dddd"),
@@ -2170,7 +2159,6 @@ exports.placeHalfSangamBet = async (req, res) => {
       success: true,
       message: `Half Sangam bet placed ₹${totalAmount} ✅`,
     });
-
   } catch (err) {
     console.error("HALF SANGAM ERROR:", err);
     return res.status(500).json({
@@ -3461,6 +3449,8 @@ exports.placeJackpotCenterJodiDigitBet = async (req, res, next) => {
 };
 
 
+//Win history code
+/* ===== IMPORT ALL BET MODELS ===== */
 /* ===== IMPORT ALL BET MODELS ===== */
 const betModels = [
   require("../model/SingleDigitBet"),
@@ -3488,9 +3478,33 @@ const betModels = [
   require("../model/JackpotCentreJodiDigitBet"),
 ];
 
+/* ===== NORMALIZER ===== */
+function normalizeBet(bet) {
+  const first = bet.bets?.[0] || {};
+
+  return {
+    ...bet,
+    displaySession:
+      first.mode ||
+      first.session ||
+      "-",
+
+    displayDigits:
+      first.number ||
+      first.openDigit ||
+      first.closeDigit ||
+      first.underNo ||
+      first.openPanna ||
+      first.closePanna ||
+      first.pattern ||
+      "-",
+
+    displayAmount: bet.totalAmount || 0,
+  };
+}
+
 exports.getUserWinHistory = async (req, res, next) => {
   try {
-    /* 🔐 AUTH */
     if (!req.session.isLoggedIn || req.session.user.role !== "user") {
       return res.redirect("/login");
     }
@@ -3502,34 +3516,46 @@ exports.getUserWinHistory = async (req, res, next) => {
 
     if (!user) return res.redirect("/login");
 
-    /* ===== QUERY PARAMS ===== */
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const search = req.query.search || "";
     const market = req.query.market || "All";
+    const startDate = req.query.startDate;
+    const endDate = req.query.endDate;
 
-    /* ===== FETCH ALL WINS ===== */
     let allWins = [];
 
     for (const Model of betModels) {
-      const data = await Model.find({
+      const records = await Model.find({
         userId: user._id,
         resultStatus: "WIN",
       }).lean();
 
-      allWins.push(...data);
+      allWins.push(...records.map(normalizeBet));
     }
 
-    /* ===== SEARCH FILTER ===== */
-    if (search) {
-      allWins = allWins.filter(bet =>
-        JSON.stringify(bet).toLowerCase().includes(search.toLowerCase())
+    /* ===== DATE FILTER ===== */
+    if (startDate && endDate) {
+      const s = new Date(startDate);
+      const e = new Date(endDate);
+      e.setHours(23, 59, 59, 999);
+
+      allWins = allWins.filter(b =>
+        new Date(b.createdAt) >= s &&
+        new Date(b.createdAt) <= e
       );
     }
 
-    /* ===== MARKET FILTER ===== */
+    /* ===== SEARCH ===== */
+    if (search) {
+      allWins = allWins.filter(b =>
+        JSON.stringify(b).toLowerCase().includes(search.toLowerCase())
+      );
+    }
+
+    /* ===== MARKET ===== */
     if (market !== "All") {
-      allWins = allWins.filter(bet => bet.mainGame === market.toUpperCase());
+      allWins = allWins.filter(b => b.mainGame === market.toUpperCase());
     }
 
     /* ===== SORT ===== */
@@ -3539,9 +3565,9 @@ exports.getUserWinHistory = async (req, res, next) => {
     const totalRecords = allWins.length;
     const totalPages = Math.ceil(totalRecords / limit);
     const start = (page - 1) * limit;
-    const paginatedData = limit === 9999 ? allWins : allWins.slice(start, start + limit);
+    const paginatedData =
+      limit === 9999 ? allWins : allWins.slice(start, start + limit);
 
-    /* ===== RENDER ===== */
     res.render("User/userWinHistory", {
       user,
       winHistory: paginatedData,
@@ -3551,6 +3577,8 @@ exports.getUserWinHistory = async (req, res, next) => {
       totalRecords,
       search,
       market,
+      startDate,
+      endDate,
     });
   } catch (err) {
     console.error(err);

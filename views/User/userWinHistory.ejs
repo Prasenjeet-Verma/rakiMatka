@@ -112,7 +112,7 @@
                 </tr>
               </thead>
 
-              <tbody>
+<tbody>
   <% if (winHistory.length === 0) { %>
     <tr>
       <td colspan="9" class="text-center py-4 text-gray-500">
@@ -128,30 +128,27 @@
       </td>
 
       <td class="border px-3 py-2">
-        <%= bet.mainGame || "MAIN" %>
-      </td>
-
-      <td class="border px-3 py-2">
-        <%= bet.gameName || "-" %>
-      </td>
-
-      <td class="border px-3 py-2">
-        <%= bet.bets?.[0]?.mode || bet.bets?.[0]?.session || "-" %>
-      </td>
-
-      <td class="border px-3 py-2">
-        ₹ <%= bet.totalAmount %>
-      </td>
-
-      <td class="border px-3 py-2">
-        <%= bet.bets?.[0]?.number 
-            || bet.bets?.[0]?.openDigit 
-            || bet.bets?.[0]?.underNo 
-            || "-" %>
-      </td>
-
-      <td class="border px-3 py-2">
         <%= bet.gameType %>
+      </td>
+
+      <td class="border px-3 py-2">
+        <%= bet.mainGame %>
+      </td>
+
+      <td class="border px-3 py-2">
+        <%= bet.displaySession %>
+      </td>
+
+      <td class="border px-3 py-2">
+        ₹ <%= bet.displayAmount %>
+      </td>
+
+      <td class="border px-3 py-2">
+        <%= bet.displayDigits %>
+      </td>
+
+      <td class="border px-3 py-2">
+        <%= bet.gameName %>
       </td>
 
       <td class="border px-3 py-2">

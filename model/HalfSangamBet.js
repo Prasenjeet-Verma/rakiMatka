@@ -2,12 +2,6 @@ const mongoose = require("mongoose");
 
 /* ================= HALF SANGAM ITEM SCHEMA ================= */
 const halfSangamItemSchema = new mongoose.Schema({
-  session: {
-    type: String,
-    enum: ["OPEN", "CLOSE"],
-    required: true,
-  },
-
   // OPEN PANNA → 3 digit
   openPanna: {
     type: Number,
