@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Sri Ram Matka -  </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+      <link rel="stylesheet" href="/css/dateTimemodal.css">
+      <link rel="stylesheet" href="/css/adminDashbord.css" />
+  </head>
+
+  <body class="bg-white">
+    <div class="min-h-screen">
+      <!-- HEADER -->
+      <div
+        class="bg-teal-800 text-white px-4 py-4 rounded-b-3xl shadow-lg flex items-center justify-center relative"
+      >
+        <a href="/userDashboard">
+          <button class="absolute left-4 top-4">
+            <i class="fa fa-arrow-left text-xl"></i>
+          </button>
+        </a>
+        <span class="font-semibold text-xl tracking-wide">BID HISTORY </span>
+      </div>
+
+      <!-- ======================== Bid History ======================== -->
+      <record class="bg-gray-100 p-4">
+        <div class="bg-white rounded-lg shadow p-4">
+          <!-- HEADER -->
+          <div
+            class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4"
+          >
+            <div class="flex items-center gap-2">
+              <h2 class="font-semibold">Bid History</h2>
+<select 
+  id="marketFilter"
+  class="border rounded px-2 py-1 text-sm"
+>
+  <option value="ALL">All</option>
+  <option value="MAIN_GAME">Main Market</option>
+  <option value="STARLINE">Starline</option>
+  <option value="JACKPOT">Jackpot</option>
+</select>
+            </div>
+          </div>
+
+          <!-- CONTROLS -->
+          <div
+            class="flex justify-around md:flex-row md:items-center md:justify-between gap-4 mb-4"
+          >
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="text-sm">Show</span>
+              <select class="border rounded px-2 py-1 text-sm">
+                <option>10</option>
+                <option>50</option>
+                <option>100</option>
+                <option>All</option>
+              </select>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <label class="text-sm">Search:</label>
+              <input
+                type="text"
+                class="border rounded px-2 py-1 text-sm w-40"
+              />
+            </div>
+          </div>
+
+          <!-- TABLE -->
+          <div class="overflow-x-auto">
+            <table class="min-w-[1400px] w-full border text-sm">
+              <thead class="bg-gray-100">
+                <tr>
+                  <th class="border px-3 py-2 text-left">ID</th>
+                  <th class="border px-3 py-2 text-left">Game Type</th>
+                  <th class="border px-3 py-2 text-left">Market</th>
+                  <th class="border px-3 py-2 text-left">Session</th>
+                  <th class="border px-3 py-2 text-left">Amount</th>
+                  <th class="border px-3 py-2 text-left">MainNo</th>
+                  <th class="border px-3 py-2 text-left">Digits</th>
+                  <th class="border px-3 py-2 text-left">Game Name</th>
+                  <th class="border px-3 py-2 text-left">Game Status</th>
+                  <th class="border px-3 py-2 text-left">Placed on</th>
+                </tr>
+              </thead>
+
+<tbody>
+<% winHistory.forEach((bet, index) => { %>
+<tr 
+  class="<%= index % 2 === 0 ? 'bg-blue-50' : '' %>"
+  data-market="<%= bet.rawMainGame %>"
+>
+  <td class="border px-3 py-2"><%= index + 1 %></td>
+
+  <td class="border px-3 py-2"><%= bet.gameType %></td>
+
+  <td class="border px-3 py-2"><%= bet.mainGame %></td>
+
+  <td class="border px-3 py-2"><%= bet.session %></td>
+
+  <!-- 💰 AMOUNT -->
+  <td class="border px-3 py-2">
+    <% (bet.amounts || []).forEach(a => { %>
+      <div>₹ <%= a %></div>
+    <% }) %>
+  </td>
+
+  <!-- 🧩 MAIN NO (PROPER COLUMN) -->
+  <td class="border px-3 py-2 text-center font-semibold">
+    <%= bet.mainNo !== null && bet.mainNo !== undefined ? bet.mainNo : "-" %>
+  </td>
+
+  <!-- 🔢 DIGITS -->
+  <td class="border px-3 py-2">
+    <% (bet.digits || []).forEach(d => { %>
+      <div><%= d %></div>
+    <% }) %>
+  </td>
+
+  <td class="border px-3 py-2"><%= bet.gameName %></td>
+
+  <!-- 🎯 RESULT -->
+  <td class="border px-3 py-2">
+    <% if (bet.resultStatus === "WIN") { %>
+      <span class="bg-green-600 text-white text-xs px-2 py-1 rounded">WIN</span>
+    <% } else if (bet.resultStatus === "LOSS") { %>
+      <span class="bg-red-600 text-white text-xs px-2 py-1 rounded">LOSS</span>
+    <% } else { %>
+      <span class="bg-yellow-600 text-white text-xs px-2 py-1 rounded">PENDING</span>
+    <% } %>
+  </td>
+
+  <td class="border px-3 py-2">
+    <%= new Date(bet.createdAt).toLocaleString() %>
+  </td>
+</tr>
+<% }) %>
+</tbody>
+            </table>
+          </div>
+
+          <!-- FOOTER -->
+          <div
+            class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-4 text-sm"
+          >
+            <p>Showing 1 to 10 of 70 entries</p>
+
+            <div class="flex items-center gap-2 flex-wrap">
+              <button class="border px-3 py-1 rounded text-gray-600">
+                Previous
+              </button>
+              <button class="border px-3 py-1 rounded bg-gray-200">1</button>
+              <button class="border px-3 py-1 rounded">Next</button>
+            </div>
+          </div>
+        </div>
+      </record>
+
+
+    </div>
+    <script>
+  const filter = document.getElementById("marketFilter");
+
+  filter.addEventListener("change", () => {
+    const value = filter.value;
+    const rows = document.querySelectorAll("tbody tr");
+
+    rows.forEach(row => {
+      const market = row.getAttribute("data-market");
+
+      if (value === "ALL" || market === value) {
+        row.style.display = "";
+      } else {
+        row.style.display = "none";
+      }
+    });
+  });
+</script>
+    <script src="/js/dateTimemodal.js"> </script>
+  </body>
+</html>

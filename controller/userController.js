@@ -3246,7 +3246,7 @@ exports.placeStarlineSinglePannaBet = async (req, res, next) => {
 
 
 exports.placeStarlineDoublePannaBet = async (req, res, next) => {
-   try {
+  try {
     /* ================= AUTH ================= */
     if (
       !req.session.isLoggedIn ||
@@ -3848,8 +3848,8 @@ exports.getUserWinHistory = async (req, res, next) => {
 
               // 🔥 FIXED (0 / 00 / 000 SAFE)
               amount: Number(
-  b.totalPoints ?? b.totalAmount ?? b.amount ?? 0
-),
+                b.totalPoints ?? b.totalAmount ?? b.amount ?? 0
+              ),
               mainNo: b.mainNo ?? "-",
               number: b.number ?? "-",
               openPanna: b.openPanna ?? "-",
@@ -3876,8 +3876,8 @@ exports.getUserWinHistory = async (req, res, next) => {
 
             // 🔥 FIXED (0 / totalPoints SAFE)
             amount: Number(
-  bet.amount ?? bet.totalPoints ?? 0
-),
+              bet.amount ?? bet.totalPoints ?? 0
+            ),
             mainNo: bet.mainNo ?? "-",
             number: bet.number ?? "-",
             openPanna: bet.openPanna ?? "-",
@@ -3920,6 +3920,107 @@ exports.getUserWinHistory = async (req, res, next) => {
     });
   } catch (err) {
     console.error("WIN HISTORY ERROR:", err);
+    next(err);
+  }
+};
+
+exports.getUserBidHistory = async (req, res, next) => {
+  try {
+    if (!req.session.isLoggedIn || req.session.user.role !== "user") {
+      return res.redirect("/login");
+    }
+
+    const user = await User.findOne({
+      _id: req.session.user._id,
+      userStatus: "active",
+    }).lean();
+
+    if (!user) return res.redirect("/login");
+
+    let allRows = [];
+
+    for (const Model of betModels) {
+      const records = await Model.find({ userId: user._id }).lean();
+
+      records.forEach((bet) => {
+        if (!Array.isArray(bet.bets)) return;
+
+        bet.bets.forEach((b) => {
+          const digits = [];
+          const amounts = [];
+
+          /* ================= DIGITS ================= */
+
+          // underNos / underDigits
+          if (Array.isArray(b.underNos)) {
+            b.underNos.forEach(v => digits.push(v));
+          }
+          if (Array.isArray(b.underDigits)) {
+            b.underDigits.forEach(v => digits.push(v));
+          }
+
+          // single underNo
+          if (b.underNo !== undefined) digits.push(b.underNo);
+
+          // normal digit fields
+          [
+            b.number,
+            b.openDigit,
+            b.closeDigit,
+            b.openPanna,
+            b.closePanna,
+          ].forEach(v => {
+            if (v !== undefined && v !== null && v !== "") {
+              digits.push(v);
+            }
+          });
+
+          /* ================= AMOUNTS ================= */
+
+          if (b.perUnderNosPoints !== undefined)
+            amounts.push(Number(b.perUnderNosPoints));
+
+          if (b.amountPerUnderNo !== undefined)
+            amounts.push(Number(b.amountPerUnderNo));
+
+          if (b.amount !== undefined)
+            amounts.push(Number(b.amount));
+
+          if (b.totalAmount !== undefined)
+            amounts.push(Number(b.totalAmount));
+
+          if (b.totalPoints !== undefined)
+            amounts.push(Number(b.totalPoints));
+
+const marketMap = {
+  MAIN_GAME: "Main Market",
+  STARLINE: "Starline",
+  JACKPOT: "Jackpot",
+};
+
+allRows.push({
+  gameType: bet.gameType ?? "-",
+  mainGame: marketMap[bet.mainGame] || bet.mainGame || "-",
+  rawMainGame: bet.mainGame || "ALL", // 👈 filter ke kaam aayega
+  gameName: bet.gameName ?? "-",
+  session: b.mode ?? b.session ?? "-",
+  mainNo: b.mainNo ?? null,
+  digits,
+  amounts,
+  resultStatus: b.resultStatus ?? "PENDING",
+  createdAt: bet.createdAt,
+});
+        });
+      });
+    }
+
+    res.render("User/userBidHistory", {
+      user,
+      winHistory: allRows,
+    });
+
+  } catch (err) {
+    console.error(err);
     next(err);
   }
 };
