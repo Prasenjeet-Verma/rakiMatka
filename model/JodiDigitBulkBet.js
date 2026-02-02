@@ -19,7 +19,12 @@ const jodiDigitBulkItemSchema = new mongoose.Schema({
   totalPoints: {
     type: Number,
     required: true
-  }
+  },
+    resultStatus: {
+    type: String,
+    enum: ["PENDING", "WIN", "LOSS"],
+    default: "PENDING"
+  },
 });
 
 const jodiDigitBulkBetSchema = new mongoose.Schema({
@@ -34,13 +39,18 @@ const jodiDigitBulkBetSchema = new mongoose.Schema({
     type: [jodiDigitBulkItemSchema],
     required: true
   },
+    beforeWallet: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
 
+    afterWallet: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
   totalAmount: { type: Number, required: true },
-  resultStatus: {
-    type: String,
-    enum: ["PENDING", "WIN", "LOSS"],
-    default: "PENDING"
-  },
 
   playedDate: String,
   playedTime: String,

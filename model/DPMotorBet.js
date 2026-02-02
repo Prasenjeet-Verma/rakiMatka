@@ -24,7 +24,12 @@ const dpMotorItemSchema = new mongoose.Schema({
   totalPoints: {
     type: Number,
     required: true
-  }
+  },
+    resultStatus: {
+    type: String,
+    enum: ["PENDING", "WIN", "LOSS"],
+    default: "PENDING"
+  },
 });
 
 const dpMotorBetSchema = new mongoose.Schema({
@@ -39,13 +44,19 @@ const dpMotorBetSchema = new mongoose.Schema({
     type: [dpMotorItemSchema],
     required: true
   },
-
-  totalAmount: { type: Number, required: true },
-  resultStatus: {
-    type: String,
-    enum: ["PENDING", "WIN", "LOSS"],
-    default: "PENDING"
+  beforeWallet: {
+    type: Number,
+    required: true,
+    min: 1
   },
+
+  afterWallet: {
+    type: Number,
+    required: true,
+    min: 1
+  },
+  totalAmount: { type: Number, required: true },
+
 
   playedDate: String,
   playedTime: String,

@@ -16,7 +16,12 @@ const triplePannaItemSchema = new mongoose.Schema({
     type: String,
     enum: ["OPEN", "CLOSE"],
     required: true
-  }
+  },
+      resultStatus: {
+      type: String,
+      enum: ["PENDING", "WIN", "LOSS"],
+      default: "PENDING"
+    },
 });
 
 /* ================= TRIPLE PANNA BET ================= */
@@ -54,15 +59,22 @@ const triplePannaBetSchema = new mongoose.Schema(
         "At least one triple panna bet required"
       ]
     },
+                beforeWallet: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+
+    afterWallet: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
     totalAmount: {
       type: Number,
       required: true
     },
-    resultStatus: {
-      type: String,
-      enum: ["PENDING", "WIN", "LOSS"],
-      default: "PENDING"
-    },
+
     winningNumber: {
       type: String, // 000 - 999
       match: /^[0-9]{3}$/,

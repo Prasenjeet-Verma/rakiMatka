@@ -11,7 +11,7 @@ const doublePannaBulkItemSchema = new mongoose.Schema({
   underNos: {
     type: [String], // ["127", "134", "445", ...]
     required: true,
-    validate: [arr => arr.length > 0, "At least one under number required"],
+    validate: [(arr) => arr.length > 0, "At least one under number required"],
   },
   amountPerUnderNo: {
     type: Number,
@@ -27,6 +27,11 @@ const doublePannaBulkItemSchema = new mongoose.Schema({
     type: String, // "OPEN" or "CLOSE"
     enum: ["OPEN", "CLOSE"],
     required: true,
+  },
+  resultStatus: {
+    type: String,
+    enum: ["PENDING", "WIN", "LOSS"],
+    default: "PENDING",
   },
 });
 
@@ -47,10 +52,10 @@ const doublePannaBulkBetSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-        mainGame: {
+    mainGame: {
       type: String,
       default: "MAIN_GAME",
-      immutable: true
+      immutable: true,
     },
     gameType: {
       type: String,
@@ -61,19 +66,27 @@ const doublePannaBulkBetSchema = new mongoose.Schema(
       type: [doublePannaBulkItemSchema],
       required: true,
       validate: [
-        arr => arr.length > 0,
+        (arr) => arr.length > 0,
         "At least one double panna bulk bet required",
       ],
     },
+    beforeWallet: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+
+    afterWallet: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+
     totalAmount: {
       type: Number,
       required: true,
     },
-    resultStatus: {
-      type: String,
-      enum: ["PENDING", "WIN", "LOSS"],
-      default: "PENDING",
-    },
+
     winningPanna: {
       type: String,
       default: null,
@@ -82,19 +95,15 @@ const doublePannaBulkBetSchema = new mongoose.Schema(
     playedTime: String, // HH:mm
     playedWeekday: String, // Monday
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 /* ===== PRE-SAVE HOOK: CALCULATE TOTAL AMOUNT ===== */
 doublePannaBulkBetSchema.pre("validate", function () {
   this.totalAmount = this.bets.reduce(
     (sum, b) => sum + (b.totalAmount || 0),
-    0
+    0,
   );
 });
 
-
-module.exports = mongoose.model(
-  "DoublePannaBulkBet",
-  doublePannaBulkBetSchema
-);
+module.exports = mongoose.model("DoublePannaBulkBet", doublePannaBulkBetSchema);

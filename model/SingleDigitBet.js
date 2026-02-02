@@ -17,7 +17,12 @@ const singleDigitItemSchema = new mongoose.Schema({
     type: String,
     enum: ["OPEN", "CLOSE"],
     required: true
-  }
+  },
+      resultStatus: {
+      type: String,
+      enum: ["PENDING", "WIN", "LOSS"],
+      default: "PENDING"
+    },
 });
 
 /* ================= SINGLE DIGIT BET ================= */
@@ -55,15 +60,22 @@ const singleDigitBetSchema = new mongoose.Schema(
         "At least one single digit bet required"
       ]
     },
+            beforeWallet: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+
+    afterWallet: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
     totalAmount: {
       type: Number,
       required: true
     },
-    resultStatus: {
-      type: String,
-      enum: ["PENDING", "WIN", "LOSS"],
-      default: "PENDING"
-    },
+
     winningNumber: {
       type: Number,
       min: 0,

@@ -1,207 +1,236 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Sri Ram Matka - Win History </title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- Tailwind CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+<head>
+  <meta charset="UTF-8" />
+  <title>Sri Ram Matka - Win History</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="/css/dateTimemodal.css">
+  <link rel="stylesheet" href="/css/adminDashbord.css" />
+</head>
 
-    <!-- Font Awesome -->
-    <link
-      rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-      <link rel="stylesheet" href="/css/dateTimemodal.css">
-      <link rel="stylesheet" href="/css/adminDashbord.css" />
-  </head>
+<body class="bg-white">
+  <div class="min-h-screen">
+    <!-- HEADER -->
+    <div class="bg-teal-800 text-white px-4 py-4 rounded-b-3xl shadow-lg flex items-center justify-center relative">
+      <a href="/userDashboard"><button class="absolute left-4 top-4"><i
+            class="fa fa-arrow-left text-xl"></i></button></a>
+      <span class="font-semibold text-xl tracking-wide">WIN HISTORY</span>
+    </div>
 
-  <body class="bg-white">
-    <div class="min-h-screen">
-      <!-- HEADER -->
-      <div
-        class="bg-teal-800 text-white px-4 py-4 rounded-b-3xl shadow-lg flex items-center justify-center relative"
-      >
-        <a href="/userDashboard">
-          <button class="absolute left-4 top-4">
-            <i class="fa fa-arrow-left text-xl"></i>
-          </button>
-        </a>
-        <span class="font-semibold text-xl tracking-wide">WIN HISTORY </span>
-      </div>
+    <!-- FILTERS -->
+    <div class="form-container relative top-1 flex flex-wrap gap-2">
+      <!-- Data Source -->
+      <select class="custom-input text-gray-600" id="sourceSelect">
+        <option value="" disabled>Select Data Source</option>
+        <option value="manual" <%=source==="manual" ?"selected":"" %>>Manual</option>
+        <option value="source1" <%=source==="source1" ?"selected":"" %>>Live (24h)</option>
+        <option value="source3" <%=source==="source3" ?"selected":"" %>>Old (3 months)</option>
+        <option value="source2" <%=source==="source2" ?"selected":"" %>>Backup (6 months)</option>
+      </select>
 
-<!-- ======================== User Date & Time ============================== -->
-      
-      <div class="form-container relative top-1">
-        <!-- Data Source Dropdown -->
-        <select class="custom-input text-gray-600">
-            <option value="" disabled selected>Data Source</option>
-            <option value="source1">Live Data</option>
-            <option value="source2">Backup Data</option>
-            <option value="source3">Old Data</option>
-        </select>
+      <!-- Manual Dates -->
+      <input type="date" id="startDate" class="custom-input" value="<%= startDate %>">
+      <input type="date" id="endDate" class="custom-input" value="<%= endDate %>">
 
-        <!-- Start Date Input -->
-        <!-- Value set to match screenshot: 2025-12-02 -->
-        <input type="date" class="custom-input" id="startDate" value="2025-12-02">
+      <!-- Main Game Filter -->
+      <select id="mainGameFilter" class="custom-input">
+        <option value="">All Games</option>
+        <option value="Main Market" <%=mainGame==="Main Market" ?"selected":"" %>>Main Market</option>
+        <option value="Starline" <%=mainGame==="Starline" ?"selected":"" %>>Starline</option>
+        <option value="Jackpot" <%=mainGame==="Jackpot" ?"selected":"" %>>Jackpot</option>
+      </select>
 
-        <!-- End Date Input -->
-        <!-- Value set to match screenshot: 2025-12-10 -->
-        <input type="date" class="custom-input" id="endDate" value="2025-12-10">
+      <!-- Game Name Search -->
+      <input type="text" id="searchGameName" class="custom-input" placeholder="Search Game Name"
+        value="<%= gameName %>">
+      <button class="btn-history" onclick="getHistory()">Get History</button>
+    </div>
 
-        <!-- Get History Button -->
-        <button class="btn-history" onclick="getHistory()">
-            Get History
-        </button>
-      </div>
+    <!-- TABLE -->
+    <div class="bg-gray-100 p-4 mt-2">
+      <div class="bg-white rounded-lg shadow p-4 overflow-x-auto">
+        <table class="min-w-[1400px] w-full border text-sm" id="winTable">
+          <thead class="bg-gray-100">
+            <tr>
+              <th class="border px-3 py-2">ID</th>
+              <th class="border px-3 py-2">Game Type</th>
+              <th class="border px-3 py-2">Market</th>
+              <th class="border px-3 py-2">Session</th>
+              <th class="border px-3 py-2">Amount</th>
+              <th class="border px-3 py-2">Main No</th>
+              <th class="border px-3 py-2">Number</th>
+              <th class="border px-3 py-2">Open Panna</th>
+              <th class="border px-3 py-2">Close Panna</th>
+              <th class="border px-3 py-2">Open Digit</th>
+              <th class="border px-3 py-2">Close Digit</th>
+              <th class="border px-3 py-2">Pattern</th>
+              <th class="border px-3 py-2">Bracket Type</th>
+              <th class="border px-3 py-2">Type</th>
+              <th class="border px-3 py-2">Game Name</th>
+              <th class="border px-3 py-2">Game Status</th>
+              <th class="border px-3 py-2">Placed on</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if(winHistory.length===0){ %>
+              <tr>
+                <td colspan="17" class="text-center py-4 text-gray-500">No Win History Found</td>
+              </tr>
+              <% } %>
 
-      <!-- ======================== Bid History ======================== -->
-      <record class="bg-gray-100 p-4">
-        <div class="bg-white rounded-lg shadow p-4">
-          <!-- HEADER -->
-          <div
-            class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4"
-          >
-            <div class="flex items-center gap-2">
-              <h2 class="font-semibold">Win History</h2>
-              <select class="border rounded px-2 py-1 text-sm">
-                <option>All</option>
-                <option>Main Market</option>
-                <option>Starline</option>
-                <option>Jackpot</option>
-              </select>
-            </div>
-          </div>
+                <% winHistory.forEach((bet,index)=>{ %>
+                  <tr class="winRow <%= bet.mainGame %>">
+                    <td class="border px-3 py-2">
+                      <%= ((page-1)*limit)+index+1 %>
+                    </td>
+                    <td class="border px-3 py-2">
+                      <%= bet.gameType %>
+                    </td>
+                    <td class="border px-3 py-2">
+                      <%= bet.mainGame %>
+                    </td>
+                    <td class="border px-3 py-2">
+                      <%= bet.session %>
+                    </td>
+                    <td class="border px-3 py-2">₹ <%= bet.amount %>
+                    </td>
+                    <td class="border px-3 py-2">
+                      <%= bet.mainNo %>
+                    </td>
+                    <td class="border px-3 py-2">
+                      <%= bet.number %>
+                    </td>
+                    <td class="border px-3 py-2">
+                      <%= bet.openPanna %>
+                    </td>
+                    <td class="border px-3 py-2">
+                      <%= bet.closePanna %>
+                    </td>
+                    <td class="border px-3 py-2">
+                      <%= bet.openDigit %>
+                    </td>
+                    <td class="border px-3 py-2">
+                      <%= bet.closeDigit %>
+                    </td>
+                    <td class="border px-3 py-2">
+                      <%= bet.pattern %>
+                    </td>
+                    <td class="border px-3 py-2">
+                      <%= bet.bracketType %>
+                    </td>
+                    <td class="border px-3 py-2">
+                      <%= bet.type %>
+                    </td>
+                    <td class="border px-3 py-2">
+                      <%= bet.gameName %>
+                    </td>
+                    <td class="border px-3 py-2"><span
+                        class="bg-green-600 text-white text-xs px-2 py-1 rounded">WIN</span></td>
+                    <td class="border px-3 py-2">
+                      <%= new Date(bet.createdAt).toLocaleString() %>
+                    </td>
+                  </tr>
+                  <% }) %>
+          </tbody>
+        </table>
 
-          <!-- CONTROLS -->
-          <div
-            class="flex justify-around md:flex-row md:items-center md:justify-between gap-4 mb-4"
-          >
-            <div class="flex items-center gap-2 flex-wrap">
-              <span class="text-sm">Show</span>
-              <select class="border rounded px-2 py-1 text-sm">
-                <option>10</option>
-                <option>50</option>
-                <option>100</option>
-                <option>All</option>
-              </select>
-            </div>
+        <div class="flex justify-between mt-4 text-sm">
+          <p>
+            <% if(totalRecords>0){ %>
+              Showing <%= (page-1)*limit+1 %> to <%= Math.min(page*limit,totalRecords) %> of <%= totalRecords %> entries
+                    <% } else { %>
+                      Showing 0 entries
+                      <% } %>
+          </p>
 
-            <div class="flex items-center gap-2">
-              <label class="text-sm">Search:</label>
-              <input
-                type="text"
-                class="border rounded px-2 py-1 text-sm w-40"
-              />
-            </div>
-          </div>
-
-          <!-- TABLE -->
-          <div class="overflow-x-auto">
-            <table class="min-w-[1400px] w-full border text-sm">
-              <thead class="bg-gray-100">
-                <tr>
-                  <th class="border px-3 py-2 text-left">ID</th>
-                  <th class="border px-3 py-2 text-left">Game Type</th>
-                  <th class="border px-3 py-2 text-left">Market</th>
-                  <th class="border px-3 py-2 text-left">Session</th>
-                  <th class="border px-3 py-2 text-left">Amount</th>
-                  <th class="border px-3 py-2 text-left">Digits</th>
-                  <th class="border px-3 py-2 text-left">Game Name</th>
-                  <th class="border px-3 py-2 text-left">Game Status</th>
-                  <th class="border px-3 py-2 text-left">Placed on</th>
-                </tr>
-              </thead>
-
-<tbody>
-  <% if (winHistory.length === 0) { %>
-    <tr>
-      <td colspan="9" class="text-center py-4 text-gray-500">
-        No Win History Found
-      </td>
-    </tr>
-  <% } %>
-
-  <% winHistory.forEach((bet, index) => { %>
-    <tr class="<%= index % 2 === 0 ? 'bg-blue-50' : '' %>">
-      <td class="border px-3 py-2">
-        <%= ((page - 1) * limit) + index + 1 %>
-      </td>
-
-      <td class="border px-3 py-2">
-        <%= bet.gameType %>
-      </td>
-
-      <td class="border px-3 py-2">
-        <%= bet.mainGame %>
-      </td>
-
-      <td class="border px-3 py-2">
-        <%= bet.displaySession %>
-      </td>
-
-      <td class="border px-3 py-2">
-        ₹ <%= bet.displayAmount %>
-      </td>
-
-      <td class="border px-3 py-2">
-        <%= bet.displayDigits %>
-      </td>
-
-      <td class="border px-3 py-2">
-        <%= bet.gameName %>
-      </td>
-
-      <td class="border px-3 py-2">
-        <span class="bg-green-600 text-white text-xs px-2 py-1 rounded">
-          Win
-        </span>
-      </td>
-
-      <td class="border px-3 py-2">
-        <%= new Date(bet.createdAt).toLocaleString() %>
-      </td>
-    </tr>
-  <% }) %>
-</tbody>
-
-            </table>
-          </div>
-
-          <!-- FOOTER -->
-          <div
-            class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-4 text-sm"
-          >
-<p>
-  Showing 
-  <%= (page - 1) * limit + 1 %> 
-  to 
-  <%= Math.min(page * limit, totalRecords) %> 
-  of 
-  <%= totalRecords %> entries
-</p>
-
-<div class="flex gap-2">
-  <% if (page > 1) { %>
-    <a href="?page=<%= page - 1 %>&limit=<%= limit %>" class="border px-3 py-1 rounded">
-      Previous
-    </a>
-  <% } %>
-
-  <span class="border px-3 py-1 bg-gray-200"><%= page %></span>
-
-  <% if (page < totalPages) { %>
-    <a href="?page=<%= page + 1 %>&limit=<%= limit %>" class="border px-3 py-1 rounded">
-      Next
-    </a>
-  <% } %>
-</div>
-
+          <div class="flex gap-2">
+            <% if(page>1){ %>
+              <a href="?page=<%= page-1 %>
+&limit=<%= limit %>
+&source=<%= source %>
+&startDate=<%= startDate %>
+&endDate=<%= endDate %>
+&mainGame=<%= mainGame %>
+&gameName=<%= gameName %>">
+                Previous
+              </a>
+              <% } %>
+                <span class="border px-3 py-1 bg-gray-200">
+                  <%= page %>
+                </span>
+                <% if(page<totalPages){ %>
+                  <a href="?page=<%= page+1 %>
+&limit=<%= limit %>
+&source=<%= source %>
+&startDate=<%= startDate %>
+&endDate=<%= endDate %>
+&mainGame=<%= mainGame %>
+&gameName=<%= gameName %>">
+                    Next
+                  </a>
+                  <% } %>
           </div>
         </div>
-      </record>
-
-
+      </div>
     </div>
-    <script src="/js/dateTimemodal.js"> </script>
-  </body>
+  </div>
+
+  <script>
+    const mainGameMapClient = {
+      "Main Market": "MAIN_GAME",
+      Jackpot: "JACKPOT",
+      Starline: "STARLINE",
+    };
+
+    const mainGameSelect = document.getElementById("mainGameFilter");
+    const searchInput = document.getElementById("searchGameName");
+
+    function filterRows() {
+      const mainGameVal = mainGameSelect.value;
+      const mappedVal = mainGameMapClient[mainGameVal] || mainGameVal;
+      const searchVal = searchInput.value.toLowerCase();
+
+      document.querySelectorAll("#winTable tbody tr").forEach(row => {
+        const rowGame = row.cells[2].innerText.trim().toUpperCase(); // ensure uppercase
+        const gameName = row.cells[14].innerText.toLowerCase();
+
+        const matchesGame = !mappedVal || rowGame === mappedVal;
+        const matchesName = !searchVal || gameName.includes(searchVal);
+
+        row.style.display = (matchesGame && matchesName) ? "" : "none";
+      });
+    }
+
+    mainGameSelect.addEventListener("change", filterRows);
+    searchInput.addEventListener("keyup", filterRows);
+
+    function getHistory() {
+      const source = document.getElementById("sourceSelect").value;
+      const startDate = document.getElementById("startDate").value;
+      const endDate = document.getElementById("endDate").value;
+      const mainGame = mainGameSelect.value;
+      const searchName = searchInput.value.trim();
+
+      let params = new URLSearchParams();
+
+      if (source === "manual") {
+        if (startDate) params.append("startDate", startDate);
+        if (endDate) params.append("endDate", endDate);
+        params.append("source", "manual");
+      } else if (source) {
+        params.append("source", source);
+      }
+
+      if (mainGame) params.append("mainGame", mainGame);
+      if (searchName) params.append("gameName", searchName);
+
+      window.location.href = "/user-win-history?" + params.toString();
+    }
+  </script>
+
+</body>
+
 </html>

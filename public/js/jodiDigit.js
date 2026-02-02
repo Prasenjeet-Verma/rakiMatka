@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-
   /* ================= MESSAGE ================= */
   function showMessage(message, type = "success") {
     const old = document.getElementById("jsMsgBox");
@@ -44,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let jodiLocked = false;
 
   /* ================= TIME HELPERS ================= */
-  const toMinutes = t => {
+  const toMinutes = (t) => {
     const [h, m] = t.split(":").map(Number);
     return h * 60 + m;
   };
@@ -60,7 +59,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function applyLockUI() {
-    jodiGrid.querySelectorAll("input").forEach(i => {
+    jodiGrid.querySelectorAll("input").forEach((i) => {
       i.disabled = jodiLocked;
       i.placeholder = jodiLocked ? "Closed" : "Points";
     });
@@ -70,21 +69,19 @@ document.addEventListener("DOMContentLoaded", () => {
     submitBtn.classList.toggle("cursor-not-allowed", jodiLocked);
   }
 
-function checkJodiTimeLock() {
-  if (!serverTime) return;
+  function checkJodiTimeLock() {
+    if (!serverTime) return;
 
-  const openTime = jodiMain.dataset.openTime;
-  if (!openTime) return;
+    const openTime = jodiMain.dataset.openTime;
+    if (!openTime) return;
 
-  const now = toMinutes(serverTime);
-  const open = toMinutes(openTime);
+    const now = toMinutes(serverTime);
+    const open = toMinutes(openTime);
 
-  // 🔐 JODI DIGIT = OPEN SE PEHLE ONLY
-  jodiLocked = now >= open;
-  applyLockUI();
-}
-
-
+    // 🔐 JODI DIGIT = OPEN SE PEHLE ONLY
+    jodiLocked = now >= open;
+    applyLockUI();
+  }
 
   /* ================= TIME SYNC ================= */
   syncServerTime().then(checkJodiTimeLock);
@@ -126,8 +123,10 @@ function checkJodiTimeLock() {
   }
 
   function switchTab(index, activeTab) {
-    [...jodiTabs.children].forEach(tab =>
-      tab.className = "min-w-[45px] h-[45px] rounded-full border text-gray-400"
+    [...jodiTabs.children].forEach(
+      (tab) =>
+      (tab.className =
+        "min-w-[45px] h-[45px] rounded-full border text-gray-400"),
     );
     activeTab.className =
       "min-w-[45px] h-[45px] rounded-full bg-[#005c4b] text-white font-bold";
@@ -154,6 +153,12 @@ function checkJodiTimeLock() {
       `;
 
       const input = card.querySelector("input");
+
+      /* ✅ RESTORE OLD VALUE IF EXISTS */
+      if (jodiBidData[underNo]) {
+        input.value = jodiBidData[underNo].amount;
+      }
+
       input.addEventListener("input", e => {
         const val = parseInt(e.target.value);
         if (val > 0) jodiBidData[underNo] = { mainNo, underNo, amount: val };
@@ -166,13 +171,14 @@ function checkJodiTimeLock() {
   }
 
   function updateJodiTotal() {
-    jodiTotalDisplay.innerText = Object.values(jodiBidData)
-      .reduce((a, b) => a + b.amount, 0);
+    jodiTotalDisplay.innerText = Object.values(jodiBidData).reduce(
+      (a, b) => a + b.amount,
+      0,
+    );
   }
 
   /* ================= SUBMIT (HARD LOCK) ================= */
   window.submitJodiBids = async function () {
-
     // 🔐 FINAL SERVER CHECK
     try {
       const res = await fetch("/server-time");
@@ -182,13 +188,12 @@ function checkJodiTimeLock() {
       const open = toMinutes(jodiMain.dataset.openTime);
       const close = toMinutes(jodiMain.dataset.closeTime);
 
-if (now >= open) {
-  jodiLocked = true;
-  applyLockUI();
-  showMessage("Jodi Digit Open Time Over ❌", "error");
-  return;
-}
-
+      if (now >= open) {
+        jodiLocked = true;
+        applyLockUI();
+        showMessage("Jodi Digit Open Time Over ❌", "error");
+        return;
+      }
     } catch {
       showMessage("Server not reachable ❌", "error");
       return;
@@ -207,11 +212,11 @@ if (now >= open) {
         gameId: jodiMain.dataset.gameId,
         gameName: jodiMain.dataset.gameName,
         bets: activeBets,
-        totalAmount: activeBets.reduce((s, b) => s + b.amount, 0)
-      })
+        totalAmount: activeBets.reduce((s, b) => s + b.amount, 0),
+      }),
     })
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         if (data.success) {
           showMessage(data.message || "Bet placed ✅");
           initJodi();
@@ -221,5 +226,4 @@ if (now >= open) {
       })
       .catch(() => showMessage("Server error ❌", "error"));
   };
-
 });

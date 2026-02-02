@@ -99,11 +99,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* ================= GRID ================= */
-  function buildGrid(digit) {
-    grid.innerHTML = "";
-    g_data_store[digit].forEach((panna) => {
-      const key = `${g_active_mode}-${panna}`;
-      const val = g_ledger[key] || "";
+function buildGrid(digit) {
+  grid.innerHTML = "";
+  g_data_store[digit].forEach((panna) => {
+    const key = `${g_active_mode}-${digit}-${panna}`;
+    const val = g_ledger[key] || "";
       grid.innerHTML += `
         <div class="flex border rounded-xl overflow-hidden">
           <div class="w-2/5 bg-[#005c4b] text-white flex items-center justify-center font-bold">${panna}</div>
@@ -119,12 +119,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* ================= INPUT ================= */
-  window.updateDoublePanna = (panna, val) => {
-    const key = `${g_active_mode}-${panna}`;
-    if (!val || val <= 0) delete g_ledger[key];
-    else g_ledger[key] = parseInt(val);
-    refreshTotal();
-  };
+window.updateDoublePanna = (panna, val) => {
+  const key = `${g_active_mode}-${g_active_digit}-${panna}`;
+  if (!val || val <= 0) delete g_ledger[key];
+  else g_ledger[key] = parseInt(val);
+  refreshTotal();
+};
 
   function refreshTotal() {
     const sum = Object.values(g_ledger).reduce((a, b) => a + b, 0);
@@ -138,15 +138,15 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const bets = Object.entries(g_ledger).map(([key, amount]) => {
-      const [mode, panna] = key.split("-");
-      return {
-        mainNo: Number(panna[0]),
-        underNo: panna,
-        amount,
-        mode,
-      };
-    });
+const bets = Object.entries(g_ledger).map(([key, amount]) => {
+  const [mode, mainNo, panna] = key.split("-");
+  return {
+    mainNo: Number(mainNo), // ✅ CORRECT PER BET
+    underNo: panna,
+    amount,
+    mode,
+  };
+});
 
     fetch("/starline-double-panna/place-bet", {
       method: "POST",
@@ -187,3 +187,4 @@ document.addEventListener("DOMContentLoaded", () => {
   buildTabs();
   buildGrid(g_active_digit);
 });
+

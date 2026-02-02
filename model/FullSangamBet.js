@@ -15,6 +15,11 @@ const fullSangamItemSchema = new mongoose.Schema({
     required: true,
     min: 1,
   },
+  resultStatus: {
+    type: String,
+    enum: ["PENDING", "WIN", "LOSS"],
+    default: "PENDING",
+  },
 });
 
 /* ================= FULL SANGAM BET SCHEMA ================= */
@@ -47,29 +52,36 @@ const fullSangamBetSchema = new mongoose.Schema(
     bets: {
       type: [fullSangamItemSchema],
       required: true,
-      validate: [arr => arr.length > 0, "At least one bet required"],
+      validate: [(arr) => arr.length > 0, "At least one bet required"],
     },
     totalAmount: {
       type: Number,
       required: true,
     },
-    resultStatus: {
-      type: String,
-      enum: ["PENDING", "WIN", "LOSS"],
-      default: "PENDING",
+    beforeWallet: {
+      type: Number,
+      required: true,
+      min: 1,
     },
+
+    afterWallet: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+
     playedDate: String,
     playedTime: String,
     playedWeekday: String,
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 /* ===== PRE-SAVE HOOK (SAFE) ===== */
 fullSangamBetSchema.pre("validate", function () {
   this.totalAmount = this.bets.reduce(
     (sum, b) => sum + (b.totalAmount || 0),
-    0
+    0,
   );
 });
 

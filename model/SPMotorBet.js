@@ -24,7 +24,12 @@ const spMotorItemSchema = new mongoose.Schema({
   totalPoints: {
     type: Number,
     required: true
-  }
+  },
+    resultStatus: {
+    type: String,
+    enum: ["PENDING", "WIN", "LOSS"],
+    default: "PENDING"
+  },
 });
 
 const spMotorBetSchema = new mongoose.Schema({
@@ -39,13 +44,19 @@ const spMotorBetSchema = new mongoose.Schema({
     type: [spMotorItemSchema],
     required: true
   },
+                beforeWallet: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
 
+    afterWallet: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
   totalAmount: { type: Number, required: true },
-  resultStatus: {
-    type: String,
-    enum: ["PENDING", "WIN", "LOSS"],
-    default: "PENDING"
-  },
+
 
   playedDate: String,
   playedTime: String,

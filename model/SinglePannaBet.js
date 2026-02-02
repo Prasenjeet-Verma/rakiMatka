@@ -26,7 +26,13 @@ const singlePannaItemSchema = new mongoose.Schema({
     type: String,
     enum: ["OPEN", "CLOSE"],
     required: true
-  }
+  },
+      /* ================= RESULT ================= */
+    resultStatus: {
+      type: String,
+      enum: ["PENDING", "WIN", "LOSS"],
+      default: "PENDING"
+    },
 });
 
 /* ================= SINGLE PANNA BET ================= */
@@ -67,18 +73,23 @@ const singlePannaBetSchema = new mongoose.Schema(
         "At least one single panna bet required"
       ]
     },
+            beforeWallet: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
 
+    afterWallet: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
     totalAmount: {
       type: Number,
       required: true
     },
 
-    /* ================= RESULT ================= */
-    resultStatus: {
-      type: String,
-      enum: ["PENDING", "WIN", "LOSS"],
-      default: "PENDING"
-    },
+
 
     winningPanna: {
       type: String,

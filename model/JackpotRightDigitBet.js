@@ -6,7 +6,8 @@ const rightDigitItemSchema = new mongoose.Schema({
     required: true,
     match: /^[0-9]$/  // Only single digit 0-9
   },
-  amount: { type: Number, required: true, min: 1 }
+  amount: { type: Number, required: true, min: 1 },
+  resultStatus: { type: String, enum: ["PENDING", "WIN", "LOSS"], default: "PENDING" },
 });
 
 const rightDigitBetSchema = new mongoose.Schema({
@@ -15,9 +16,20 @@ const rightDigitBetSchema = new mongoose.Schema({
   gameName: { type: String, required: true },
   mainGame: { type: String, default: "JACKPOT", immutable: true },
   gameType: { type: String, default: "RIGHT_DIGIT", immutable: true },
-  bets: { type: [rightDigitItemSchema], required: true, validate: [arr=>arr.length>0,"At least 1 bet required"] },
+  bets: { type: [rightDigitItemSchema], required: true, validate: [arr => arr.length > 0, "At least 1 bet required"] },
+  beforeWallet: {
+    type: Number,
+    required: true,
+    min: 1
+  },
+
+  afterWallet: {
+    type: Number,
+    required: true,
+    min: 1
+  },
   totalAmount: { type: Number, required: true, min: 1 },
-  resultStatus: { type: String, enum:["PENDING","WIN","LOSS"], default:"PENDING" },
+
   playedDate: String,
   playedTime: String,
   playedWeekday: String

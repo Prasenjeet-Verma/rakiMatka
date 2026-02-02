@@ -17,7 +17,12 @@ const bulkDigitItemSchema = new mongoose.Schema({
     type: String,
     enum: ["OPEN", "CLOSE"],
     required: true
-  }
+  },
+      resultStatus: {
+      type: String,
+      enum: ["PENDING", "WIN", "LOSS"],
+      default: "PENDING"
+    },
 });
 
 /* ================= SINGLE BULK DIGIT BET ================= */
@@ -55,15 +60,22 @@ const singleBulkDigitBetSchema = new mongoose.Schema(
         "At least one bulk digit bet required"
       ]
     },
+        beforeWallet: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+
+    afterWallet: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
     totalAmount: {
       type: Number,
       required: true
     },
-    resultStatus: {
-      type: String,
-      enum: ["PENDING", "WIN", "LOSS"],
-      default: "PENDING"
-    },
+
     winningNumber: {
       type: Number,
       min: 0,

@@ -23,6 +23,11 @@ const halfSangamItemSchema = new mongoose.Schema({
     required: true,
     min: 1,
   },
+      resultStatus: {
+      type: String,
+      enum: ["PENDING", "WIN", "LOSS"],
+      default: "PENDING",
+    },
 });
 
 /* ================= HALF SANGAM BET SCHEMA ================= */
@@ -67,17 +72,22 @@ const halfSangamBetSchema = new mongoose.Schema(
         message: "At least one bet required",
       },
     },
-
-    totalAmount: {
+    beforeWallet: {
       type: Number,
       required: true,
       min: 1,
     },
 
-    resultStatus: {
-      type: String,
-      enum: ["PENDING", "WIN", "LOSS"],
-      default: "PENDING",
+    afterWallet: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+
+    totalAmount: {
+      type: Number,
+      required: true,
+      min: 1,
     },
 
     playedDate: {

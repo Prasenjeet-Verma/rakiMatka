@@ -24,19 +24,24 @@ const spdptpItemSchema = new mongoose.Schema({
     type: [String], // array of 3-digit numbers
     required: true,
     validate: {
-      validator: arr => arr.every(n => /^[0-9]{3}$/.test(n)),
+      validator: (arr) => arr.every((n) => /^[0-9]{3}$/.test(n)),
       message: "Each underNo must be 3 digits",
     },
   },
   perUnderNosPoints: {
     type: Number,
     required: true,
-    min: 1
+    min: 1,
   },
   totalPoints: {
     type: Number,
     required: true,
     min: 1,
+  },
+  resultStatus: {
+    type: String,
+    enum: ["PENDING", "WIN", "LOSS"],
+    default: "PENDING",
   },
 });
 
@@ -74,31 +79,35 @@ const spdptpBetSchema = new mongoose.Schema(
     bets: {
       type: [spdptpItemSchema],
       required: true,
-      validate: [arr => arr.length > 0, "At least one bet required"],
+      validate: [(arr) => arr.length > 0, "At least one bet required"],
+    },
+    beforeWallet: {
+      type: Number,
+      required: true,
+      min: 1,
     },
 
+    afterWallet: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
     totalAmount: {
       type: Number,
       default: 0,
-    },
-
-    resultStatus: {
-      type: String,
-      enum: ["PENDING", "WIN", "LOSS"],
-      default: "PENDING",
     },
 
     playedDate: String,
     playedTime: String,
     playedWeekday: String,
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 // Automatically calculate totalPoints per bet and totalAmount
 spdptpBetSchema.pre("validate", function () {
   if (Array.isArray(this.bets)) {
-    this.bets.forEach(b => {
+    this.bets.forEach((b) => {
       if (Array.isArray(b.underNos)) {
         b.totalPoints = b.totalPoints || 0;
       }

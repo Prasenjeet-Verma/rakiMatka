@@ -21,6 +21,12 @@ const redBracketItemSchema = new mongoose.Schema({
     required: true,
     min: 1,
   },
+  
+    resultStatus: {
+      type: String,
+      enum: ["PENDING", "WIN", "LOSS"],
+      default: "PENDING",
+    },
 });
 
 
@@ -62,18 +68,23 @@ const redBracketBetSchema = new mongoose.Schema(
         "At least one bet required",
       ],
     },
+    beforeWallet: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
 
+    afterWallet: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
     // total = sum of all bet.points
     totalAmount: {
       type: Number,
       default: 0,
     },
 
-    resultStatus: {
-      type: String,
-      enum: ["PENDING", "WIN", "LOSS"],
-      default: "PENDING",
-    },
 
     playedDate: {
       type: String,

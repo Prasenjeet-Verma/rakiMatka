@@ -28,6 +28,11 @@ const singlePannaBulkItemSchema = new mongoose.Schema({
     enum: ["OPEN", "CLOSE"],
     required: true,
   },
+      resultStatus: {
+      type: String,
+      enum: ["PENDING", "WIN", "LOSS"],
+      default: "PENDING",
+    },
 });
 
 /* ================= SINGLE PANNA BULK BET ================= */
@@ -65,15 +70,23 @@ const singlePannaBulkBetSchema = new mongoose.Schema(
         "At least one single panna bulk bet required",
       ],
     },
+                beforeWallet: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+
+    afterWallet: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
     totalAmount: {
       type: Number,
       required: true,
     },
-    resultStatus: {
-      type: String,
-      enum: ["PENDING", "WIN", "LOSS"],
-      default: "PENDING",
-    },
+    
+
     winningPanna: {
       type: String,
       default: null,

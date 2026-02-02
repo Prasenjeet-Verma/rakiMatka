@@ -34,6 +34,11 @@ const oddEvenItemSchema = new mongoose.Schema({
     enum: ["OPEN", "CLOSE"],
     required: true,
   },
+      resultStatus: {
+      type: String,
+      enum: ["PENDING", "WIN", "LOSS"],
+      default: "PENDING",
+    },
 });
 /* ================= ODD EVEN BET ================= */
 const oddEvenBetSchema = new mongoose.Schema(
@@ -73,17 +78,23 @@ const oddEvenBetSchema = new mongoose.Schema(
         "At least one odd-even panna bulk bet required",
       ],
     },
+    beforeWallet: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
 
+    afterWallet: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
     totalAmount: {
       type: Number,
       required: true,
     },
 
-    resultStatus: {
-      type: String,
-      enum: ["PENDING", "WIN", "LOSS"],
-      default: "PENDING",
-    },
+
 
     winningPanna: {
       type: String,

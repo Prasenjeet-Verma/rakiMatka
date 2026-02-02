@@ -26,7 +26,14 @@ const starlineDoublePannaItemSchema = new mongoose.Schema({
     type: String,
     enum: ["OPEN", "CLOSE"],
     required: true
-  }
+  },
+      /* ================= RESULT ================= */
+    resultStatus: {
+      type: String,
+      enum: ["PENDING", "WIN", "LOSS"],
+      default: "PENDING"
+    },
+
 });
 
 /* ================= DOUBLE PANNA BET ================= */
@@ -69,18 +76,22 @@ const starlineDoublePannaBetSchema = new mongoose.Schema(
         "At least one double panna bet required"
       ]
     },
+    beforeWallet: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
 
+    afterWallet: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
     totalAmount: {
       type: Number,
       required: true
     },
 
-    /* ================= RESULT ================= */
-    resultStatus: {
-      type: String,
-      enum: ["PENDING", "WIN", "LOSS"],
-      default: "PENDING"
-    },
 
     winningPanna: {
       type: String,
