@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="css/adminDashbord.css">
+
+     <style>
+        /* Custom scrollbar for the table wrapper */
+        .custom-scrollbar::-webkit-scrollbar { height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+     </style>
+
+  </head>
+  <body class="flex min-h-screen">
+    <aside
+      id="sidebar"
+      class="sidebar border-r border-gray-200 fixed inset-y-0 left-0 z-50 lg:relative lg:translate-x-0 transform -translate-x-full lg:block"
+    >
+      <div class="p-4">
+        <div class="relative mb-4">
+          <input
+            type="text"
+            placeholder="Search"
+            class="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
+          <button
+            class="absolute right-0 top-0 bottom-0 px-3 bg-neutral-800 text-white rounded-r"
+          >
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
+      </div>
+
+       <!-- ============================= Nav is here ============================ -->
+
+      <nav class="text-gray-600 text-sm">
+        <a
+          href="admindashbord.html"
+          class="nav-item flex items-center px-4 py-3 bg-gray-100 border-l-4 border-blue-500 font-semibold"
+        >
+          <i class="fas fa-tachometer-alt w-6"></i> Dashboard
+        </a>
+
+
+        <a
+          href="adminallUser.html"
+          class="nav-item flex items-center px-4 py-3 border-b border-gray-100"
+        >
+          <i class="fas fa-users w-6"></i> All Users
+        </a>
+
+
+
+<div class="border-b border-gray-100">
+  <details class="group">
+
+    <summary class="list-none cursor-pointer w-full nav-item flex items-center justify-between px-4 py-3">
+      <span class="flex items-center gap-2">
+        <i class="fas fa-database w-6"></i> System Reports
+      </span>
+      <i class="fas fa-chevron-left text-xs transition-transform duration-200 group-open:-rotate-90"></i>
+    </summary>
+
+    <!-- Sub Menu -->
+    <div class="pl-10 py-2 space-y-2 text-sm text-gray-700">
+      <a href="adminMarketWinBid.html" class="block hover:text-[#eeba30]">Market Win/Bid</a>
+      <a href="adminDepositTransactions.html" class="block hover:text-[#eeba30]">Deposit Transactions</a>
+      <a href="adminWithdrawTransactions.html" class="block hover:text-[#eeba30]">Withdraw Transactions</a>
+    </div>
+  </details>
+</div>
+
+
+
+
+
+<div class="border-b border-gray-100">
+  <details class="group">
+    
+    <summary class="list-none cursor-pointer w-full nav-item flex items-center justify-between px-4 py-3">
+      <span class="flex items-center gap-2">
+        <i class="fas fa-gamepad w-6"></i> Game Management
+      </span>
+      <i class="fas fa-chevron-left text-xs transition-transform duration-200 group-open:-rotate-90"></i>
+    </summary>
+
+    <!-- Sub Menu -->
+    <div class="pl-10 py-2 space-y-2 text-sm text-gray-700">
+      <a href="adminGameProviders.html" class="block hover:text-[#eeba30]">Game Providers</a>
+      <a href="adminGameRates.html" class="block hover:text-[#eeba30]">Game Rates</a>
+      <a href="adminGameResult.html" class="block hover:text-[#eeba30]">Game Result</a>
+      <a href="adminGenerateResult.html" class="block hover:text-[#eeba30]">Generate Result</a>
+      <a href="adminBidRevert.html" class="block hover:text-[#eeba30]">Bid Revert</a>
+    </div>
+
+  </details>
+</div>
+
+
+
+
+<div class="border-b border-gray-100">
+  <details class="group">
+    
+    <summary
+      class="list-none cursor-pointer w-full nav-item flex items-center justify-between px-4 py-3">
+      <span class="flex items-center gap-2">
+        <i class="fas fa-book w-6"></i> Bookie Corner
+      </span>
+      <i class="fas fa-chevron-left text-xs transition-transform duration-200 group-open:-rotate-90"></i>
+    </summary>
+
+    <!-- Sub Menu -->
+    <div class="pl-10 py-2 space-y-2 text-sm text-gray-700">
+      <a href="adminOCCuttingGroup.html" class="block hover:text-[#eeba30]">OC Cutting Group</a>
+      <a href="adminLossCutting.html" class="block hover:text-[#eeba30]">Loss Cutting</a>
+    </div>
+
+  </details>
+</div>
+
+
+
+<div class="border-b border-gray-100">
+  <details class="group">
+    <summary
+      class="list-none cursor-pointer w-full nav-item flex items-center justify-between px-4 py-3">
+      <span class="flex items-center gap-2">
+        <i class="fas fa-file-alt w-6"></i> Report Management
+      </span>
+      <i class="fas fa-chevron-left text-xs transition-transform duration-200 group-open:-rotate-90"></i>
+    </summary>
+
+    <!-- Sub Menu -->
+    <div class="pl-10 py-2 space-y-2 text-sm text-gray-700">
+      <a href="adminWinnerPrediction.html" class="block hover:text-[#eeba30]">Winner Prediction</a>
+      <a href="adminBidHistory.html" class="block hover:text-[#eeba30]">Bid History</a>
+      <a href="adminWinningHistory.html" class="block hover:text-[#eeba30]">Winning History</a>
+      <a href="adminCustomerSellReport.html" class="block hover:text-[#eeba30]">Customer Sell Report</a>
+    </div>
+
+  </details>
+</div>
+
+
+
+
+<div class="border-b border-gray-100">
+  <details class="group">
+
+    <summary class="list-none cursor-pointer w-full nav-item flex items-center justify-between px-4 py-3">
+      <span class="flex items-center gap-2">
+        <i class="fas fa-wallet w-6"></i> Wallet Management
+      </span>
+      <i class="fas fa-chevron-left text-xs transition-transform duration-200 group-open:-rotate-90"></i>
+    </summary>
+
+    <!-- Sub Menu -->
+    <div class="pl-10 py-2 space-y-2 text-sm text-gray-700">
+      <a href="adminEditWallet.html" class="block hover:text-[#eeba30]">Edit Wallet</a>
+      <a href="adminFundReport.html" class="block hover:text-[#eeba30]">Fund Report</a>
+      <a href="adminDepositRequests.html" class="block hover:text-[#eeba30]">Deposit Requests</a>
+      <a href="adminWithdrawPointsRequestReport.html" class="block hover:text-[#eeba30]">Withdraw Points Request Report</a>
+    </div>
+
+  </details>
+</div>
+
+
+
+<div class="border-b border-gray-100">
+  <details class="group">
+
+    <summary class="list-none cursor-pointer w-full nav-item flex items-center justify-between px-4 py-3">
+      <span class="flex items-center gap-2">
+        <i class="fas fa-cog w-6"></i> Settings
+      </span>
+      <i class="fas fa-chevron-left text-xs transition-transform duration-200 group-open:-rotate-90"></i>
+    </summary>
+
+    <!-- Sub Menu -->
+    <div class="pl-10 py-2 space-y-2 text-sm text-gray-700">
+      <a href="adminChangePassword.html" class="block hover:text-[#eeba30]">Change Password</a>
+      <a href="adminManualDepositMethods.html" class="block hover:text-[#eeba30]">Manual Deposit Methods</a>
+      <a href="adminWithdrawTimings.html" class="block hover:text-[#eeba30]">Withdraw Timings</a>
+      <a href="adminContactUsDetails.html" class="block hover:text-[#eeba30]">Contact Us Details</a>
+      <a href="adminMainSettings.html" class="block hover:text-[#eeba30]">Main Settings</a>
+      <a href="adminPaymentGatewaySettings.html" class="block hover:text-[#eeba30]">Payment Gateway Settings</a>
+      <a href="adminImageSlider.html" class="block hover:text-[#eeba30]">Image Slider</a>
+      <a href="adminImageSliderWebsite.html" class="block hover:text-[#eeba30]">Image Slider Website</a>
+      <a href="adminHomepopupmsg.html" class="block hover:text-[#eeba30]"> Home popup msg</a>
+    </div>
+
+  </details>
+</div>
+
+
+
+
+<div class="border-b border-gray-100">
+  <details class="group">
+
+    <summary class="list-none cursor-pointer w-full nav-item flex items-center justify-between px-4 py-3">
+      <span class="flex items-center gap-2">
+        <i class="fa-solid fa-bell w-6"></i> Notice Management
+      </span>
+      <i class="fas fa-chevron-left text-xs transition-transform duration-200 group-open:-rotate-90"></i>
+    </summary>
+
+    <!-- Sub Menu -->
+    <div class="pl-10 py-2 space-y-2 text-sm text-gray-700">
+      <a href="adminBellNotifications.html" class="block hover:text-[#eeba30]">Bell Notifications</a>
+      <a href="adminSendNotification.html" class="block hover:text-[#eeba30]">Send Notification</a>
+      <a href="adminManageContents.html" class="block hover:text-[#eeba30]">Manage Contents</a>
+    </div>
+
+  </details>
+</div>
+
+
+
+
+        <div class="px-4 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider"> Personal Games </div>
+
+
+<div class="border-b border-gray-100">
+  <details class="group">
+
+    <summary class="list-none cursor-pointer w-full nav-item flex items-center justify-between px-4 py-3">
+      <span class="flex items-center gap-2">
+        <i class="fas fa-th w-6"></i> Main Starline
+      </span>
+      <i class="fas fa-chevron-left text-xs transition-transform duration-200 group-open:-rotate-90"></i>
+    </summary>
+
+    <!-- Sub Menu -->
+    <div class="pl-10 py-2 space-y-2 text-sm text-gray-700">
+      <a href="adminGameProvider.html" class="block hover:text-[#eeba30]">Game Provider</a>
+      <a href="adminGameRates.html" class="block hover:text-[#eeba30]">Game Rates</a>
+      <a href="adminBidHistory.html" class="block hover:text-[#eeba30]">Bid History</a>
+      <a href="adminGameResult.html" class="block hover:text-[#eeba30]">Game Result</a>
+      <a href="adminResultHistory.html" class="block hover:text-[#eeba30]">Result History</a>
+      <a href="adminSellReport.html" class="block hover:text-[#eeba30]">Sell Report </a>
+      <a href="adminWinningReport.html" class="block hover:text-[#eeba30]">Winning Report </a>
+    </div>
+
+  </details>
+</div>
+
+
+
+<div class="border-b border-gray-100">
+  <details class="group">
+
+    <summary class="list-none cursor-pointer w-full nav-item flex items-center justify-between px-4 py-3">
+      <span class="flex items-center gap-2">
+        <i class="fas fa-th w-6"></i> Main Jackpot
+      </span>
+      <i class="fas fa-chevron-left text-xs transition-transform duration-200 group-open:-rotate-90"></i>
+    </summary>
+
+    <!-- Sub Menu -->
+    <div class="pl-10 py-2 space-y-2 text-sm text-gray-700">
+      <a href="adminGameProvider.html" class="block hover:text-[#eeba30]">Game Provider</a>
+      <a href="adminGameRates.html" class="block hover:text-[#eeba30]">Game Rates</a>
+      <a href="adminBidHistory.html" class="block hover:text-[#eeba30]">Bid History</a>
+      <a href="adminGameResult.html" class="block hover:text-[#eeba30]">Game Result</a>
+      <a href="adminResultHistory.html" class="block hover:text-[#eeba30]">Result History</a>
+      <a href="adminSellReport.html" class="block hover:text-[#eeba30]">Sell Report </a>
+    </div>
+
+  </details>
+</div>
+
+
+
+      </nav>
+    </aside>
+
+    <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+      <!-- ============================= Header is here ============================ -->
+      <header
+      style="z-index: 50000; position: fixed; width: 100%;"
+        class="bg-white h-14 flex items-center justify-between px-4 border-b border-gray-200"
+      >
+        <button id="menuBtn" class="text-gray-600 focus:outline-none">
+          <i class="fas fa-bars text-xl"></i>
+        </button>
+        <button  class="text-gray-600">
+          <i class="fas fa-power-off text-xl"></i>
+        </button>
+      </header>
+
+
+      
+      <header
+        class="bg-white h-14 flex items-center justify-between px-4 border-b border-gray-200"
+      >
+      </header>    <!-- header overflow done -->
+
+     <!-- ==================================== Body Start Here ========================================= -->
+
+
+  <div class="w-full bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+    
+    <div class="px-4 py-3 border-b border-gray-100 bg-white">
+      <h2 class="text-gray-700 font-medium text-lg">Bet Edit</h2>
+    </div>
+
+    <div class="p-6 space-y-5">
+      
+      <div>
+        <label for="number" class="block text-sm font-bold text-gray-800 mb-2">
+          Number:
+        </label>
+        <input 
+          type="text" 
+          id="number" 
+          value="2" 
+          class="w-full px-3 py-2 border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all"
+        />
+      </div>
+
+      <div>
+        <label for="amount" class="block text-sm font-bold text-gray-800 mb-2">
+          Amount:
+        </label>
+        <input 
+          type="text" 
+          id="amount" 
+          value="10" 
+          class="w-full px-3 py-2 border border-gray-300 rounded text-gray-500 focus:outline-none focus:border-blue-400 transition-all"
+        />
+      </div>
+
+      <div class="pt-2">
+        <button class="bg-[#eeb433] hover:bg-[#d9a32b] text-white font-medium py-2 px-6 rounded shadow-sm transition-colors duration-200">
+          Update Bet
+        </button>
+      </div>
+
+    </div>
+    
+    <div class="px-2 py-1 bg-gray-50 flex justify-between items-center border-t border-gray-100">
+        <div class="text-gray-400 text-xs">◀</div>
+        <div class="flex space-x-2 text-gray-400 text-xs">
+        </div>
+    </div>
+  </div>
+
+ <!-- ======================== Bid History ======================== -->
+      <record class="bg-gray-100 p-4">
+        <div class="bg-white rounded-lg shadow p-4">
+          <!-- HEADER -->
+          <div
+            class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4"
+          >
+            <div class="flex items-center gap-2">
+              <h2 class="font-semibold">Bid History</h2>
+              <select class="border rounded px-2 py-1 text-sm">
+                <option>All</option>
+                <option>Main Market</option>
+                <option>Starline</option>
+                <option>Jackpot</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- CONTROLS -->
+          <div
+            class="flex justify-around md:flex-row md:items-center md:justify-between gap-4 mb-4"
+          >
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="text-sm">Show</span>
+              <select class="border rounded px-2 py-1 text-sm">
+                <option>10</option>
+                <option>50</option>
+                <option>100</option>
+                <option>All</option>
+              </select>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <label class="text-sm">Search:</label>
+              <input
+                type="text"
+                class="border rounded px-2 py-1 text-sm w-40"
+              />
+            </div>
+          </div>
+
+          <!-- TABLE -->
+          <div class="overflow-x-auto">
+            <table class="min-w-[1400px] w-full border text-sm">
+              <thead class="bg-gray-100">
+                <tr>
+                  <th class="border px-3 py-2 text-left">ID</th>
+                  <th class="border px-3 py-2 text-left">Game Type</th>
+                  <th class="border px-3 py-2 text-left">Market</th>
+                  <th class="border px-3 py-2 text-left">Session</th>
+                  <th class="border px-3 py-2 text-left">Amount</th>
+                  <th class="border px-3 py-2 text-left">Digits</th>
+                  <th class="border px-3 py-2 text-left">Game Name</th>
+                  <th class="border px-3 py-2 text-left">Game Status</th>
+                  <th class="border px-3 py-2 text-left">Placed on</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <!-- ROW -->
+                <tr class="bg-blue-50">
+                  <td class="border px-3 py-2">1</td>
+                  <td class="border px-3 py-2">Main Game</td>
+                  <td class="border px-3 py-2">KALYAN NIGHT</td>
+                  <td class="border px-3 py-2">close</td>
+                  <td class="border px-3 py-2">50.00</td>
+                  <td class="border px-3 py-2">3</td>
+                  <td class="border px-3 py-2">single</td>
+                  <td class="border px-3 py-2">
+                    <span
+                      class="bg-yellow-600 text-white text-xs px-2 py-1 rounded"
+                    >
+                      No Result
+                    </span>
+                  </td>
+                  <td class="border px-3 py-2">01/06/2026, 11:13:02 PM</td>
+                </tr>
+
+                <!-- ROW -->
+                <tr>
+                  <td class="border px-3 py-2">2</td>
+                  <td class="border px-3 py-2">Main Game</td>
+                  <td class="border px-3 py-2">KALYAN NIGHT</td>
+                  <td class="border px-3 py-2">close</td>
+                  <td class="border px-3 py-2">25.00</td>
+                  <td class="border px-3 py-2">5</td>
+                  <td class="border px-3 py-2">single</td>
+                  <td class="border px-3 py-2">
+                    <span
+                      class="bg-yellow-600 text-white text-xs px-2 py-1 rounded"
+                    >
+                      No Result
+                    </span>
+                  </td>
+                  <td class="border px-3 py-2">01/06/2026, 11:13:02 PM</td>
+                </tr>
+
+                <!-- ADD MORE ROWS SAME WAY -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- FOOTER -->
+          <div
+            class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-4 text-sm"
+          >
+            <p>Showing 1 to 10 of 70 entries</p>
+
+            <div class="flex items-center gap-2 flex-wrap">
+              <button class="border px-3 py-1 rounded text-gray-600">
+                Previous
+              </button>
+              <button class="border px-3 py-1 rounded bg-gray-200">1</button>
+              <button class="border px-3 py-1 rounded">Next</button>
+            </div>
+          </div>
+        </div>
+      </record>
+
+
+    <!-- =============================================== Footer is here ===================================== -->
+    </main>
+
+    <script src="js/sidebar.js"></script>
+    <script src="js/calander.js"></script>
+    <script src="js/adminResult.js"></script>
+  </body>
+</html>

@@ -22,5 +22,9 @@ adminRouter.get('/admin/GameRates', adminController.getAdminGameRatesPage);
 adminRouter.post('/admin/GameRates', adminController.postGameRates);
 adminRouter.post("/admin/game-rates/toggle/:id", adminController.toggleGameRate);
 adminRouter.post("/admin/game-rates/delete/:id", adminController.deleteGameRate);
+adminRouter.get("/admin/GameResult", adminController.gameResult);
+adminRouter.get("/admin/pending-games", adminController.getPendingGames);
+adminRouter.post("/admin/declare-result", adminController.declareGameResult);
+
 
 module.exports = adminRouter;

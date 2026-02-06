@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  <link rel="stylesheet" href="/css/adminDashbord.css">
+
+  <style>
+    /* Custom scrollbar for the table wrapper */
+    .custom-scrollbar::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 10px;
+    }
+  </style>
+
+</head>
+
+<body class="flex min-h-screen">
+  <aside id="sidebar"
+    class="sidebar border-r border-gray-200 fixed inset-y-0 left-0 z-50 lg:relative lg:translate-x-0 transform -translate-x-full lg:block">
+    <div class="p-4">
+      <div class="relative mb-4">
+        <input type="text" placeholder="Search"
+          class="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
+        <button class="absolute right-0 top-0 bottom-0 px-3 bg-neutral-800 text-white rounded-r">
+          <i class="fas fa-search"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- ============================= Nav is here ============================ -->
+
+    <%- include('../partials/adminNav') %>
+  </aside>
+
+  <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+    <!-- ============================= Header is here ============================ -->
+    <%- include('../partials/adminHeader') %>
+
+
+
+      <header class="bg-white h-14 flex items-center justify-between px-4 border-b border-gray-200">
+      </header> <!-- header overflow done -->
+
+      <!-- ==================================== Body Start Here ========================================= -->
+
+      </head>
+      <div class="bg-gray-100 p-4 md:p-10 font-sans text-gray-700">
+
+        <div class="w-[100%] mx-auto bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <div class="border-b border-gray-100 p-4">
+            <h2 class="text-lg font-medium text-gray-800">Declare Result</h2>
+          </div>
+          <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+
+              <div>
+                <label class="block text-sm font-bold text-gray-800 mb-2">Date</label>
+                <input type="date" value="2026-02-01"
+                  class="w-full border border-gray-300 rounded p-2 focus:ring-1 focus:ring-blue-500 outline-none">
+              </div>
+
+              <div>
+                <label class="block text-sm font-bold text-gray-800 mb-2">Game</label>
+                <select id="checkpendinggame"
+                  class="w-full border border-gray-300 rounded p-2 focus:ring-1 focus:ring-blue-500 outline-none">
+                  <option value="">Select Pending Game</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-sm font-bold text-gray-800 mb-2">Session</label>
+<select id="sessionSelect"
+  class="w-full border border-gray-300 rounded p-2 focus:ring-1 focus:ring-blue-500 outline-none text-gray-400">
+  <option value="OPEN">OPEN</option>
+  <option value="CLOSE">CLOSE</option>
+</select>
+
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div class="relative"> <label class="block text-sm font-bold text-gray-800 mb-2">Pana</label>
+                <input type="number" id="panaInput" placeholder="Type Pana number..." autocomplete="off"
+                  class="w-full border border-gray-300 rounded p-2 focus:ring-1 focus:ring-blue-500 outline-none">
+                <div id="customDropdown"
+                  class="hidden fixed z-10 w-full bg-yellow-500 border border-gray-300 rounded mt-1 max-h-60 overflow-y-auto shadow-lg">
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-sm font-bold text-gray-800 mb-2">Digit</label>
+                <input type="text" id="digitInput" readonly
+                  class="w-full bg-[#e9ecef] border border-gray-300 rounded p-2 outline-none">
+              </div>
+              <button id="showResultBtn"
+                class="w-full bg-[#f0ad4e] hover:bg-yellow-600 text-white px-6 py-2 rounded shadow-sm text-sm font-bold transition-colors uppercase">
+                Show Result
+              </button>
+              <button type="button" id="declareResult"
+                class="w-full bg-blue-600 hover:bg-yellow-600 text-white px-6 py-2 rounded shadow-sm text-sm font-bold transition-colors uppercase">
+                Declare Result
+              </button>
+
+            </div>
+          </div>
+
+          <div class="bg-gray-50 p-4 md:p-8 space-y-10">
+
+            <div class="max-w-7xl mx-auto bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              <div class="p-4 border-b border-gray-100">
+                <h2 class="text-lg font-medium text-gray-700">Today Results</h2>
+              </div>
+              <div class="overflow-x-auto custom-scrollbar">
+                <table class="min-w-full text-left border-collapse">
+                  <thead class="bg-gray-50 border-y border-gray-300">
+                    <tr class="text-gray-800 text-sm font-bold uppercase tracking-tight">
+                      <th class="p-3 border-r border-gray-300 w-12 text-center">#</th>
+                      <th class="p-3 border-r border-gray-300">Game Name</th>
+                      <th class="p-3 border-r border-gray-300">Result Date</th>
+                      <th class="p-3 border-r border-gray-300">Open Pana</th>
+                      <th class="p-3">Close Pana</th>
+                    </tr>
+                  </thead>
+<tbody class="text-sm">
+  <% if (todayResults && todayResults.length > 0) { %>
+    <% todayResults.forEach((row, index) => { %>
+      <tr class="border-b border-gray-200 <%= index === 0 ? 'bg-blue-50/30' : '' %>">
+
+        <td class="p-3 border-r border-gray-300 font-bold text-center">
+          <%= index + 1 %>
+        </td>
+
+        <td class="p-3 border-r border-gray-300 font-extrabold uppercase">
+          <%= row.gameName %>
+        </td>
+
+        <td class="p-3 border-r border-gray-300 font-semibold">
+          <%= row.resultDate %>
+        </td>
+
+        <!-- OPEN -->
+        <td class="p-3 border-r border-gray-300">
+          <% if (row.open) { %>
+            <div class="font-bold mb-2 text-base">
+              <%= row.open.panna %>-<%= row.open.digit %>
+            </div>
+            <div class="flex flex-wrap gap-1">
+              <button class="bg-yellow-500 text-white text-[10px] px-2 py-1 rounded font-bold">Show Winners</button>
+              <button class="bg-yellow-500 text-white text-[10px] px-2 py-1 rounded font-bold">Delete Result</button>
+              <button class="bg-yellow-500 text-white text-[10px] px-2 py-1 rounded font-bold">Bid Revert</button>
+            </div>
+          <% } else { %>
+            —
+          <% } %>
+        </td>
+
+        <!-- CLOSE -->
+        <td class="p-3">
+          <% if (row.close) { %>
+            <div class="font-bold mb-2 text-base">
+              <%= row.close.digit %>-<%= row.close.panna %>
+            </div>
+            <div class="flex flex-wrap gap-1">
+              <button class="bg-yellow-500 text-white text-[10px] px-2 py-1 rounded font-bold">Show Winners</button>
+              <button class="bg-yellow-500 text-white text-[10px] px-2 py-1 rounded font-bold">Delete Result</button>
+              <button class="bg-yellow-500 text-white text-[10px] px-2 py-1 rounded font-bold">Bid Revert</button>
+            </div>
+          <% } else { %>
+            —
+          <% } %>
+        </td>
+
+      </tr>
+    <% }) %>
+  <% } else { %>
+    <tr>
+      <td colspan="5" class="p-6 text-center text-gray-500 font-semibold">
+        No results declared today
+      </td>
+    </tr>
+  <% } %>
+</tbody>
+
+                </table>
+              </div>
+            </div>
+
+          </div>
+          <!-- =============================================== Modal is here ===================================== -->
+
+          <div id="resultContainer"
+            class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
+
+            <div
+              class="bg-white rounded-lg shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col justify-start animate-fade-in-up">
+
+              <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-lg">
+                <h2 class="text-lg font-bold text-gray-800">Winners List</h2>
+                <button id="closeResultBtn" class="text-gray-400 hover:text-red-500 transition-colors p-2">
+                  <i class="fa-solid fa-xmark text-2xl"></i>
+                </button>
+              </div>
+
+              <div class="p-4 overflow-auto custom-scrollbar">
+                <table
+                  class="w-full border border-gray-300 border-collapse text-xs font-bold text-gray-800 whitespace-nowrap">
+                  <thead>
+                    <tr class="bg-gray-100 border-b border-gray-300">
+                      <th class="p-3 text-left border-r border-gray-300">Action</th>
+                      <th class="p-3 text-left border-r border-gray-300">User Mobile</th>
+                      <th class="p-3 text-left border-r border-gray-300">User Name</th>
+                      <th class="p-3 text-left border-r border-gray-300">Bid Number</th>
+                      <th class="p-3 text-left border-r border-gray-300">Bid Amount</th>
+                      <th class="p-3 text-left border-r border-gray-300">Win Amount</th>
+                      <th class="p-3 text-left border-r border-gray-300">Market</th>
+                      <th class="p-3 text-left border-r border-gray-300">Session</th>
+                      <th class="p-3 text-left border-r border-gray-300">Game</th>
+                      <th class="p-3 text-left">Bid Time</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="border-b border-gray-200 hover:bg-gray-50">
+                      <td class="p-3 border-r border-gray-300"><a href="adminViewResult.html"><button
+                            class="text-blue-500 hover:underline">View</button></a></td>
+                      <td class="p-3 border-r border-gray-300">9876543210</td>
+                      <td class="p-3 border-r border-gray-300">John Doe</td>
+                      <td class="p-3 border-r border-gray-300">147</td>
+                      <td class="p-3 border-r border-gray-300">500</td>
+                      <td class="p-3 border-r border-gray-300 text-green-600">5000</td>
+                      <td class="p-3 border-r border-gray-300">Sridevi</td>
+                      <td class="p-3 border-r border-gray-300">OPEN</td>
+                      <td class="p-3 border-r border-gray-300">Single Pana</td>
+                      <td class="p-3">10:05 AM</td>
+                    </tr>
+
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+  </main>
+  <script>
+    fetch("/admin/pending-games")
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          const select = document.getElementById("checkpendinggame");
+
+          data.games.forEach(game => {
+            const option = document.createElement("option");
+            option.value = game;
+            option.textContent = game;
+            select.appendChild(option);
+          });
+        }
+      })
+      .catch(err => console.error(err));
+  </script>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+function showMessage(text, type) {
+  const oldMsg = document.getElementById("adminMsg");
+  if (oldMsg) oldMsg.remove();
+
+  const msg = document.createElement("div");
+  msg.id = "adminMsg";
+  msg.textContent = text;
+
+  msg.className = `
+    fixed top-20 left-1/2 -translate-x-1/2
+    z-[9999] px-6 py-3 rounded-lg shadow-xl
+    text-sm font-bold transition-opacity duration-300
+    ${type === "success" ? "bg-green-600 text-white" : "bg-red-600 text-white"}
+  `;
+
+  document.body.appendChild(msg);
+
+  setTimeout(() => {
+    msg.classList.add("opacity-0");
+    setTimeout(() => msg.remove(), 300);
+  }, 2200);
+}
+
+
+  const declareBtn = document.getElementById("declareResult");
+  if (!declareBtn) {
+    console.error("Declare Result button not found");
+    return;
+  }
+
+  declareBtn.addEventListener("click", function (e) {
+    e.preventDefault();
+
+    const gameName = document.getElementById("checkpendinggame").value;
+    const session = document.getElementById("sessionSelect").value;
+    const panna = document.getElementById("panaInput").value;
+    const digit = document.getElementById("digitInput").value;
+
+    if (!gameName || !session || !panna || !digit) {
+      showMessage("⚠️ Please fill all fields", "error");
+      return;
+    }
+
+    fetch("/admin/declare-result", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ gameName, session, panna, digit })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          showMessage("✅ Result Declared Successfully", "success");
+
+          setTimeout(() => {
+            window.location.reload();
+          }, 2200);
+        } else {
+          showMessage(data.message || "❌ Something went wrong", "error");
+        }
+      })
+      .catch(() => {
+        showMessage("❌ Server Error", "error");
+      });
+  });
+
+});
+
+</script>
+
+
+  <script src="/js/sidebar.js"></script>
+  <script src="/js/adminResult.js"></script>
+  <script src="/js/adminResultDOM.js"></script>
+</body>
+
+</html>

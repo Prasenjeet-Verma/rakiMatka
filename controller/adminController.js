@@ -6,7 +6,25 @@ const UserBankDetails = require("../model/UserBankDetails");
 const moment = require("moment-timezone");
 const Game = require("../model/Game");
 const GameRate = require("../model/GameRate");
+const GameResult = require("../model/GameResult");
 const { isGameOpenNow } = require("../utils/gameStatus");
+const SingleDigitBet = require("../model/SingleDigitBet");
+const SingleBulkDigitBet = require("../model/SingleBulkDigitBet");
+const JodiDigitBet = require("../model/JodiDigitBet");
+const JodiDigitBulkBet = require("../model/JodiDigitBulkBet");
+const SinglePannaBet = require("../model/SinglePannaBet");
+const SinglePannaBulkBet = require("../model/SinglePannaBulkBet");
+const DoublePannaBet = require("../model/DoublePannaBet");
+const DoublePannaBulkBet = require("../model/DoublePannaBulkBet");
+const TriplePannaBet = require("../model/TriplePannaBet");
+const OddEvenBet = require("../model/OddEvenBet");
+const HalfSangamBet = require("../model/HalfSangamBet");
+const FullSangamBet = require("../model/FullSangamBet");
+const SPMotorBet = require("../model/SPMotorBet");
+const DPMotorBet = require("../model/DPMotorBet");
+const spdptpBet = require("../model/spdptpBet");
+const RedBracketBet = require("../model/RedBracketBet");
+const mongoose = require("mongoose");
 
 exports.getAdminLoginPage = async (req, res, next) => {
   res.render("Admin/adminLogin", {
@@ -27,7 +45,7 @@ exports.postAdminLogin = [
     if (!errors.isEmpty()) {
       return res.status(400).render("Admin/adminLogin", {
         pageTitle: "Admin Login",
-        errors: errors.array().map(e => e.msg),
+        errors: errors.array().map((e) => e.msg),
         oldInput: { login, password },
       });
     }
@@ -36,13 +54,15 @@ exports.postAdminLogin = [
       // 🔥 Only admin allowed
       const admin = await User.findOne({
         $or: [{ username: login }, { phoneNo: login }],
-        role: "admin"
+        role: "admin",
       });
 
       if (!admin || admin.userStatus === "suspended") {
         return res.status(400).render("Admin/adminLogin", {
           pageTitle: "Admin Login",
-          errors: [admin ? "Admin account suspended" : "Invalid admin credentials"],
+          errors: [
+            admin ? "Admin account suspended" : "Invalid admin credentials",
+          ],
           oldInput: { login, password },
         });
       }
@@ -62,12 +82,11 @@ exports.postAdminLogin = [
       req.session.admin = {
         _id: admin._id.toString(),
         username: admin.username,
-        role: admin.role
+        role: admin.role,
       };
 
       await req.session.save();
       res.redirect("/admin/dashboard");
-
     } catch (err) {
       console.error(err);
       res.status(500).render("Admin/adminLogin", {
@@ -76,10 +95,8 @@ exports.postAdminLogin = [
         oldInput: { login, password },
       });
     }
-  }
+  },
 ];
-
-
 
 exports.getAdminDashboard = async (req, res) => {
   try {
@@ -90,7 +107,7 @@ exports.getAdminDashboard = async (req, res) => {
     const admin = await User.findOne({
       _id: req.session.admin._id,
       role: "admin",
-      userStatus: "active"
+      userStatus: "active",
     });
 
     if (!admin) {
@@ -106,28 +123,28 @@ exports.getAdminDashboard = async (req, res) => {
       admin,
       totalUsers,
       blockedUsers,
-      isLoggedIn: req.session.isLoggedIn
+      isLoggedIn: req.session.isLoggedIn,
     });
-
   } catch (err) {
     console.error("Admin Dashboard Error:", err);
     res.redirect("/admin/login");
   }
 };
 
-
-
-
 exports.toggleUserStatus = async (req, res) => {
   try {
-    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
       return res.redirect("/admin/login");
     }
 
     const admin = await User.findOne({
       _id: req.session.admin._id,
       role: "admin",
-      userStatus: "active"
+      userStatus: "active",
     });
 
     if (!admin) {
@@ -145,24 +162,26 @@ exports.toggleUserStatus = async (req, res) => {
       success: true,
       newStatus: user.userStatus,
     });
-
   } catch (err) {
     res.status(500).json({ success: false });
   }
 };
 
-
 exports.updateWallet = async (req, res) => {
   try {
     // 1️⃣ Check if admin is logged in
-    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
       return res.redirect("/admin/login");
     }
 
     const admin = await User.findOne({
       _id: req.session.admin._id,
       role: "admin",
-      userStatus: "active"
+      userStatus: "active",
     });
 
     if (!admin) {
@@ -175,7 +194,8 @@ exports.updateWallet = async (req, res) => {
     // action = "admin" | "user_withdraw" | "deposit" etc. (source)
 
     const amt = Number(amount);
-    if (!amt || amt <= 0) return res.json({ success: false, message: "Invalid amount" });
+    if (!amt || amt <= 0)
+      return res.json({ success: false, message: "Invalid amount" });
 
     const user = await User.findById(userId);
     if (!user) return res.json({ success: false, message: "User not found" });
@@ -187,21 +207,30 @@ exports.updateWallet = async (req, res) => {
     switch (action) {
       case "admin_credit": // Admin adds money to user
         if (admin.wallet < amt)
-          return res.json({ success: false, message: "Admin has insufficient balance" });
+          return res.json({
+            success: false,
+            message: "Admin has insufficient balance",
+          });
         user.wallet += amt;
         admin.wallet -= amt;
         break;
 
       case "admin_debit": // Admin removes money from user
         if (user.wallet < amt)
-          return res.json({ success: false, message: "User has insufficient balance" });
+          return res.json({
+            success: false,
+            message: "User has insufficient balance",
+          });
         user.wallet -= amt;
         admin.wallet += amt;
         break;
 
       case "withdraw": // User withdraws money → admin pays
         if (user.wallet < amt)
-          return res.json({ success: false, message: "User has insufficient balance" });
+          return res.json({
+            success: false,
+            message: "User has insufficient balance",
+          });
         user.wallet -= amt;
         admin.wallet -= amt; // admin gives money to user
         break;
@@ -245,7 +274,7 @@ exports.updateWallet = async (req, res) => {
   }
 };
 
-// Render variables dono ka same rhna chahiye 
+// Render variables dono ka same rhna chahiye
 exports.getAllUsersPage = async (req, res) => {
   try {
     if (!req.session.isLoggedIn || req.session.admin.role !== "admin") {
@@ -264,7 +293,8 @@ exports.getAllUsersPage = async (req, res) => {
     }
 
     const page = parseInt(req.query.page) || 1;
-    const limit = req.query.limit === "all" ? 0 : parseInt(req.query.limit) || 10;
+    const limit =
+      req.query.limit === "all" ? 0 : parseInt(req.query.limit) || 10;
     const skip = limit === 0 ? 0 : (page - 1) * limit;
 
     const search = req.query.search || "";
@@ -273,8 +303,8 @@ exports.getAllUsersPage = async (req, res) => {
     const filter = {
       role: "user",
       ...(search && {
-        username: { $regex: search, $options: "i" }
-      })
+        username: { $regex: search, $options: "i" },
+      }),
     };
 
     // Count after search
@@ -303,7 +333,7 @@ exports.getAllUsersPage = async (req, res) => {
           totalCredit: totalCredit[0]?.total || 0,
           totalDebit: totalDebit[0]?.total || 0,
         };
-      })
+      }),
     );
 
     const totalPages = limit === 0 ? 1 : Math.ceil(totalUsers / limit);
@@ -319,9 +349,8 @@ exports.getAllUsersPage = async (req, res) => {
       totalPages,
       limit,
       totalUsers,
-      search // 👈 pass back to view
+      search, // 👈 pass back to view
     });
-
   } catch (error) {
     console.error("All Users Page Error:", error);
     res.redirect("/admin/dashboard");
@@ -330,14 +359,18 @@ exports.getAllUsersPage = async (req, res) => {
 
 exports.adminCreateUser = async (req, res) => {
   try {
-    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
       return res.redirect("/admin/login");
     }
 
     const admin = await User.findOne({
       _id: req.session.admin._id,
       role: "admin",
-      userStatus: "active"
+      userStatus: "active",
     });
 
     if (!admin) {
@@ -346,7 +379,8 @@ exports.adminCreateUser = async (req, res) => {
     }
 
     const page = parseInt(req.query.page) || 1;
-    const limit = req.query.limit === "all" ? 0 : parseInt(req.query.limit) || 10;
+    const limit =
+      req.query.limit === "all" ? 0 : parseInt(req.query.limit) || 10;
     const skip = limit === 0 ? 0 : (page - 1) * limit;
     const search = req.query.search || "";
 
@@ -354,8 +388,8 @@ exports.adminCreateUser = async (req, res) => {
     const filter = {
       role: "user",
       ...(search && {
-        username: { $regex: search, $options: "i" }
-      })
+        username: { $regex: search, $options: "i" },
+      }),
     };
 
     const totalUsers = await User.countDocuments(filter);
@@ -383,7 +417,7 @@ exports.adminCreateUser = async (req, res) => {
           totalCredit: totalCredit[0]?.total || 0,
           totalDebit: totalDebit[0]?.total || 0,
         };
-      })
+      }),
     );
 
     const { username, phoneNo, password, wallet } = req.body;
@@ -392,7 +426,8 @@ exports.adminCreateUser = async (req, res) => {
     if (!username) errors.push("Username is required");
     if (!phoneNo) errors.push("Phone number is required");
     if (!password) errors.push("Password is required");
-    if (password && password.length < 6) errors.push("Password must be at least 6 characters");
+    if (password && password.length < 6)
+      errors.push("Password must be at least 6 characters");
 
     const existingUser = await User.findOne({
       $or: [{ username }, { phoneNo }],
@@ -412,7 +447,7 @@ exports.adminCreateUser = async (req, res) => {
         totalPages,
         limit,
         totalUsers,
-        search   // 👈 keep search
+        search, // 👈 keep search
       });
     }
 
@@ -428,8 +463,9 @@ exports.adminCreateUser = async (req, res) => {
     }).save();
 
     // 🔥 redirect with search preserved
-    return res.redirect(`/admin/allUsers?page=${page}&limit=${limit === 0 ? "all" : limit}&search=${search}`);
-
+    return res.redirect(
+      `/admin/allUsers?page=${page}&limit=${limit === 0 ? "all" : limit}&search=${search}`,
+    );
   } catch (err) {
     console.error("Admin Create Error:", err);
     res.redirect("/admin/allUsers");
@@ -437,18 +473,21 @@ exports.adminCreateUser = async (req, res) => {
 };
 //End
 
-
 exports.getSingleUserDetails = async (req, res) => {
   try {
     // 🔐 Admin auth check
-    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
       return res.redirect("/admin/login");
     }
 
     const admin = await User.findOne({
       _id: req.session.admin._id,
       role: "admin",
-      userStatus: "active"
+      userStatus: "active",
     });
 
     if (!admin) {
@@ -473,15 +512,15 @@ exports.getSingleUserDetails = async (req, res) => {
         $match: {
           user: user._id,
           source: { $in: ["admin_credit", "deposit", "refund"] },
-          status: "success"
-        }
+          status: "success",
+        },
       },
       {
         $group: {
           _id: null,
-          total: { $sum: "$amount" }
-        }
-      }
+          total: { $sum: "$amount" },
+        },
+      },
     ]);
 
     // 💸 TOTAL WITHDRAW (all money going out from user wallet)
@@ -490,28 +529,25 @@ exports.getSingleUserDetails = async (req, res) => {
         $match: {
           user: user._id,
           source: { $in: ["admin_debit", "withdraw"] },
-          status: "success"
-        }
+          status: "success",
+        },
       },
       {
         $group: {
           _id: null,
-          total: { $sum: "$amount" }
-        }
-      }
+          total: { $sum: "$amount" },
+        },
+      },
     ]);
 
     const totalDeposit = depositAgg[0]?.total || 0;
     const totalWithdraw = withdrawAgg[0]?.total || 0;
-
-
 
     // 🧾 Last 50 Transactions
     const transactions = await WalletTransaction.find({ user: user._id })
       .populate("admin", "username phoneNo")
       .sort({ createdAt: -1 })
       .limit(50);
-
 
     // ===================== WITHDRAW LIST PAGINATION =====================
 
@@ -575,21 +611,18 @@ exports.getSingleUserDetails = async (req, res) => {
     if (withdrawLimit) {
       withdrawAggPipeline.push(
         { $skip: (withdrawPage - 1) * withdrawLimit },
-        { $limit: withdrawLimit }
+        { $limit: withdrawLimit },
       );
     }
 
-    const withdrawTransactions = await WalletTransaction.aggregate(
-      withdrawAggPipeline
-    );
+    const withdrawTransactions =
+      await WalletTransaction.aggregate(withdrawAggPipeline);
 
     const withdrawTotalPages = withdrawLimit
       ? Math.ceil(withdrawTotalRecords / withdrawLimit)
       : 1;
 
-
     // ====================================================================End
-
 
     // 📤 Send to page
     res.render("Admin/singleUserDetails", {
@@ -609,9 +642,8 @@ exports.getSingleUserDetails = async (req, res) => {
       withdrawTotalPages,
       withdrawTotalRecords,
       withdrawStatus,
-      isLoggedIn: req.session.isLoggedIn
+      isLoggedIn: req.session.isLoggedIn,
     });
-
   } catch (error) {
     console.error("Single User Details Error:", error);
     res.redirect("/admin/allUsers");
@@ -620,15 +652,18 @@ exports.getSingleUserDetails = async (req, res) => {
 
 exports.changeUserPassword = async (req, res, next) => {
   try {
-
-    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
       return res.redirect("/admin/login");
     }
 
     const admin = await User.findOne({
       _id: req.session.admin._id,
       role: "admin",
-      userStatus: "active"
+      userStatus: "active",
     });
 
     if (!admin) {
@@ -645,11 +680,10 @@ exports.changeUserPassword = async (req, res, next) => {
     const hashed = await bcrypt.hash(newPassword, 12);
 
     await User.findByIdAndUpdate(userId, {
-      password: hashed
+      password: hashed,
     });
 
     return res.redirect("/admin/singleuser-details/" + userId);
-
   } catch (err) {
     console.log("Password change error:", err);
     res.redirect("/admin/singleuser-details/" + userId);
@@ -659,14 +693,18 @@ exports.changeUserPassword = async (req, res, next) => {
 // Game Controller Related Codes Start Here
 exports.getAdminCreateGamePage = async (req, res) => {
   try {
-    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
       return res.redirect("/admin/login");
     }
 
     const admin = await User.findOne({
       _id: req.session.admin._id,
       role: "admin",
-      userStatus: "active"
+      userStatus: "active",
     });
 
     if (!admin) {
@@ -675,8 +713,8 @@ exports.getAdminCreateGamePage = async (req, res) => {
     }
 
     // Pagination params
-    const page = parseInt(req.query.page) || 1;       // current page
-    const limit = parseInt(req.query.limit) || 10;    // rows per page
+    const page = parseInt(req.query.page) || 1; // current page
+    const limit = parseInt(req.query.limit) || 10; // rows per page
     const skip = (page - 1) * limit;
 
     const totalGames = await Game.countDocuments({ isDeleted: false });
@@ -687,9 +725,9 @@ exports.getAdminCreateGamePage = async (req, res) => {
       .limit(limit)
       .lean();
 
-    const gamesWithStatus = games.map(game => ({
+    const gamesWithStatus = games.map((game) => ({
       ...game,
-      isOpenNow: isGameOpenNow(game)
+      isOpenNow: isGameOpenNow(game),
     }));
 
     res.render("Admin/adminGameProviders", {
@@ -701,14 +739,11 @@ exports.getAdminCreateGamePage = async (req, res) => {
       limit,
       isLoggedIn: req.session.isLoggedIn,
     });
-
   } catch (err) {
     console.error(err);
     res.redirect("/admin/dashboard");
   }
 };
-
-
 
 exports.getAdminCreateMainStarlineGamePage = async (req, res) => {
   try {
@@ -723,7 +758,7 @@ exports.getAdminCreateMainStarlineGamePage = async (req, res) => {
     const admin = await User.findOne({
       _id: req.session.admin._id,
       role: "admin",
-      userStatus: "active"
+      userStatus: "active",
     });
 
     if (!admin) {
@@ -739,22 +774,22 @@ exports.getAdminCreateMainStarlineGamePage = async (req, res) => {
     // ⭐ ONLY STARLINE GAMES
     const totalGames = await Game.countDocuments({
       isDeleted: false,
-      isStarline: true
+      isStarline: true,
     });
 
     const totalPages = Math.ceil(totalGames / limit);
 
     const games = await Game.find({
       isDeleted: false,
-      isStarline: true
+      isStarline: true,
     })
       .skip(skip)
       .limit(limit)
       .lean();
 
-    const gamesWithStatus = games.map(game => ({
+    const gamesWithStatus = games.map((game) => ({
       ...game,
-      isOpenNow: isGameOpenNow(game)
+      isOpenNow: isGameOpenNow(game),
     }));
 
     res.render("Admin/MainStarlineGame", {
@@ -764,9 +799,8 @@ exports.getAdminCreateMainStarlineGamePage = async (req, res) => {
       page,
       totalPages,
       limit,
-      isLoggedIn: req.session.isLoggedIn
+      isLoggedIn: req.session.isLoggedIn,
     });
-
   } catch (err) {
     console.error(err);
     res.redirect("/admin/dashboard");
@@ -786,7 +820,7 @@ exports.getAdminCreateMainJackpotGamePage = async (req, res) => {
     const admin = await User.findOne({
       _id: req.session.admin._id,
       role: "admin",
-      userStatus: "active"
+      userStatus: "active",
     });
 
     if (!admin) {
@@ -802,20 +836,17 @@ exports.getAdminCreateMainJackpotGamePage = async (req, res) => {
     // 🎰 ONLY JACKPOT GAMES
     const filter = {
       isDeleted: false,
-      isJackpot: true
+      isJackpot: true,
     };
 
     const totalGames = await Game.countDocuments(filter);
     const totalPages = Math.ceil(totalGames / limit);
 
-    const games = await Game.find(filter)
-      .skip(skip)
-      .limit(limit)
-      .lean();
+    const games = await Game.find(filter).skip(skip).limit(limit).lean();
 
-    const gamesWithStatus = games.map(game => ({
+    const gamesWithStatus = games.map((game) => ({
       ...game,
-      isOpenNow: isGameOpenNow(game)
+      isOpenNow: isGameOpenNow(game),
     }));
 
     res.render("Admin/MainJackpotGame", {
@@ -825,26 +856,28 @@ exports.getAdminCreateMainJackpotGamePage = async (req, res) => {
       page,
       totalPages,
       limit,
-      isLoggedIn: req.session.isLoggedIn
+      isLoggedIn: req.session.isLoggedIn,
     });
-
   } catch (err) {
     console.error(err);
     res.redirect("/admin/dashboard");
   }
 };
 
-
 exports.postAddGame = async (req, res) => {
   try {
-    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
       return res.redirect("/admin/login");
     }
 
     const admin = await User.findOne({
       _id: req.session.admin._id,
       role: "admin",
-      userStatus: "active"
+      userStatus: "active",
     });
 
     if (!admin) {
@@ -860,13 +893,13 @@ exports.postAddGame = async (req, res) => {
     const defaultSchedule = {
       openTime,
       closeTime,
-      isActive: true
+      isActive: true,
     };
 
     const game = new Game({
       gameName,
-      isStarline: type === "starline",   // ⭐ Starline
-      isJackpot: type === "jackpot",     // 🎰 Jackpot
+      isStarline: type === "starline", // ⭐ Starline
+      isJackpot: type === "jackpot", // 🎰 Jackpot
       createdDay: istDay,
       schedule: {
         monday: { ...defaultSchedule },
@@ -875,8 +908,8 @@ exports.postAddGame = async (req, res) => {
         thursday: { ...defaultSchedule },
         friday: { ...defaultSchedule },
         saturday: { ...defaultSchedule },
-        sunday: { ...defaultSchedule }
-      }
+        sunday: { ...defaultSchedule },
+      },
     });
 
     await game.save();
@@ -891,7 +924,6 @@ exports.postAddGame = async (req, res) => {
     }
 
     return res.redirect("/admin/CreateGame"); // normal
-
   } catch (err) {
     console.error(err);
     return res.redirect("/admin/CreateGame");
@@ -901,14 +933,18 @@ exports.postAddGame = async (req, res) => {
 // ====================== UPDATE SINGLE DAY ======================
 exports.updateSingleDay = async (req, res) => {
   try {
-    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
       return res.redirect("/admin/login");
     }
 
     const admin = await User.findOne({
       _id: req.session.admin._id,
       role: "admin",
-      userStatus: "active"
+      userStatus: "active",
     });
 
     if (!admin) {
@@ -941,26 +977,27 @@ exports.updateSingleDay = async (req, res) => {
     }
 
     return res.redirect("/admin/CreateGame"); // normal
-
   } catch (error) {
     console.error(error);
     return res.redirect("/admin/CreateGame");
   }
 };
 
-
-
 // ====================== UPDATE ALL DAYS ======================
 exports.updateAllDays = async (req, res) => {
   try {
-    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
       return res.redirect("/admin/login");
     }
 
     const admin = await User.findOne({
       _id: req.session.admin._id,
       role: "admin",
-      userStatus: "active"
+      userStatus: "active",
     });
 
     if (!admin) {
@@ -983,10 +1020,10 @@ exports.updateAllDays = async (req, res) => {
       "thursday",
       "friday",
       "saturday",
-      "sunday"
+      "sunday",
     ];
 
-    days.forEach(day => {
+    days.forEach((day) => {
       if (!game.schedule[day]) return;
 
       if (openTime) game.schedule[day].openTime = openTime;
@@ -1006,25 +1043,26 @@ exports.updateAllDays = async (req, res) => {
     }
 
     return res.redirect("/admin/CreateGame"); // normal
-
   } catch (err) {
     console.error(err);
     return res.redirect("/admin/CreateGame");
   }
 };
 
-
-
 exports.deleteGame = async (req, res) => {
   try {
-    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
       return res.redirect("/admin/login");
     }
 
     const admin = await User.findOne({
       _id: req.session.admin._id,
       role: "admin",
-      userStatus: "active"
+      userStatus: "active",
     });
 
     if (!admin) {
@@ -1046,7 +1084,6 @@ exports.deleteGame = async (req, res) => {
     }
 
     return res.redirect("/admin/CreateGame"); // normal
-
   } catch (err) {
     console.error(err);
     return res.redirect("/admin/CreateGame");
@@ -1055,14 +1092,18 @@ exports.deleteGame = async (req, res) => {
 
 exports.getAdminGameRatesPage = async (req, res, next) => {
   try {
-    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
       return res.redirect("/admin/login");
     }
 
     const admin = await User.findOne({
       _id: req.session.admin._id,
       role: "admin",
-      userStatus: "active"
+      userStatus: "active",
     });
 
     if (!admin) {
@@ -1074,7 +1115,12 @@ exports.getAdminGameRatesPage = async (req, res, next) => {
     const gameRates = await GameRate.find();
 
     // Render the game rates page
-    res.render("Admin/gameRates", { admin, gameRates, isLoggedIn: req.session.isLoggedIn, pageTitle: "Game Rates" });
+    res.render("Admin/gameRates", {
+      admin,
+      gameRates,
+      isLoggedIn: req.session.isLoggedIn,
+      pageTitle: "Game Rates",
+    });
   } catch (err) {
     console.error(err);
     return res.redirect("/admin/dashboard");
@@ -1083,13 +1129,17 @@ exports.getAdminGameRatesPage = async (req, res, next) => {
 
 exports.postGameRates = async (req, res, next) => {
   try {
-    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
       return res.redirect("/admin/login");
     }
     const admin = await User.findOne({
       _id: req.session.admin._id,
       role: "admin",
-      userStatus: "active"
+      userStatus: "active",
     });
     if (!admin) {
       req.session.destroy();
@@ -1100,11 +1150,10 @@ exports.postGameRates = async (req, res, next) => {
     const newGameRate = new GameRate({
       gameType,
       betAmount,
-      profitAmount
+      profitAmount,
     });
     await newGameRate.save();
     return res.redirect("/admin/GameRates");
-
   } catch (err) {
     console.error(err);
     return res.redirect("/admin/dashboard");
@@ -1113,14 +1162,18 @@ exports.postGameRates = async (req, res, next) => {
 
 exports.toggleGameRate = async (req, res) => {
   try {
-    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
       return res.redirect("/admin/login");
     }
 
     const admin = await User.findOne({
       _id: req.session.admin._id,
       role: "admin",
-      userStatus: "active"
+      userStatus: "active",
     });
 
     if (!admin) {
@@ -1136,19 +1189,22 @@ exports.toggleGameRate = async (req, res) => {
     console.error(err);
     return res.redirect("/admin/dashboard");
   }
-
 };
 
 exports.deleteGameRate = async (req, res) => {
   try {
-    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
       return res.redirect("/admin/login");
     }
 
     const admin = await User.findOne({
       _id: req.session.admin._id,
       role: "admin",
-      userStatus: "active"
+      userStatus: "active",
     });
 
     if (!admin) {
@@ -1161,5 +1217,494 @@ exports.deleteGameRate = async (req, res) => {
     console.error(err);
     return res.redirect("/admin/dashboard");
   }
+};
 
+const betModels = [
+  require("../model/SingleDigitBet"),
+  require("../model/SingleBulkDigitBet"),
+  require("../model/JodiDigitBet"),
+  require("../model/JodiDigitBulkBet"),
+  require("../model/SinglePannaBet"),
+  require("../model/SinglePannaBulkBet"),
+  require("../model/DoublePannaBet"),
+  require("../model/DoublePannaBulkBet"),
+  require("../model/TriplePannaBet"),
+  require("../model/OddEvenBet"),
+  require("../model/HalfSangamBet"),
+  require("../model/FullSangamBet"),
+  require("../model/SPMotorBet"),
+  require("../model/DPMotorBet"),
+  require("../model/spdptpBet"),
+  require("../model/RedBracketBet"),
+];
+
+exports.gameResult = async (req, res) => {
+  try {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    });
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    // 🇮🇳 Today date (India)
+    const now = new Date().toLocaleString("en-US", {
+      timeZone: "Asia/Kolkata",
+    });
+    const todayDate = new Date(now).toISOString().split("T")[0];
+
+    // fetch today's results
+    const results = await GameResult.find({
+      resultDate: todayDate,
+    }).sort({ createdAt: 1 });
+
+    // 🔥 GROUP BY gameName
+    const groupedResults = {};
+
+    results.forEach((r) => {
+      if (!groupedResults[r.gameName]) {
+        groupedResults[r.gameName] = {
+          gameName: r.gameName,
+          resultDate: r.resultDate,
+          open: null,
+          close: null,
+        };
+      }
+
+      if (r.session === "OPEN") {
+        groupedResults[r.gameName].open = r;
+      }
+
+      if (r.session === "CLOSE") {
+        groupedResults[r.gameName].close = r;
+      }
+    });
+
+    res.render("Admin/adminGameResult", {
+      pageTitle: "Admin Game Result",
+      admin,
+      isLoggedIn: req.session.isLoggedIn,
+      todayResults: Object.values(groupedResults),
+    });
+  } catch (err) {
+    console.error("Admin Game Result Error:", err);
+    res.redirect("/admin/login");
+  }
+};
+
+exports.getPendingGames = async (req, res) => {
+  try {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    });
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    let gameSet = new Set();
+
+    for (const BetModel of betModels) {
+      const games = await BetModel.find(
+        {
+          bets: { $elemMatch: { resultStatus: "PENDING" } },
+        },
+        { gameName: 1, _id: 0 },
+      );
+
+      games.forEach((g) => {
+        if (g.gameName) gameSet.add(g.gameName);
+      });
+    }
+
+    res.json({
+      success: true,
+      games: [...gameSet],
+    });
+  } catch (err) {
+    console.error("Pending game fetch error:", err);
+    res.status(500).json({ success: false });
+  }
+};
+
+const { DateTime } = require("luxon");
+exports.declareGameResult = async (req, res) => {
+  try {
+    /* ================= ADMIN AUTH ================= */
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    });
+
+    if (!admin) {
+      req.session.destroy();
+      return res
+        .status(401)
+        .json({ success: false, message: "Session expired" });
+    }
+
+    /* ================= REQUEST DATA ================= */
+    const { gameName, session, panna, digit } = req.body;
+
+    if (!gameName || !session || !panna || !digit) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields",
+      });
+    }
+
+    /* ================= IST TIME ================= */
+    const ist = DateTime.now().setZone("Asia/Kolkata");
+    const todayDate = ist.toFormat("yyyy-MM-dd");
+
+    /* ================= SAVE RESULT ================= */
+    await GameResult.create({
+      gameName,
+      session,
+      panna,
+      digit,
+      resultDate: todayDate,
+      resultTime: ist.toFormat("HH:mm"),
+      resultWeekday: ist.toFormat("cccc"),
+      createdAt: ist.toJSDate(),
+    });
+
+    /* =====================================================
+       🔥 DOUBLE PANNA RESULT SETTLEMENT (TODAY ONLY)
+    ====================================================== */
+
+    const pendingBets = await DoublePannaBet.find({
+      gameName,
+      playedDate: todayDate,
+      "bets.resultStatus": "PENDING",
+    }).populate("userId");
+
+    for (const bet of pendingBets) {
+      let totalWinAmount = 0;
+      let isAnyWin = false;
+
+      bet.bets.forEach((item) => {
+        if (
+          item.resultStatus === "PENDING" &&
+          item.underNo === panna &&
+          item.mode === session
+        ) {
+          // ✅ WIN
+          item.resultStatus = "WIN";
+          totalWinAmount += item.amount * 2;
+          isAnyWin = true;
+        } else {
+          // ❌ LOSS
+          item.resultStatus = "LOSS";
+        }
+      });
+
+      /* ================= WALLET UPDATE ================= */
+      if (isAnyWin && totalWinAmount > 0) {
+        bet.userId.wallet += totalWinAmount;
+        await bet.userId.save();
+
+        bet.afterWallet = bet.userId.wallet;
+        bet.winningPanna = panna;
+      }
+
+      await bet.save();
+    }
+
+    /* =====================================================
+   🔥 SINGLE BULK DIGIT RESULT SETTLEMENT (TODAY ONLY)
+===================================================== */
+
+    const singleBulkDigitBets = await SingleBulkDigitBet.find({
+      gameName,
+      playedDate: todayDate,
+      "bets.resultStatus": "PENDING",
+    }).populate("userId");
+
+    for (const bet of singleBulkDigitBets) {
+      let totalWinAmount = 0;
+      let isAnyWin = false;
+
+      bet.bets.forEach((item) => {
+        if (item.resultStatus !== "PENDING") return;
+
+        if (item.mode === session && item.number === Number(digit)) {
+          // ✅ WIN
+          item.resultStatus = "WIN";
+          totalWinAmount += item.amount * 2;
+          isAnyWin = true;
+        } else {
+          // ❌ LOSS
+          item.resultStatus = "LOSS";
+        }
+      });
+
+      /* ================= WALLET UPDATE ================= */
+      if (isAnyWin && totalWinAmount > 0) {
+        bet.userId.wallet += totalWinAmount;
+        await bet.userId.save();
+
+        bet.afterWallet = bet.userId.wallet;
+        bet.winningNumber = Number(digit);
+      }
+
+      await bet.save();
+    }
+
+    /* =====================================================
+   🔥 SINGLE DIGIT RESULT SETTLEMENT (TODAY ONLY)
+===================================================== */
+
+    const singleDigitBets = await SingleDigitBet.find({
+      gameName,
+      playedDate: todayDate,
+      "bets.resultStatus": "PENDING",
+    }).populate("userId");
+
+    for (const bet of singleDigitBets) {
+      let totalWinAmount = 0;
+      let isAnyWin = false;
+
+      bet.bets.forEach((item) => {
+        if (item.resultStatus !== "PENDING") return;
+
+        if (item.mode === session && item.number === Number(digit)) {
+          // ✅ WIN
+          item.resultStatus = "WIN";
+          totalWinAmount += item.amount * 2;
+          isAnyWin = true;
+        } else {
+          // ❌ LOSS
+          item.resultStatus = "LOSS";
+        }
+      });
+
+      /* ================= WALLET UPDATE ================= */
+      if (isAnyWin && totalWinAmount > 0) {
+        bet.userId.wallet += totalWinAmount;
+        await bet.userId.save();
+
+        bet.afterWallet = bet.userId.wallet;
+        bet.winningNumber = Number(digit);
+      }
+
+      await bet.save();
+    }
+
+    /* =====================================================
+   🔥 SINGLE PANNA RESULT SETTLEMENT (TODAY ONLY)
+===================================================== */
+
+    const singlePannaBets = await SinglePannaBet.find({
+      gameName,
+      playedDate: todayDate,
+      "bets.resultStatus": "PENDING",
+    }).populate("userId");
+
+    for (const bet of singlePannaBets) {
+      let totalWinAmount = 0;
+      let isAnyWin = false;
+
+      bet.bets.forEach((item) => {
+        if (item.resultStatus !== "PENDING") return;
+
+        if (item.underNo === panna && item.mode === session) {
+          // ✅ WIN
+          item.resultStatus = "WIN";
+          totalWinAmount += item.amount * 2;
+          isAnyWin = true;
+        } else {
+          // ❌ LOSS
+          item.resultStatus = "LOSS";
+        }
+      });
+
+      /* ================= WALLET UPDATE ================= */
+      if (isAnyWin && totalWinAmount > 0) {
+        bet.userId.wallet += totalWinAmount;
+        await bet.userId.save();
+
+        bet.afterWallet = bet.userId.wallet;
+        bet.winningPanna = panna;
+      }
+
+      await bet.save();
+    }
+
+    /* =====================================================
+   🔥 TRIPLE PANNA RESULT SETTLEMENT (TODAY ONLY)
+===================================================== */
+
+    const triplePannaBets = await TriplePannaBet.find({
+      gameName,
+      playedDate: todayDate,
+      "bets.resultStatus": "PENDING",
+    }).populate("userId");
+
+    for (const bet of triplePannaBets) {
+      let totalWinAmount = 0;
+      let isAnyWin = false;
+
+      bet.bets.forEach((item) => {
+        if (item.resultStatus !== "PENDING") return;
+
+        if (item.number === panna && item.mode === session) {
+          // ✅ WIN
+          item.resultStatus = "WIN";
+          totalWinAmount += item.amount * 2;
+          isAnyWin = true;
+        } else {
+          // ❌ LOSS
+          item.resultStatus = "LOSS";
+        }
+      });
+
+      /* ================= WALLET UPDATE ================= */
+      if (isAnyWin && totalWinAmount > 0) {
+        bet.userId.wallet += totalWinAmount;
+        await bet.userId.save();
+
+        bet.afterWallet = bet.userId.wallet;
+        bet.winningNumber = panna;
+      }
+
+      await bet.save();
+    }
+
+    /* =====================================================
+   🔥 FULL SANGAM RESULT SETTLEMENT (CORRECT LOGIC)
+===================================================== */
+
+    const fullSangamBets = await FullSangamBet.find({
+      gameName,
+      playedDate: todayDate,
+      "bets.resultStatus": "PENDING",
+    }).populate("userId");
+
+    for (const bet of fullSangamBets) {
+      let totalWinAmount = 0;
+
+      bet.bets.forEach((item) => {
+        if (item.resultStatus !== "PENDING") return;
+
+        /* 🟡 OPEN RESULT */
+        if (session === "OPEN") {
+          if (item.openPanna === Number(panna)) {
+            item.openMatched = true; // ✅ stored in DB
+          }
+          return;
+        }
+
+        /* 🔴 CLOSE RESULT (FINAL) */
+        if (session === "CLOSE") {
+          if (item.openMatched === true || item.closePanna === Number(panna)) {
+            item.resultStatus = "WIN";
+            totalWinAmount += item.totalAmount * 2;
+          } else {
+            item.resultStatus = "LOSS";
+          }
+        }
+      });
+
+      /* 💰 WALLET UPDATE (ONLY ON CLOSE) */
+      if (session === "CLOSE" && totalWinAmount > 0) {
+        bet.userId.wallet += totalWinAmount;
+        await bet.userId.save();
+        bet.afterWallet = bet.userId.wallet;
+      }
+
+      await bet.save();
+    }
+
+    /* =====================================================
+   🔥 HALF SANGAM RESULT SETTLEMENT (OPEN / CLOSE SAFE)
+===================================================== */
+
+    const halfSangamBets = await HalfSangamBet.find({
+      gameName,
+      playedDate: todayDate,
+      "bets.resultStatus": "PENDING",
+    }).populate("userId");
+
+    for (const bet of halfSangamBets) {
+      let totalWinAmount = 0;
+
+      bet.bets.forEach((item) => {
+        if (item.resultStatus !== "PENDING") return;
+
+        /* 🟡 OPEN RESULT */
+        if (session === "OPEN") {
+          if (item.openPanna === Number(panna)) {
+            item.openMatched = true; // ✅ store OPEN match
+          }
+          return; // OPEN pe yahin stop
+        }
+
+        /* 🔴 CLOSE RESULT (FINAL) */
+        if (session === "CLOSE") {
+          if (item.openMatched === true || item.closeDigit === Number(digit)) {
+            // ✅ WIN
+            item.resultStatus = "WIN";
+            totalWinAmount += item.totalAmount * 2;
+          } else {
+            // ❌ LOSS
+            item.resultStatus = "LOSS";
+          }
+        }
+      });
+
+      /* 💰 WALLET UPDATE (ONLY ON CLOSE) */
+      if (session === "CLOSE" && totalWinAmount > 0) {
+        bet.userId.wallet += totalWinAmount;
+        await bet.userId.save();
+        bet.afterWallet = bet.userId.wallet;
+      }
+
+      await bet.save();
+    }
+
+    /* ================= RESPONSE ================= */
+    return res.json({
+      success: true,
+      message: "Result declared & Double Panna bets settled successfully",
+    });
+  } catch (err) {
+    console.error("Declare result error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
 };

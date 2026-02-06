@@ -15,6 +15,11 @@ const fullSangamItemSchema = new mongoose.Schema({
     required: true,
     min: 1,
   },
+    // 🔥 ADD THIS HERE (ITEM LEVEL)
+  openMatched: {
+    type: Boolean,
+    default: false,
+  },
   resultStatus: {
     type: String,
     enum: ["PENDING", "WIN", "LOSS"],

@@ -23,11 +23,17 @@ const halfSangamItemSchema = new mongoose.Schema({
     required: true,
     min: 1,
   },
-      resultStatus: {
-      type: String,
-      enum: ["PENDING", "WIN", "LOSS"],
-      default: "PENDING",
-    },
+
+  openMatched: {
+    type: Boolean,
+    default: false,
+  },
+
+  resultStatus: {
+    type: String,
+    enum: ["PENDING", "WIN", "LOSS"],
+    default: "PENDING",
+  },
 });
 
 /* ================= HALF SANGAM BET SCHEMA ================= */
