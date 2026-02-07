@@ -3900,6 +3900,7 @@ exports.getUserBidHistory = async (req, res, next) => {
         });
       });
     }
+    allRows.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
     res.render("User/userBidHistory", {
       user,

@@ -1792,57 +1792,59 @@ exports.declareGameResult = async (req, res) => {
       await bet.save();
     }
 
-    /* =====================================================
-       🔥 JODI DIGIT BULK RESULT SETTLEMENT (TODAY ONLY)
-    ===================================================== */
+/* =====================================================
+   🔥 JODI DIGIT BULK RESULT SETTLEMENT (TODAY ONLY)
+===================================================== */
 
-    const jodiDigitBulkBets = await JodiDigitBulkBet.find({
-      gameName,
-      playedDate: todayDate,
-      "bets.resultStatus": "PENDING",
-    }).populate("userId");
+const jodiDigitBulkBets = await JodiDigitBulkBet.find({
+  gameName,
+  playedDate: todayDate,
+  "bets.resultStatus": "PENDING",
+}).populate("userId");
 
-    for (const bet of jodiDigitBulkBets) {
-      let totalWinAmount = 0;
+for (const bet of jodiDigitBulkBets) {
+  let totalWinAmount = 0;
 
-      bet.bets.forEach((item) => {
-        if (item.resultStatus !== "PENDING") return;
+  bet.bets.forEach((item) => {
+    if (item.resultStatus !== "PENDING") return;
 
-        const firstDigit = item.underNo[0]; // OPEN digit
-        const secondDigit = item.underNo[1]; // CLOSE digit
+    const firstDigit = item.underNo[0];  // OPEN digit
+    const secondDigit = item.underNo[1]; // CLOSE digit
 
-        /* 🟡 OPEN SESSION */
-        if (session === "OPEN") {
-          if (Number(firstDigit) === Number(digit)) {
-            item.openMatched = true; // 🔥 remember open match
-          }
-          return; // ❗ no loss / no win on OPEN
-        }
-
-        /* 🔴 CLOSE SESSION (FINAL) */
-        if (session === "CLOSE") {
-          const closeMatched = Number(secondDigit) === Number(digit);
-
-          if (item.openMatched || closeMatched) {
-            item.resultStatus = "WIN";
-            item.winAmount = item.amountPerUnderNo * 2;
-            totalWinAmount += item.winAmount;
-          } else {
-            item.resultStatus = "LOSS";
-          }
-        }
-      });
-
-      /* 💰 WALLET UPDATE — ONLY ON CLOSE */
-      if (session === "CLOSE" && totalWinAmount > 0) {
-        bet.userId.wallet += totalWinAmount;
-        await bet.userId.save();
-
-        bet.afterWallet = bet.userId.wallet;
+    /* 🟡 OPEN SESSION */
+    if (session === "OPEN") {
+      if (Number(firstDigit) === Number(digit)) {
+        item.openMatched = true; // ✅ OPEN matched
       }
-
-      await bet.save();
+      return; // ❗ no WIN / LOSS on OPEN
     }
+
+    /* 🔴 CLOSE SESSION (FINAL DECISION) */
+    if (session === "CLOSE") {
+      const closeMatched = Number(secondDigit) === Number(digit);
+
+      if (item.openMatched && closeMatched) {
+        // ✅ BOTH MATCH → WIN
+        item.resultStatus = "WIN";
+        item.winAmount = item.amountPerUnderNo * 2;
+        totalWinAmount += item.winAmount;
+      } else {
+        // ❌ ANY FAIL → LOSS
+        item.resultStatus = "LOSS";
+      }
+    }
+  });
+
+  /* 💰 WALLET UPDATE — ONLY ON CLOSE */
+  if (session === "CLOSE" && totalWinAmount > 0) {
+    bet.userId.wallet += totalWinAmount;
+    await bet.userId.save();
+    bet.afterWallet = bet.userId.wallet;
+  }
+
+  await bet.save();
+};
+
 
     /* =====================================================
        🔥 SINGLE PANNA BULK RESULT SETTLEMENT (TODAY ONLY)
