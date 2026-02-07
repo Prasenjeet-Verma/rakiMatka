@@ -1402,37 +1402,57 @@ exports.declareGameResult = async (req, res) => {
     });
 
     /* =====================================================
-       🔥 DOUBLE PANNA RESULT SETTLEMENT (TODAY ONLY)
-    ====================================================== */
+    🔥 DOUBLE PANNA SAFE SETTLEMENT (OPEN → CLOSE)
+ ===================================================== */
 
-    const pendingBets = await DoublePannaBet.find({
+    const bets = await DoublePannaBet.find({
       gameName,
       playedDate: todayDate,
       "bets.resultStatus": "PENDING",
     }).populate("userId");
 
-    for (const bet of pendingBets) {
+    for (const bet of bets) {
       let totalWinAmount = 0;
-      let isAnyWin = false;
 
       bet.bets.forEach((item) => {
-        if (
-          item.resultStatus === "PENDING" &&
-          item.underNo === panna &&
-          item.mode === session
-        ) {
-          // ✅ WIN
-          item.resultStatus = "WIN";
-          totalWinAmount += item.amount * 2;
-          isAnyWin = true;
-        } else {
-          // ❌ LOSS
-          item.resultStatus = "LOSS";
+        if (item.resultStatus !== "PENDING") return;
+
+        /* ================= 🟡 OPEN SESSION ================= */
+        if (session === "OPEN") {
+          if (item.mode !== "OPEN") return;
+
+          if (item.underNo === panna) {
+            item.openMatched = true; // ✅ yaad rakh liya
+          }
+          return; // ❗ OPEN pe result finalize nahi
+        }
+
+        /* ================= 🔴 CLOSE SESSION ================= */
+        if (session === "CLOSE") {
+          let itemWin = 0;
+
+          // OPEN win mila tha?
+          if (item.mode === "OPEN" && item.openMatched) {
+            itemWin += item.amount * 2;
+          }
+
+          // CLOSE win mila?
+          if (item.mode === "CLOSE" && item.underNo === panna) {
+            itemWin += item.amount * 2;
+          }
+
+          if (itemWin > 0) {
+            item.resultStatus = "WIN";
+            item.winAmount = itemWin;
+            totalWinAmount += itemWin;
+          } else {
+            item.resultStatus = "LOSS";
+          }
         }
       });
 
-      /* ================= WALLET UPDATE ================= */
-      if (isAnyWin && totalWinAmount > 0) {
+      /* ================= 💰 WALLET UPDATE (ONLY CLOSE) ================= */
+      if (session === "CLOSE" && totalWinAmount > 0) {
         bet.userId.wallet += totalWinAmount;
         await bet.userId.save();
 
@@ -1444,88 +1464,8 @@ exports.declareGameResult = async (req, res) => {
     }
 
     /* =====================================================
-   🔥 SINGLE BULK DIGIT RESULT SETTLEMENT (TODAY ONLY)
-===================================================== */
-
-    const singleBulkDigitBets = await SingleBulkDigitBet.find({
-      gameName,
-      playedDate: todayDate,
-      "bets.resultStatus": "PENDING",
-    }).populate("userId");
-
-    for (const bet of singleBulkDigitBets) {
-      let totalWinAmount = 0;
-      let isAnyWin = false;
-
-      bet.bets.forEach((item) => {
-        if (item.resultStatus !== "PENDING") return;
-
-        if (item.mode === session && item.number === Number(digit)) {
-          // ✅ WIN
-          item.resultStatus = "WIN";
-          totalWinAmount += item.amount * 2;
-          isAnyWin = true;
-        } else {
-          // ❌ LOSS
-          item.resultStatus = "LOSS";
-        }
-      });
-
-      /* ================= WALLET UPDATE ================= */
-      if (isAnyWin && totalWinAmount > 0) {
-        bet.userId.wallet += totalWinAmount;
-        await bet.userId.save();
-
-        bet.afterWallet = bet.userId.wallet;
-        bet.winningNumber = Number(digit);
-      }
-
-      await bet.save();
-    }
-
-    /* =====================================================
-   🔥 SINGLE DIGIT RESULT SETTLEMENT (TODAY ONLY)
-===================================================== */
-
-    const singleDigitBets = await SingleDigitBet.find({
-      gameName,
-      playedDate: todayDate,
-      "bets.resultStatus": "PENDING",
-    }).populate("userId");
-
-    for (const bet of singleDigitBets) {
-      let totalWinAmount = 0;
-      let isAnyWin = false;
-
-      bet.bets.forEach((item) => {
-        if (item.resultStatus !== "PENDING") return;
-
-        if (item.mode === session && item.number === Number(digit)) {
-          // ✅ WIN
-          item.resultStatus = "WIN";
-          totalWinAmount += item.amount * 2;
-          isAnyWin = true;
-        } else {
-          // ❌ LOSS
-          item.resultStatus = "LOSS";
-        }
-      });
-
-      /* ================= WALLET UPDATE ================= */
-      if (isAnyWin && totalWinAmount > 0) {
-        bet.userId.wallet += totalWinAmount;
-        await bet.userId.save();
-
-        bet.afterWallet = bet.userId.wallet;
-        bet.winningNumber = Number(digit);
-      }
-
-      await bet.save();
-    }
-
-    /* =====================================================
-   🔥 SINGLE PANNA RESULT SETTLEMENT (TODAY ONLY)
-===================================================== */
+       🔥 SINGLE PANNA RESULT SETTLEMENT (OPEN / CLOSE SAFE)
+    ===================================================== */
 
     const singlePannaBets = await SinglePannaBet.find({
       gameName,
@@ -1540,19 +1480,35 @@ exports.declareGameResult = async (req, res) => {
       bet.bets.forEach((item) => {
         if (item.resultStatus !== "PENDING") return;
 
-        if (item.underNo === panna && item.mode === session) {
-          // ✅ WIN
-          item.resultStatus = "WIN";
-          totalWinAmount += item.amount * 2;
-          isAnyWin = true;
-        } else {
-          // ❌ LOSS
-          item.resultStatus = "LOSS";
+        /* ================= 🟡 OPEN SESSION ================= */
+        if (session === "OPEN") {
+          if (item.mode === "OPEN" && item.underNo === panna) {
+            item.openMatched = true; // 🔥 OPEN panna matched
+          }
+          return; // ❗ OPEN pe koi WIN / LOSS nahi
+        }
+
+        /* ================= 🔴 CLOSE SESSION (FINAL) ================= */
+        if (session === "CLOSE") {
+          const closeMatched = item.mode === "CLOSE" && item.underNo === panna;
+
+          if (item.openMatched || closeMatched) {
+            // ✅ WIN
+            item.resultStatus = "WIN";
+            item.winAmount = item.amount * 2;
+
+            totalWinAmount += item.winAmount;
+            isAnyWin = true;
+          } else {
+            // ❌ LOSS
+            item.resultStatus = "LOSS";
+            item.winAmount = 0;
+          }
         }
       });
 
-      /* ================= WALLET UPDATE ================= */
-      if (isAnyWin && totalWinAmount > 0) {
+      /* ================= 💰 WALLET UPDATE (ONLY CLOSE) ================= */
+      if (session === "CLOSE" && isAnyWin && totalWinAmount > 0) {
         bet.userId.wallet += totalWinAmount;
         await bet.userId.save();
 
@@ -1564,8 +1520,122 @@ exports.declareGameResult = async (req, res) => {
     }
 
     /* =====================================================
-   🔥 TRIPLE PANNA RESULT SETTLEMENT (TODAY ONLY)
-===================================================== */
+      🔥 SINGLE BULK DIGIT RESULT SETTLEMENT (OPEN / CLOSE)
+   ===================================================== */
+
+    const singleBulkDigitBets = await SingleBulkDigitBet.find({
+      gameName,
+      playedDate: todayDate,
+      "bets.resultStatus": "PENDING",
+    }).populate("userId");
+
+    for (const bet of singleBulkDigitBets) {
+      let totalWinAmount = 0;
+      let isAnyWin = false;
+
+      bet.bets.forEach((item) => {
+        if (item.resultStatus !== "PENDING") return;
+
+        /* ================= 🟡 OPEN SESSION ================= */
+        if (session === "OPEN") {
+          if (item.mode === "OPEN" && item.number === Number(digit)) {
+            item.openMatched = true; // 🔥 remember OPEN win
+          }
+          return; // ❗ no WIN / LOSS on OPEN
+        }
+
+        /* ================= 🔴 CLOSE SESSION (FINAL) ================= */
+        if (session === "CLOSE") {
+          const closeMatched =
+            item.mode === "CLOSE" && item.number === Number(digit);
+
+          if (item.openMatched || closeMatched) {
+            // ✅ WIN
+            item.resultStatus = "WIN";
+            item.winAmount = item.amount * 2;
+
+            totalWinAmount += item.winAmount;
+            isAnyWin = true;
+          } else {
+            // ❌ LOSS
+            item.resultStatus = "LOSS";
+            item.winAmount = 0;
+          }
+        }
+      });
+
+      /* ================= 💰 WALLET UPDATE (ONLY CLOSE) ================= */
+      if (session === "CLOSE" && isAnyWin && totalWinAmount > 0) {
+        bet.userId.wallet += totalWinAmount;
+        await bet.userId.save();
+
+        bet.afterWallet = bet.userId.wallet;
+        bet.winningNumber = Number(digit);
+      }
+
+      await bet.save();
+    }
+
+    /* =====================================================
+       🔥 SINGLE DIGIT RESULT SETTLEMENT (OPEN / CLOSE SAFE)
+    ===================================================== */
+
+    const singleDigitBets = await SingleDigitBet.find({
+      gameName,
+      playedDate: todayDate,
+      "bets.resultStatus": "PENDING",
+    }).populate("userId");
+
+    for (const bet of singleDigitBets) {
+      let totalWinAmount = 0;
+      let isAnyWin = false;
+
+      bet.bets.forEach((item) => {
+        if (item.resultStatus !== "PENDING") return;
+
+        /* ================= 🟡 OPEN SESSION ================= */
+        if (session === "OPEN") {
+          if (item.mode === "OPEN" && item.number === Number(digit)) {
+            item.openMatched = true; // 🔥 remember OPEN win
+          }
+          return; // ❗ OPEN pe koi WIN / LOSS nahi
+        }
+
+        /* ================= 🔴 CLOSE SESSION (FINAL) ================= */
+        if (session === "CLOSE") {
+          const closeMatched =
+            item.mode === "CLOSE" && item.number === Number(digit);
+
+          if (item.openMatched || closeMatched) {
+            // ✅ WIN
+            item.resultStatus = "WIN";
+            item.winAmount = item.amount * 2;
+
+            totalWinAmount += item.winAmount;
+            isAnyWin = true;
+          } else {
+            // ❌ LOSS
+            item.resultStatus = "LOSS";
+            item.winAmount = 0;
+          }
+        }
+      });
+
+      /* ================= 💰 WALLET UPDATE (ONLY CLOSE) ================= */
+      if (session === "CLOSE" && isAnyWin && totalWinAmount > 0) {
+        bet.userId.wallet += totalWinAmount;
+        await bet.userId.save();
+
+        bet.afterWallet = bet.userId.wallet;
+        bet.winningNumber = Number(digit);
+      }
+
+      await bet.save();
+    }
+
+    /* =====================================================
+    🔥 TRIPLE PANNA RESULT SETTLEMENT (OPEN / CLOSE SAFE)
+ ===================================================== */
 
     const triplePannaBets = await TriplePannaBet.find({
       gameName,
@@ -1580,24 +1650,424 @@ exports.declareGameResult = async (req, res) => {
       bet.bets.forEach((item) => {
         if (item.resultStatus !== "PENDING") return;
 
-        if (item.number === panna && item.mode === session) {
-          // ✅ WIN
-          item.resultStatus = "WIN";
-          totalWinAmount += item.amount * 2;
-          isAnyWin = true;
-        } else {
-          // ❌ LOSS
-          item.resultStatus = "LOSS";
+        /* ================= 🟡 OPEN SESSION ================= */
+        if (session === "OPEN") {
+          if (item.mode === "OPEN" && item.number === panna) {
+            item.openMatched = true; // 🔥 OPEN panna matched
+          }
+          return; // ❗ OPEN pe koi WIN / LOSS nahi
+        }
+
+        /* ================= 🔴 CLOSE SESSION (FINAL) ================= */
+        if (session === "CLOSE") {
+          const closeMatched = item.mode === "CLOSE" && item.number === panna;
+
+          if (item.openMatched || closeMatched) {
+            // ✅ WIN
+            item.resultStatus = "WIN";
+            item.winAmount = item.amount * 2;
+
+            totalWinAmount += item.winAmount;
+            isAnyWin = true;
+          } else {
+            // ❌ LOSS
+            item.resultStatus = "LOSS";
+            item.winAmount = 0;
+          }
         }
       });
 
-      /* ================= WALLET UPDATE ================= */
-      if (isAnyWin && totalWinAmount > 0) {
+      /* ================= 💰 WALLET UPDATE (ONLY CLOSE) ================= */
+      if (session === "CLOSE" && isAnyWin && totalWinAmount > 0) {
         bet.userId.wallet += totalWinAmount;
         await bet.userId.save();
 
         bet.afterWallet = bet.userId.wallet;
         bet.winningNumber = panna;
+      }
+
+      await bet.save();
+    }
+
+    /* =====================================================
+       🔥 JODI DIGIT RESULT SETTLEMENT (TODAY ONLY)
+    ===================================================== */
+
+    const jodiDigitBets = await JodiDigitBet.find({
+      gameName,
+      playedDate: todayDate,
+      "bets.resultStatus": "PENDING",
+    }).populate("userId");
+
+    for (const bet of jodiDigitBets) {
+      let totalWinAmount = 0;
+
+      bet.bets.forEach((item) => {
+        if (item.resultStatus !== "PENDING") return;
+
+        const firstDigit = item.underNo[0]; // "1"
+        const secondDigit = item.underNo[1]; // "0"
+
+        /* 🟡 OPEN SESSION */
+        if (session === "OPEN") {
+          if (String(digit) === firstDigit) {
+            item.openMatched = true; // 🔥 remember OPEN match
+          }
+          return; // ❗ no win / loss on OPEN
+        }
+
+        /* 🔴 CLOSE SESSION (FINAL) */
+        if (session === "CLOSE") {
+          const closeMatched = String(digit) === secondDigit;
+
+          if (item.openMatched && closeMatched) {
+            item.resultStatus = "WIN";
+            item.winAmount = item.amount * 2;
+            totalWinAmount += item.winAmount;
+          } else {
+            item.resultStatus = "LOSS";
+          }
+        }
+      });
+
+      /* 💰 WALLET UPDATE — ONLY ON CLOSE */
+      if (session === "CLOSE" && totalWinAmount > 0) {
+        bet.userId.wallet += totalWinAmount;
+        await bet.userId.save();
+
+        bet.afterWallet = bet.userId.wallet;
+        bet.winningJodi = digit; // optional, ya `${openDigit}${closeDigit}`
+      }
+
+      await bet.save();
+    }
+
+    /* =====================================================
+       🔥 DOUBLE PANNA BULK RESULT SETTLEMENT (TODAY ONLY)
+    ===================================================== */
+
+    const doublePannaBulkBets = await DoublePannaBulkBet.find({
+      gameName,
+      playedDate: todayDate,
+      "bets.resultStatus": "PENDING",
+    }).populate("userId");
+
+    for (const bet of doublePannaBulkBets) {
+      let totalWinAmount = 0;
+
+      bet.bets.forEach((item) => {
+        if (item.resultStatus !== "PENDING") return;
+
+        /* 🟡 OPEN SESSION */
+        if (session === "OPEN") {
+          if (item.mode === "OPEN" && item.underNo === panna) {
+            item.openMatched = true; // 🔥 remember OPEN win
+          }
+          return; // ❗ no LOSS / no WIN on OPEN
+        }
+
+        /* 🔴 CLOSE SESSION (FINAL) */
+        if (session === "CLOSE") {
+          const closeMatched = item.mode === "CLOSE" && item.underNo === panna;
+
+          if (item.openMatched || closeMatched) {
+            item.resultStatus = "WIN";
+            item.winAmount = item.amountPerUnderNo * 2;
+            totalWinAmount += item.winAmount;
+          } else {
+            item.resultStatus = "LOSS";
+          }
+        }
+      });
+
+      /* 💰 WALLET UPDATE — ONLY ON CLOSE */
+      if (session === "CLOSE" && totalWinAmount > 0) {
+        bet.userId.wallet += totalWinAmount;
+        await bet.userId.save();
+
+        bet.afterWallet = bet.userId.wallet;
+        bet.winningPanna = panna;
+      }
+
+      await bet.save();
+    }
+
+    /* =====================================================
+       🔥 JODI DIGIT BULK RESULT SETTLEMENT (TODAY ONLY)
+    ===================================================== */
+
+    const jodiDigitBulkBets = await JodiDigitBulkBet.find({
+      gameName,
+      playedDate: todayDate,
+      "bets.resultStatus": "PENDING",
+    }).populate("userId");
+
+    for (const bet of jodiDigitBulkBets) {
+      let totalWinAmount = 0;
+
+      bet.bets.forEach((item) => {
+        if (item.resultStatus !== "PENDING") return;
+
+        const firstDigit = item.underNo[0]; // OPEN digit
+        const secondDigit = item.underNo[1]; // CLOSE digit
+
+        /* 🟡 OPEN SESSION */
+        if (session === "OPEN") {
+          if (Number(firstDigit) === Number(digit)) {
+            item.openMatched = true; // 🔥 remember open match
+          }
+          return; // ❗ no loss / no win on OPEN
+        }
+
+        /* 🔴 CLOSE SESSION (FINAL) */
+        if (session === "CLOSE") {
+          const closeMatched = Number(secondDigit) === Number(digit);
+
+          if (item.openMatched || closeMatched) {
+            item.resultStatus = "WIN";
+            item.winAmount = item.amountPerUnderNo * 2;
+            totalWinAmount += item.winAmount;
+          } else {
+            item.resultStatus = "LOSS";
+          }
+        }
+      });
+
+      /* 💰 WALLET UPDATE — ONLY ON CLOSE */
+      if (session === "CLOSE" && totalWinAmount > 0) {
+        bet.userId.wallet += totalWinAmount;
+        await bet.userId.save();
+
+        bet.afterWallet = bet.userId.wallet;
+      }
+
+      await bet.save();
+    }
+
+    /* =====================================================
+       🔥 SINGLE PANNA BULK RESULT SETTLEMENT (TODAY ONLY)
+    ===================================================== */
+
+    const singlePannaBulkBets = await SinglePannaBulkBet.find({
+      gameName,
+      playedDate: todayDate,
+      "bets.resultStatus": "PENDING",
+    }).populate("userId");
+
+    for (const bet of singlePannaBulkBets) {
+      let totalWinAmount = 0;
+
+      bet.bets.forEach((item) => {
+        if (item.resultStatus !== "PENDING") return;
+
+        /* 🟡 OPEN SESSION */
+        if (session === "OPEN") {
+          if (item.mode === "OPEN" && item.underNo === panna) {
+            item.openMatched = true; // 🔥 remember open win
+          }
+          return; // no win/loss on OPEN
+        }
+
+        /* 🔴 CLOSE SESSION (FINAL) */
+        if (session === "CLOSE") {
+          const closeMatched = item.mode === "CLOSE" && item.underNo === panna;
+
+          if (item.openMatched || closeMatched) {
+            item.resultStatus = "WIN";
+            item.winAmount = item.amountPerUnderNo * 2;
+            totalWinAmount += item.winAmount;
+          } else {
+            item.resultStatus = "LOSS";
+          }
+        }
+      });
+
+      /* 💰 WALLET UPDATE — ONLY ON CLOSE */
+      if (session === "CLOSE" && totalWinAmount > 0) {
+        bet.userId.wallet += totalWinAmount;
+        await bet.userId.save();
+
+        bet.afterWallet = bet.userId.wallet;
+      }
+
+      await bet.save();
+    }
+
+    /* =====================================================
+       🔥 ODD EVEN RESULT SETTLEMENT (OPEN / CLOSE SAFE)
+    ===================================================== */
+
+    const oddEvenBets = await OddEvenBet.find({
+      gameName,
+      playedDate: todayDate,
+      "bets.resultStatus": "PENDING",
+    }).populate("userId");
+
+    for (const bet of oddEvenBets) {
+      let totalWinAmount = 0;
+
+      bet.bets.forEach((item) => {
+        if (item.resultStatus !== "PENDING") return;
+
+        const digitNum = Number(digit);
+        const isOdd = digitNum % 2 === 1;
+        const isEven = digitNum % 2 === 0;
+
+        const patternMatched =
+          (item.pattern === "ODD" && isOdd) ||
+          (item.pattern === "EVEN" && isEven);
+
+        /* 🟡 OPEN SESSION */
+        if (session === "OPEN") {
+          if (
+            item.mode === "OPEN" &&
+            item.underNo === digit &&
+            patternMatched
+          ) {
+            item.openMatched = true; // 🔥 remember open match
+          }
+          return; // no win/loss on OPEN
+        }
+
+        /* 🔴 CLOSE SESSION (FINAL) */
+        if (session === "CLOSE") {
+          const closeMatched =
+            item.mode === "CLOSE" && item.underNo === digit && patternMatched;
+
+          if (item.openMatched || closeMatched) {
+            item.resultStatus = "WIN";
+            item.winAmount = item.amountPerUnderNo * 2;
+            totalWinAmount += item.winAmount;
+          } else {
+            item.resultStatus = "LOSS";
+          }
+        }
+      });
+
+      /* 💰 WALLET UPDATE — ONLY ON CLOSE */
+      if (session === "CLOSE" && totalWinAmount > 0) {
+        bet.userId.wallet += totalWinAmount;
+        await bet.userId.save();
+
+        bet.afterWallet = bet.userId.wallet;
+      }
+
+      await bet.save();
+    }
+
+    /* =====================================================
+   🔥 RED BRACKET RESULT SETTLEMENT (OPEN + CLOSE BOTH)
+===================================================== */
+
+    const redBracketBets = await RedBracketBet.find({
+      gameName,
+      playedDate: todayDate,
+      "bets.resultStatus": "PENDING",
+    }).populate("userId");
+
+    for (const bet of redBracketBets) {
+      let totalWinAmount = 0;
+      let isAnyWin = false;
+
+      bet.bets.forEach((item) => {
+        if (item.resultStatus !== "PENDING") return;
+
+        /* ================= OPEN SESSION ================= */
+        if (session === "OPEN") {
+          const openDigit = Number(digit);
+          const firstDigit = Number(item.underNo[0]);
+
+          if (openDigit === firstDigit) {
+            item.openMatched = true; // ✅ sirf yaad rakhna
+          }
+
+          // OPEN me resultStatus nahi badlega
+          return;
+        }
+
+        /* ================= CLOSE SESSION ================= */
+        if (session === "CLOSE") {
+          const closeDigit = Number(digit);
+          const secondDigit = Number(item.underNo[1]);
+
+          const closeMatched = closeDigit === secondDigit;
+
+          if (item.openMatched && closeMatched) {
+            // ✅ OPEN + CLOSE BOTH MATCH
+            item.resultStatus = "WIN";
+            item.winAmount = item.amountPerUnderNo * 2;
+
+            totalWinAmount += item.winAmount;
+            isAnyWin = true;
+          } else {
+            // ❌ koi ek bhi miss hua
+            item.resultStatus = "LOSS";
+          }
+        }
+      });
+
+      /* ================= WALLET UPDATE (ONLY ON CLOSE) ================= */
+      if (session === "CLOSE" && isAnyWin && totalWinAmount > 0) {
+        bet.userId.wallet += totalWinAmount;
+        await bet.userId.save();
+
+        bet.afterWallet = bet.userId.wallet;
+      }
+
+      await bet.save();
+    }
+
+    /* =====================================================
+   🔥 SP MOTOR RESULT SETTLEMENT (FINAL & CORRECT)
+===================================================== */
+
+    const spMotorBets = await SPMotorBet.find({
+      gameName,
+      playedDate: todayDate,
+      "bets.resultStatus": "PENDING",
+    }).populate("userId");
+
+    for (const bet of spMotorBets) {
+      let totalWinAmount = 0;
+
+      bet.bets.forEach((item) => {
+        if (item.resultStatus !== "PENDING") return;
+
+        /* ================= OPEN SESSION ================= */
+        if (session === "OPEN") {
+          if (item.session === "OPEN" && item.underNo === panna) {
+            item.openMatched = true; // 🔥 remember open win
+          }
+          return; // ❗ NO result decision in OPEN
+        }
+
+        /* ================= CLOSE SESSION (FINAL) ================= */
+        if (session === "CLOSE") {
+          const closeMatched =
+            item.session === "CLOSE" && item.underNo === panna;
+
+          /*
+        FINAL LOGIC
+        openMatched  OR  closeMatched  => WIN
+      */
+          if (item.openMatched || closeMatched) {
+            item.resultStatus = "WIN";
+
+            // payout (change multiplier if needed)
+            item.winAmount = item.amountPerUnderNo * 2;
+            totalWinAmount += item.winAmount;
+          } else {
+            item.resultStatus = "LOSS";
+          }
+        }
+      });
+
+      /* ================= WALLET UPDATE (ONLY ON CLOSE) ================= */
+      if (session === "CLOSE" && totalWinAmount > 0) {
+        bet.userId.wallet += totalWinAmount;
+        await bet.userId.save();
+
+        bet.afterWallet = bet.userId.wallet;
       }
 
       await bet.save();

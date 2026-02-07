@@ -13,6 +13,15 @@ const bulkDigitItemSchema = new mongoose.Schema({
     required: true,
     min: 1
   },
+    openMatched: {
+    type: Boolean,
+    default: false,
+  },
+
+  winAmount: {
+    type: Number,
+    default: 0,
+  },
   mode: {
     type: String,
     enum: ["OPEN", "CLOSE"],

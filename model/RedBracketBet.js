@@ -8,26 +8,36 @@ const redBracketItemSchema = new mongoose.Schema({
     required: true,
   },
 
-  // now array of strings
-  underDigits: {
-    type: [String],
+  underNo: {
+    type: String, // "05", "16", "00" etc
     required: true,
-    validate: [arr => Array.isArray(arr) && arr.length > 0, "At least one digit required"],
+    match: /^\d{2}$/, // exactly 2 digit (00 allowed)
   },
 
-  // points = amount
-  totalPoints: {
+  amountPerUnderNo: {
     type: Number,
     required: true,
     min: 1,
   },
-  
-    resultStatus: {
-      type: String,
-      enum: ["PENDING", "WIN", "LOSS"],
-      default: "PENDING",
-    },
+
+    /* 🔥 NEW (same as other games) */
+  openMatched: {
+    type: Boolean,
+    default: false,
+  },
+
+  winAmount: {
+    type: Number,
+    default: 0,
+  },
+
+  resultStatus: {
+    type: String,
+    enum: ["PENDING", "WIN", "LOSS"],
+    default: "PENDING",
+  },
 });
+
 
 
 /* ================= MAIN SCHEMA ================= */
@@ -82,7 +92,7 @@ const redBracketBetSchema = new mongoose.Schema(
     // total = sum of all bet.points
     totalAmount: {
       type: Number,
-      default: 0,
+      min: 1,
     },
 
 

@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-/* ================= SINGLE PANNA BULK ITEM ================= */
+/* ================= DOUBLE PANNA BULK ITEM ================= */
 const doublePannaBulkItemSchema = new mongoose.Schema({
   mainNo: {
     type: Number, // 0 - 9
@@ -8,17 +8,13 @@ const doublePannaBulkItemSchema = new mongoose.Schema({
     min: 0,
     max: 9,
   },
-  underNos: {
-    type: [String], // ["127", "134", "445", ...]
+  underNo: {
+    type: String,
     required: true,
-    validate: [(arr) => arr.length > 0, "At least one under number required"],
+    trim: true,
+    match: [/^\d{3}$/, "underNo must be exactly 3 digits"],
   },
   amountPerUnderNo: {
-    type: Number,
-    required: true,
-    min: 1,
-  },
-  totalAmount: {
     type: Number,
     required: true,
     min: 1,
@@ -28,6 +24,16 @@ const doublePannaBulkItemSchema = new mongoose.Schema({
     enum: ["OPEN", "CLOSE"],
     required: true,
   },
+  /* 🔥 NEW (same as other games) */
+  openMatched: {
+    type: Boolean,
+    default: false,
+  },
+
+  winAmount: {
+    type: Number,
+    default: 0,
+  },
   resultStatus: {
     type: String,
     enum: ["PENDING", "WIN", "LOSS"],
@@ -35,7 +41,7 @@ const doublePannaBulkItemSchema = new mongoose.Schema({
   },
 });
 
-/* ================= SINGLE PANNA BULK BET ================= */
+/* ================= DOUBLE PANNA BULK BET ================= */
 const doublePannaBulkBetSchema = new mongoose.Schema(
   {
     userId: {
@@ -75,35 +81,24 @@ const doublePannaBulkBetSchema = new mongoose.Schema(
       required: true,
       min: 1,
     },
-
     afterWallet: {
       type: Number,
       required: true,
       min: 1,
     },
-
     totalAmount: {
       type: Number,
       required: true,
     },
-
     winningPanna: {
       type: String,
       default: null,
     },
-    playedDate: String, // YYYY-MM-DD
-    playedTime: String, // HH:mm
-    playedWeekday: String, // Monday
+    playedDate: String,
+    playedTime: String,
+    playedWeekday: String,
   },
-  { timestamps: true },
+  { timestamps: true }
 );
-
-/* ===== PRE-SAVE HOOK: CALCULATE TOTAL AMOUNT ===== */
-doublePannaBulkBetSchema.pre("validate", function () {
-  this.totalAmount = this.bets.reduce(
-    (sum, b) => sum + (b.totalAmount || 0),
-    0,
-  );
-});
 
 module.exports = mongoose.model("DoublePannaBulkBet", doublePannaBulkBetSchema);

@@ -3,18 +3,16 @@ const mongoose = require("mongoose");
 /* ================= ODD EVEN ITEM ================= */
 const oddEvenItemSchema = new mongoose.Schema({
   pattern: {
-    type: String, // "ODD" or "EVEN"
+    type: String,
     enum: ["ODD", "EVEN"],
     required: true,
   },
 
-  underNos: {
-    type: [String], // ["127", "345", "569", ...] (odd/even ke andar wale)
+  underNo: {
+    type: String,
     required: true,
-    validate: [
-      arr => arr.length > 0,
-      "At least one under number required",
-    ],
+    trim: true,
+    match: [/^[0-9]$/, "underNo must be single digit 0-9"],
   },
 
   amountPerUnderNo: {
@@ -23,47 +21,42 @@ const oddEvenItemSchema = new mongoose.Schema({
     min: 1,
   },
 
-  totalAmount: {
+  openMatched: {
+    type: Boolean,
+    default: false,
+  },
+
+  winAmount: {
     type: Number,
-    required: true,
-    min: 1,
+    default: 0,
   },
 
   mode: {
-    type: String, // "OPEN" or "CLOSE"
+    type: String,
     enum: ["OPEN", "CLOSE"],
     required: true,
   },
-      resultStatus: {
-      type: String,
-      enum: ["PENDING", "WIN", "LOSS"],
-      default: "PENDING",
-    },
+
+  resultStatus: {
+    type: String,
+    enum: ["PENDING", "WIN", "LOSS"],
+    default: "PENDING",
+  },
 });
+
 /* ================= ODD EVEN BET ================= */
 const oddEvenBetSchema = new mongoose.Schema(
   {
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    gameId: { type: mongoose.Schema.Types.ObjectId, ref: "Game", required: true },
+    gameName: { type: String, required: true },
 
-    gameId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Game",
-      required: true,
-    },
-
-    gameName: {
-      type: String,
-      required: true,
-    },
     mainGame: {
       type: String,
       default: "MAIN_GAME",
-      immutable: true
+      immutable: true,
     },
+
     gameType: {
       type: String,
       default: "ODD_EVEN",
@@ -73,33 +66,12 @@ const oddEvenBetSchema = new mongoose.Schema(
     bets: {
       type: [oddEvenItemSchema],
       required: true,
-      validate: [
-        arr => arr.length > 0,
-        "At least one odd-even panna bulk bet required",
-      ],
-    },
-    beforeWallet: {
-      type: Number,
-      required: true,
-      min: 1,
     },
 
-    afterWallet: {
-      type: Number,
-      required: true,
-      min: 1,
-    },
-    totalAmount: {
-      type: Number,
-      required: true,
-    },
+    beforeWallet: { type: Number, required: true },
+    afterWallet: { type: Number, required: true },
 
-
-
-    winningPanna: {
-      type: String,
-      default: null,
-    },
+    totalAmount: { type: Number, required: true },
 
     playedDate: String,
     playedTime: String,
@@ -107,14 +79,5 @@ const oddEvenBetSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-/* ===== PRE-SAVE HOOK: CALCULATE TOTAL AMOUNT ===== */
-oddEvenBetSchema.pre("validate", function () {
-  this.totalAmount = this.bets.reduce(
-    (sum, b) => sum + (b.totalAmount || 0),
-    0
-  );
-});
-module.exports = mongoose.model(
-  "OddEvenBet",
-  oddEvenBetSchema
-);
+
+module.exports = mongoose.model("OddEvenBet", oddEvenBetSchema);

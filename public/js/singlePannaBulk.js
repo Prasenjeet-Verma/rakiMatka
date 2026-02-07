@@ -90,13 +90,14 @@ function processSelection(mainNo) {
   const mode = toggleBtn.innerText;
   const underNos = patti_map[mainNo];
 
-  // Check if this mainNo already exists
-  const existing = db_store.find(b => b.mainNo === mainNo);
+  // 🔥 FIX: mainNo + mode dono check karo
+  const existing = db_store.find(
+    b => b.mainNo === mainNo && b.mode === mode
+  );
+
   if (existing) {
-    // Update mode only
-    existing.mode = mode;
-    existing.amountPerUnderNo = val; // optional if user wants to update amount
-    existing.totalAmount = existing.amountPerUnderNo * existing.underNos.length;
+    existing.amountPerUnderNo = val;
+    existing.totalAmount = val * existing.underNos.length;
   } else {
     db_store.push({
       uid: Math.random().toString(36).substr(2, 9),
@@ -110,6 +111,7 @@ function processSelection(mainNo) {
 
   refreshView();
 }
+
 
 /* ================= REMOVE UNDERNO FROM MAINNO ================= */
 function removeUnderNo(mainNo, underNo) {

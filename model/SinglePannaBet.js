@@ -21,6 +21,16 @@ const singlePannaItemSchema = new mongoose.Schema({
     min: 1
   },
 
+    openMatched: {
+    type: Boolean,
+    default: false,
+  },
+
+  winAmount: {
+    type: Number,
+    default: 0,
+  },
+
   // 🔥 MODE PER PANNA
   mode: {
     type: String,
