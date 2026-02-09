@@ -3,12 +3,12 @@ const mongoose = require("mongoose");
 /* ================= HALF SANGAM ITEM SCHEMA ================= */
 const halfSangamItemSchema = new mongoose.Schema({
   // OPEN PANNA → 3 digit
-  openPanna: {
-    type: Number,
-    required: true,
-    min: 100,
-    max: 999,
-  },
+openPanna: {
+  type: String,
+  required: true,
+  match: /^\d{3}$/,
+},
+
 
   // CLOSE DIGIT → single digit (0–9)
   closeDigit: {

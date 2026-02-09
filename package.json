@@ -39,6 +39,7 @@
     "multer": "^2.0.2",
     "multer-storage-cloudinary": "^2.2.1",
     "nanoid": "^5.1.6",
+    "node-cron": "^4.2.1",
     "node-releases": "^2.0.27",
     "picocolors": "^1.1.1",
     "postcss-value-parser": "^4.2.0",

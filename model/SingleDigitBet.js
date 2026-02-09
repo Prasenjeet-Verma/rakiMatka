@@ -13,10 +13,6 @@ const singleDigitItemSchema = new mongoose.Schema({
     required: true,
     min: 1
   },
-   openMatched: {
-    type: Boolean,
-    default: false,
-  },
 
   winAmount: {
     type: Number,

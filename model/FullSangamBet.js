@@ -3,19 +3,21 @@ const mongoose = require("mongoose");
 /* ================= FULL SANGAM ITEM SCHEMA ================= */
 const fullSangamItemSchema = new mongoose.Schema({
   openPanna: {
-    type: Number,
+    type: String,
     required: true,
+    match: /^\d{3}$/,
   },
   closePanna: {
-    type: Number,
+    type: String,
     required: true,
+    match: /^\d{3}$/,
   },
   totalAmount: {
     type: Number,
     required: true,
     min: 1,
   },
-    // 🔥 ADD THIS HERE (ITEM LEVEL)
+  // 🔥 ADD THIS HERE (ITEM LEVEL)
   openMatched: {
     type: Boolean,
     default: false,

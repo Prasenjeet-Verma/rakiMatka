@@ -6,26 +6,32 @@ const dpMotorItemSchema = new mongoose.Schema({
     enum: ["OPEN", "CLOSE"],
     required: true
   },
+
   mainNo: {
     type: Number,
     min: 0,
     max: 9,
     required: true
   },
-  underNos: {
-    type: [String],
-    required: true
+
+  underNo: {
+    type: String,          // "127", "136" etc
+    required: true,
+    match: /^\d{3}$/       // exactly 3 digit (000 allowed if needed)
   },
-  perUnderNosPoints: {
+
+  amountPerUnderNo: {
     type: Number,
     required: true,
     min: 1
   },
-  totalPoints: {
+
+  winAmount: {
     type: Number,
-    required: true
+    default: 0,
   },
-    resultStatus: {
+
+  resultStatus: {
     type: String,
     enum: ["PENDING", "WIN", "LOSS"],
     default: "PENDING"
@@ -44,19 +50,14 @@ const dpMotorBetSchema = new mongoose.Schema({
     type: [dpMotorItemSchema],
     required: true
   },
-  beforeWallet: {
-    type: Number,
-    required: true,
-    min: 1
-  },
 
-  afterWallet: {
-    type: Number,
-    required: true,
-    min: 1
-  },
-  totalAmount: { type: Number, required: true },
+  beforeWallet: { type: Number, required: true },
+  afterWallet: { type: Number, required: true },
 
+  totalAmount: {
+    type: Number,
+    required: true
+  },
 
   playedDate: String,
   playedTime: String,

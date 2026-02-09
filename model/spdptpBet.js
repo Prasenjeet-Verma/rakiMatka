@@ -15,35 +15,35 @@ const spdptpItemSchema = new mongoose.Schema({
 
   mainNo: {
     type: Number,
-    required: true,
     min: 0,
     max: 9,
+    required: true,
   },
 
-  underNos: {
-    type: [String], // array of 3-digit numbers
+  underNo: {
+    type: String,
     required: true,
-    validate: {
-      validator: (arr) => arr.every((n) => /^[0-9]{3}$/.test(n)),
-      message: "Each underNo must be 3 digits",
-    },
+    match: /^\d{3}$/, // ✅ 000 allowed
   },
-  perUnderNosPoints: {
+
+  amountPerUnderNo: {
     type: Number,
     required: true,
     min: 1,
   },
-  totalPoints: {
+
+    winAmount: {
     type: Number,
-    required: true,
-    min: 1,
+    default: 0,
   },
+
   resultStatus: {
     type: String,
     enum: ["PENDING", "WIN", "LOSS"],
     default: "PENDING",
   },
 });
+
 
 const spdptpBetSchema = new mongoose.Schema(
   {
@@ -103,17 +103,5 @@ const spdptpBetSchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
-
-// Automatically calculate totalPoints per bet and totalAmount
-spdptpBetSchema.pre("validate", function () {
-  if (Array.isArray(this.bets)) {
-    this.bets.forEach((b) => {
-      if (Array.isArray(b.underNos)) {
-        b.totalPoints = b.totalPoints || 0;
-      }
-    });
-    this.totalAmount = this.bets.reduce((sum, b) => sum + b.totalPoints, 0);
-  }
-});
 
 module.exports = mongoose.model("spdptpBet", spdptpBetSchema);

@@ -27,11 +27,6 @@ const doublePannaItemSchema = new mongoose.Schema({
     enum: ["OPEN", "CLOSE"],
     required: true,
   },
-  
-  openMatched: {
-    type: Boolean,
-    default: false,
-  },
 
   winAmount: {
     type: Number,

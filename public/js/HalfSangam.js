@@ -104,7 +104,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ================= INPUT RULES ================= */
 
-  // OPEN PANNA → exactly 3 digits
+  // OPEN PANNA → exactly 3 digits (000 allowed)
   openDigitInput.addEventListener("input", () => {
     openDigitInput.value = openDigitInput.value.replace(/[^0-9]/g, "");
     if (openDigitInput.value.length > 3) {
@@ -112,14 +112,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // CLOSE DIGIT → single digit
-  closePannaInput.removeAttribute("readonly");
-  closePannaInput.addEventListener("input", () => {
-    closePannaInput.value = closePannaInput.value.replace(/[^0-9]/g, "");
-    if (closePannaInput.value.length > 1) {
-      closePannaInput.value = closePannaInput.value.slice(0, 1);
-    }
-  });
+// CLOSE DIGIT → single digit
+closePannaInput.removeAttribute("readonly"); // ✅ MUST
+closePannaInput.addEventListener("input", () => {
+  closePannaInput.value = closePannaInput.value.replace(/[^0-9]/g, "");
+  if (closePannaInput.value.length > 1) {
+    closePannaInput.value = closePannaInput.value.slice(0, 1);
+  }
+});
 
   /* ================= ADD BID ================= */
   addBtn.onclick = () => {
@@ -127,15 +127,15 @@ document.addEventListener("DOMContentLoaded", () => {
       return showMessage("Game Closed ❌", "error");
     }
 
-    const openPanna = openDigitInput.value;
-    const closeDigit = closePannaInput.value;
+    const openPanna = openDigitInput.value; // 🔥 STRING
+    const closeDigit = Number(closePannaInput.value);
     const points = Number(pointsInput.value);
 
     if (!/^\d{3}$/.test(openPanna)) {
       return showMessage("Open Panna must be 3 digits ❌", "error");
     }
 
-    if (!/^\d{1}$/.test(closeDigit)) {
+    if (closeDigit < 0 || closeDigit > 9) {
       return showMessage("Close Digit must be single digit ❌", "error");
     }
 
@@ -145,16 +145,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const existing = bidRegistry.find(
       b =>
-        b.openPanna === Number(openPanna) &&
-        b.closeDigit === Number(closeDigit)
+        b.openPanna === openPanna &&
+        b.closeDigit === closeDigit
     );
 
     if (existing) {
       existing.totalAmount += points;
     } else {
       bidRegistry.push({
-        openPanna: Number(openPanna),
-        closeDigit: Number(closeDigit),
+        openPanna, // 🔥 keep string
+        closeDigit,
         totalAmount: points,
       });
     }

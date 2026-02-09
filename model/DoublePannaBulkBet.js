@@ -24,12 +24,6 @@ const doublePannaBulkItemSchema = new mongoose.Schema({
     enum: ["OPEN", "CLOSE"],
     required: true,
   },
-  /* 🔥 NEW (same as other games) */
-  openMatched: {
-    type: Boolean,
-    default: false,
-  },
-
   winAmount: {
     type: Number,
     default: 0,
