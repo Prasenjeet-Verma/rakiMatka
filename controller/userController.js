@@ -2931,7 +2931,7 @@ exports.getStarLinePlayGamePage = async (req, res, next) => {
 };
 
 exports.placeStarlineSingleDigitBet = async (req, res, next) => {
-  try {
+try {
     // ✅ AUTH CHECK
     if (
       !req.session.isLoggedIn ||
@@ -3040,10 +3040,10 @@ exports.placeStarlineSingleDigitBet = async (req, res, next) => {
 
     return res.json({
       success: true,
-      message: `SINGLE DIGIT Bet placed successfully ₹${totalAmount}`,
+      message: ` STARLINE SINGLE DIGIT Bet placed successfully ₹${totalAmount}`,
     });
   } catch (err) {
-    console.error("❌ SINGLE DIGIT BET ERROR:", err);
+    console.error("❌STARLINE SINGLE DIGIT BET ERROR:", err);
     return res.json({ success: false, message: "Server error ❌" });
   }
 };

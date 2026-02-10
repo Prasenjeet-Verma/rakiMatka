@@ -13,14 +13,15 @@ const starlineSingleDigitItemSchema = new mongoose.Schema({
     required: true,
     min: 1
   },
+
+  winAmount: {
+    type: Number,
+    default: 0,
+  },
   mode: {
     type: String,
     enum: ["OPEN", "CLOSE"],
     required: true
-  },
-    winAmount: {
-    type: Number,
-    default: 0,
   },
       resultStatus: {
       type: String,
@@ -64,7 +65,7 @@ const starlineSingleDigitBetSchema = new mongoose.Schema(
         "At least one single digit bet required"
       ]
     },
-        beforeWallet: {
+            beforeWallet: {
       type: Number,
       required: true,
       min: 1,
