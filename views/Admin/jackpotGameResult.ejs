@@ -67,12 +67,12 @@
           <div class="p-6">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
 
-            <!-- DATE INPUT -->
-            <div>
-              <label class="block text-sm font-bold text-gray-800 mb-2">Date</label>
-              <input type="date" id="dateSelect"
-                class="w-full border border-gray-300 rounded p-2 focus:ring-1 focus:ring-blue-500 outline-none">
-            </div>
+              <!-- DATE INPUT -->
+              <div>
+                <label class="block text-sm font-bold text-gray-800 mb-2">Date</label>
+                <input type="date" id="dateSelect"
+                  class="w-full border border-gray-300 rounded p-2 focus:ring-1 focus:ring-blue-500 outline-none">
+              </div>
 
 
 
@@ -85,31 +85,21 @@
                 </select>
               </div>
 
-              <div>
-                <label class="block text-sm font-bold text-gray-800 mb-2">Session</label>
-                <select id="sessionSelect"
-                  class="w-full border border-gray-300 rounded p-2 focus:ring-1 focus:ring-blue-500 outline-none text-gray-400">
-                  <option value="OPEN">OPEN</option>
-                  <option value="CLOSE">CLOSE</option>
-                </select>
 
-              </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div class="relative"> <label class="block text-sm font-bold text-gray-800 mb-2">Pana</label>
-                <input type="number" id="panaInput" placeholder="Type Pana number..." autocomplete="off"
+              <div class="relative"> <label class="block text-sm font-bold text-gray-800 mb-2">Left</label>
+                <input type="number" id="leftInput" placeholder="Type Left number..." autocomplete="off"
                   class="w-full border border-gray-300 rounded p-2 focus:ring-1 focus:ring-blue-500 outline-none">
-                <div id="customDropdown"
-                  class="hidden fixed z-10 w-full bg-yellow-500 border border-gray-300 rounded mt-1 max-h-60 overflow-y-auto shadow-lg">
-                </div>
               </div>
 
               <div>
-                <label class="block text-sm font-bold text-gray-800 mb-2">Digit</label>
-                <input type="text" id="digitInput" readonly
+                <label class="block text-sm font-bold text-gray-800 mb-2">Right</label>
+                <input type="text" id="rightInput" placeholder="Type Right number..." autocomplete="off"
                   class="w-full bg-[#e9ecef] border border-gray-300 rounded p-2 outline-none">
               </div>
+
               <button id="showResultBtn"
                 class="w-full bg-[#f0ad4e] hover:bg-yellow-600 text-white px-6 py-2 rounded shadow-sm text-sm font-bold transition-colors uppercase">
                 Show Result
@@ -135,77 +125,65 @@
                       <th class="p-3 border-r border-gray-300 w-12 text-center">#</th>
                       <th class="p-3 border-r border-gray-300">Game Name</th>
                       <th class="p-3 border-r border-gray-300">Result Date</th>
-                      <th class="p-3 border-r border-gray-300">Open Pana</th>
-                      <th class="p-3">Close Pana</th>
+                      <th class="p-3 border-r border-gray-300">Time</th>
+                      <th class="p-3 border-r border-gray-300">Left</th>
+                      <th class="p-3 border-r border-gray-300">Right</th>
+                      <th class="p-3">Jodi</th>
                     </tr>
                   </thead>
+
                   <tbody class="text-sm">
                     <% if (todayResults && todayResults.length> 0) { %>
-                      <% todayResults.forEach((row, index)=> { %>
-                        <tr class="border-b border-gray-200 <%= index === 0 ? 'bg-blue-50/30' : '' %>">
 
-                          <td class="p-3 border-r border-gray-300 font-bold text-center">
-                            <%= index + 1 %>
-                          </td>
+                      <% todayResults.forEach((game, gameIndex)=> { %>
+                        <% game.results.forEach((r, index)=> { %>
 
-                          <td class="p-3 border-r border-gray-300 font-extrabold uppercase">
-                            <%= row.gameName %>
-                          </td>
+                          <tr
+                            class="border-b border-gray-200 <%= gameIndex === 0 && index === 0 ? 'bg-blue-50/30' : '' %>">
 
-                          <td class="p-3 border-r border-gray-300 font-semibold">
-                            <%= row.resultDate %>
-                          </td>
+                            <td class="p-3 border-r border-gray-300 font-bold text-center">
+                              <%= index + 1 %>
+                            </td>
 
-                          <!-- OPEN -->
-                          <td class="p-3 border-r border-gray-300">
-                            <% if (row.open) { %>
-                              <div class="font-bold mb-2 text-base">
-                                <%= row.open.panna %>-<%= row.open.digit %>
-                              </div>
-                              <div class="flex flex-wrap gap-1">
-                                <button class="bg-yellow-500 text-white text-[10px] px-2 py-1 rounded font-bold">Show
-                                  Winners</button>
-                                <button class="bg-yellow-500 text-white text-[10px] px-2 py-1 rounded font-bold">Delete
-                                  Result</button>
-                                <button class="bg-yellow-500 text-white text-[10px] px-2 py-1 rounded font-bold">Bid
-                                  Revert</button>
-                              </div>
+                            <td class="p-3 border-r border-gray-300 font-extrabold uppercase">
+                              <%= game.gameName %>
+                            </td>
+
+                            <td class="p-3 border-r border-gray-300 font-semibold">
+                              <%= game.resultDate %>
+                            </td>
+
+                            <td class="p-3 border-r border-gray-300 font-semibold">
+                              <%= r.resultTime || '--' %>
+                            </td>
+
+                            <td class="p-3 border-r border-gray-300 font-bold text-center">
+                              <%= r.left %>
+                            </td>
+
+                            <td class="p-3 border-r border-gray-300 font-bold text-center">
+                              <%= r.right %>
+                            </td>
+
+                            <td class="p-3 font-bold text-center text-green-600">
+                              <%= r.jodi %>
+                            </td>
+
+                          </tr>
+
+                          <% }) %>
+                            <% }) %>
+
                               <% } else { %>
-                                —
+                                <tr>
+                                  <td colspan="7" class="p-6 text-center text-gray-500 font-semibold">
+                                    No jackpot results declared today
+                                  </td>
+                                </tr>
                                 <% } %>
-                          </td>
-
-                          <!-- CLOSE -->
-                          <td class="p-3">
-                            <% if (row.close) { %>
-                              <div class="font-bold mb-2 text-base">
-                                <%= row.close.digit %>-<%= row.close.panna %>
-                              </div>
-                              <div class="flex flex-wrap gap-1">
-                                <button class="bg-yellow-500 text-white text-[10px] px-2 py-1 rounded font-bold">Show
-                                  Winners</button>
-                                <button class="bg-yellow-500 text-white text-[10px] px-2 py-1 rounded font-bold">Delete
-                                  Result</button>
-                                <button class="bg-yellow-500 text-white text-[10px] px-2 py-1 rounded font-bold">Bid
-                                  Revert</button>
-                              </div>
-                              <% } else { %>
-                                —
-                                <% } %>
-                          </td>
-
-                        </tr>
-                        <% }) %>
-                          <% } else { %>
-                            <tr>
-                              <td colspan="5" class="p-6 text-center text-gray-500 font-semibold">
-                                No results declared today
-                              </td>
-                            </tr>
-                            <% } %>
                   </tbody>
-
                 </table>
+
               </div>
             </div>
 
@@ -283,7 +261,7 @@
         if (!date) return;
 
         try {
-          const res = await fetch(`/admin/pending-games?date=${date}`);
+          const res = await fetch(`/admin/jackpot-pending-games?date=${date}`);
           const data = await res.json();
 
           if (data.success) {
@@ -314,20 +292,19 @@
         e.preventDefault();
 
         const gameName = gameSelect.value;
-        const session = document.getElementById("sessionSelect").value;
-        const panna = document.getElementById("panaInput").value;
-        const digit = document.getElementById("digitInput").value;
+        const left = document.getElementById("leftInput").value;
+        const right = document.getElementById("rightInput").value;
         const resultDate = dateInput.value;
 
-        if (!gameName || !session || !panna || !digit || !resultDate) {
+        if (!gameName || !left || !right || !resultDate) {
           showMessage("⚠️ Please fill all fields", "error");
           return;
         }
 
-        fetch("/admin/declare-result", {
+        fetch("/admin/jackpot-declare-result", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ gameName, session, panna, digit, resultDate })
+          body: JSON.stringify({ gameName, left, right, resultDate })
         })
           .then(res => res.json())
           .then(data => {
@@ -368,7 +345,6 @@
     });
   </script>
   <script src="/js/sidebar.js"></script>
-  <script src="/js/adminResult.js"></script>
   <script src="/js/adminResultDOM.js"></script>
 </body>
 

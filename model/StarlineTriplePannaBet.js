@@ -12,6 +12,10 @@ const starlineTriplePannaItemSchema = new mongoose.Schema({
     required: true,
     min: 1
   },
+    winAmount: {
+    type: Number,
+    default: 0,
+  },
   mode: {
     type: String,
     enum: ["OPEN", "CLOSE"],

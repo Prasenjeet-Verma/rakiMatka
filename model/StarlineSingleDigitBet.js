@@ -18,6 +18,10 @@ const starlineSingleDigitItemSchema = new mongoose.Schema({
     enum: ["OPEN", "CLOSE"],
     required: true
   },
+    winAmount: {
+    type: Number,
+    default: 0,
+  },
       resultStatus: {
       type: String,
       enum: ["PENDING", "WIN", "LOSS"],

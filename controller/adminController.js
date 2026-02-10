@@ -1,9 +1,11 @@
+const mongoose = require("mongoose");
 const { check, validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const User = require("../model/userSchema");
 const WalletTransaction = require("../model/WalletTransaction");
 const UserBankDetails = require("../model/UserBankDetails");
 const moment = require("moment-timezone");
+const { DateTime } = require("luxon");
 const Game = require("../model/Game");
 const GameRate = require("../model/GameRate");
 const GameResult = require("../model/GameResult");
@@ -24,7 +26,22 @@ const SPMotorBet = require("../model/SPMotorBet");
 const DPMotorBet = require("../model/DPMotorBet");
 const spdptpBet = require("../model/spdptpBet");
 const RedBracketBet = require("../model/RedBracketBet");
-const mongoose = require("mongoose");
+//Jackpot game related models
+const JackpotGameResult = require("../model/jackpotGameDeclareResuult");
+const LeftDigitBet = require("../model/JackpotLeftDigitBet");
+const RightDigitBet = require("../model/JackpotRightDigitBet");
+const CenterJodiDigitBet = require("../model/JackpotCentreJodiDigitBet");
+// Starline game related models
+// const StarlineSingleDigitBet = require("../model/StarlineSingleDigitBet");
+// const StarlineJodiDigitBet = require("../model/StarlineJodiDigitBet");
+// const StarlineSinglePannaBet = require("../model/StarlineSinglePannaBet");
+// const StarlineDoublePannaBet = require("../model/StarlineDoublePannaBet");
+// const StarlineTriplePannaBet = require("../model/StarlineTriplePannaBet");
+const starlineGameDeclareResult = require("../model/starlineGameDeclareResult");
+const StarlineSingleDigitBet = require("../model/StarlineSingleDigitBet");
+const StarlineSinglePannaBet = require("../model/StarlineSinglePannaBet");
+const StarlineDoublePannaBet = require("../model/StarlineDoublePannaBet");
+const StarlineTriplePannaBet = require("../model/StarlineTriplePannaBet");
 
 exports.getAdminLoginPage = async (req, res, next) => {
   res.render("Admin/adminLogin", {
@@ -717,10 +734,18 @@ exports.getAdminCreateGamePage = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10; // rows per page
     const skip = (page - 1) * limit;
 
-    const totalGames = await Game.countDocuments({ isDeleted: false });
+    const totalGames = await Game.countDocuments({
+      isDeleted: false,
+      isStarline: false,
+      isJackpot: false,
+    });
     const totalPages = Math.ceil(totalGames / limit);
 
-    const games = await Game.find({ isDeleted: false })
+    const games = await Game.find({
+      isDeleted: false,
+      isStarline: false,
+      isJackpot: false,
+    })
       .skip(skip)
       .limit(limit)
       .lean();
@@ -1219,7 +1244,7 @@ exports.deleteGameRate = async (req, res) => {
   }
 };
 
-const { DateTime } = require("luxon"); //<-- yeh just iske niche wala controller code ke liye use hua h but yaad nhi kyu use kiya h 
+
 const betModels = [
   require("../model/SingleDigitBet"),
   require("../model/SingleBulkDigitBet"),
@@ -1310,7 +1335,7 @@ exports.gameResult = async (req, res) => {
    ===================================================== */
 exports.getPendingGames = async (req, res) => {
   try {
-    /* ========== ADMIN AUTH ========== */
+    // --------- ADMIN AUTH ----------
     if (
       !req.session.isLoggedIn ||
       !req.session.admin ||
@@ -1319,59 +1344,51 @@ exports.getPendingGames = async (req, res) => {
       return res.redirect("/admin/login");
     }
 
-    /* ========== IST DATE & DAY ========== */
-    const ist = DateTime.now().setZone("Asia/Kolkata");
-    const todayDate = ist.toFormat("yyyy-MM-dd");
-    const todayDay = ist.toFormat("cccc").toLowerCase(); // monday
+    // --------- SELECTED DATE ----------
+    const dateParam = req.query.date; // from frontend ?date=YYYY-MM-DD
+    const date = dateParam
+      ? DateTime.fromISO(dateParam, { zone: "Asia/Kolkata" })
+      : DateTime.now().setZone("Asia/Kolkata");
 
-    /* ========== TODAY ACTIVE GAMES ========== */
-    const todayGames = await Game.find({
+    const selectedDate = date.toFormat("yyyy-MM-dd");
+    const selectedDay = date.toFormat("cccc").toLowerCase(); // monday
+
+    // --------- ACTIVE GAMES ON THAT DAY ----------
+    const games = await Game.find({
       isDeleted: false,
-      [`schedule.${todayDay}.isActive`]: true
+      isStarline: false, // only normal games
+      isJackpot: false, // exclude jackpot games
+      [`schedule.${selectedDay}.isActive`]: true,
     }).select("gameName");
 
-    const allGameNames = todayGames.map(g => g.gameName);
+    const allGameNames = games.map((g) => g.gameName);
 
-    /* ========== TODAY DECLARED RESULTS (GAME + SESSION) ========== */
+    // --------- ALREADY DECLARED RESULTS ON THAT DATE ----------
     const declaredResults = await GameResult.find({
-      resultDate: todayDate
+      resultDate: selectedDate,
     }).select("gameName session");
 
-    /* ========== MAP: gameName -> Set(sessions) ========== */
     const resultMap = {};
-    declaredResults.forEach(r => {
-      if (!resultMap[r.gameName]) {
-        resultMap[r.gameName] = new Set();
-      }
-      resultMap[r.gameName].add(r.session); // OPEN / CLOSE
+    declaredResults.forEach((r) => {
+      if (!resultMap[r.gameName]) resultMap[r.gameName] = new Set();
+      resultMap[r.gameName].add(r.session);
     });
 
-    /* ========== FILTER PENDING GAMES ========== */
-    const pendingGames = allGameNames.filter(gameName => {
+    // --------- FILTER PENDING GAMES ----------
+    const pendingGames = allGameNames.filter((gameName) => {
       const sessionsDone = resultMap[gameName];
-
-      // ❌ no result at all
+      // no result at all
       if (!sessionsDone) return true;
-
-      // ❌ OPEN or CLOSE missing
-      return !(
-        sessionsDone.has("OPEN") &&
-        sessionsDone.has("CLOSE")
-      );
+      // missing OPEN or CLOSE
+      return !(sessionsDone.has("OPEN") && sessionsDone.has("CLOSE"));
     });
 
-    return res.json({
-      success: true,
-      games: pendingGames
-    });
-
+    return res.json({ success: true, games: pendingGames });
   } catch (err) {
     console.error("Pending game fetch error:", err);
     return res.status(500).json({ success: false });
   }
 };
-
-
 
 exports.declareGameResult = async (req, res) => {
   try {
@@ -1398,38 +1415,49 @@ exports.declareGameResult = async (req, res) => {
     }
 
     /* ================= REQUEST DATA ================= */
-    const { gameName, session, panna, digit } = req.body;
+    const { gameName, session, panna, digit, resultDate } = req.body;
 
-    if (!gameName || !session || !panna || !digit) {
-      return res.status(400).json({
-        success: false,
-        message: "Missing required fields",
-      });
+    if (!gameName || !session || !panna || !digit || !resultDate) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing required fields" });
     }
 
-    /* ================= IST TIME ================= */
-    const ist = DateTime.now().setZone("Asia/Kolkata");
-    const todayDate = ist.toFormat("yyyy-MM-dd");
+    // --------- PARSE DATE IN IST ----------
+    const ist = DateTime.fromISO(resultDate, { zone: "Asia/Kolkata" });
+    const formattedDate = ist.toFormat("yyyy-MM-dd");
+    const formattedTime = ist.toFormat("HH:mm");
+    const weekday = ist.toFormat("cccc");
 
-    /* ================= SAVE RESULT ================= */
+    // --------- CREATE IST-SAFE Date object for createdAt ----------
+    const createdAtIST = new Date(
+      ist.year,
+      ist.month - 1, // JS months are 0-indexed
+      ist.day,
+      ist.hour,
+      ist.minute,
+      ist.second,
+      ist.millisecond,
+    );
+
+    // --------- SAVE RESULT ----------
     await GameResult.create({
       gameName,
       session,
       panna,
       digit,
-      resultDate: todayDate,
-      resultTime: ist.toFormat("HH:mm"),
-      resultWeekday: ist.toFormat("cccc"),
-      createdAt: ist.toJSDate(),
+      resultDate: formattedDate,
+      resultTime: formattedTime,
+      resultWeekday: weekday,
+      createdAt: createdAtIST,
     });
-
     /* =====================================================
    🔥 DOUBLE PANNA RESULT SETTLEMENT (OPEN / CLOSE INDEPENDENT)
 ===================================================== */
 
     const bets = await DoublePannaBet.find({
       gameName,
-      playedDate: todayDate,
+      playedDate: formattedDate,
       "bets.resultStatus": "PENDING",
     }).populate("userId");
 
@@ -1486,7 +1514,7 @@ exports.declareGameResult = async (req, res) => {
 
     const singlePannaBets = await SinglePannaBet.find({
       gameName,
-      playedDate: todayDate,
+      playedDate: formattedDate,
       "bets.resultStatus": "PENDING",
     }).populate("userId");
 
@@ -1543,7 +1571,7 @@ exports.declareGameResult = async (req, res) => {
 
     const singlePannaBulkBets = await SinglePannaBulkBet.find({
       gameName,
-      playedDate: todayDate,
+      playedDate: formattedDate,
       "bets.resultStatus": "PENDING",
     }).populate("userId");
 
@@ -1600,7 +1628,7 @@ exports.declareGameResult = async (req, res) => {
 
     const singleBulkDigitBets = await SingleBulkDigitBet.find({
       gameName,
-      playedDate: todayDate,
+      playedDate: formattedDate,
       "bets.resultStatus": "PENDING",
     }).populate("userId");
 
@@ -1657,7 +1685,7 @@ exports.declareGameResult = async (req, res) => {
 
     const singleDigitBets = await SingleDigitBet.find({
       gameName,
-      playedDate: todayDate,
+      playedDate: formattedDate,
       "bets.resultStatus": "PENDING",
     }).populate("userId");
 
@@ -1714,7 +1742,7 @@ exports.declareGameResult = async (req, res) => {
 
     const triplePannaBets = await TriplePannaBet.find({
       gameName,
-      playedDate: todayDate,
+      playedDate: formattedDate,
       "bets.resultStatus": "PENDING",
     }).populate("userId");
 
@@ -1771,7 +1799,7 @@ exports.declareGameResult = async (req, res) => {
 
     const jodiDigitBets = await JodiDigitBet.find({
       gameName,
-      playedDate: todayDate,
+      playedDate: formattedDate,
       "bets.resultStatus": "PENDING",
     }).populate("userId");
 
@@ -1824,7 +1852,7 @@ exports.declareGameResult = async (req, res) => {
 
     const doublePannaBulkBets = await DoublePannaBulkBet.find({
       gameName,
-      playedDate: todayDate,
+      playedDate: formattedDate,
       "bets.resultStatus": "PENDING",
     }).populate("userId");
 
@@ -1881,7 +1909,7 @@ exports.declareGameResult = async (req, res) => {
 
     const jodiDigitBulkBets = await JodiDigitBulkBet.find({
       gameName,
-      playedDate: todayDate,
+      playedDate: formattedDate,
       "bets.resultStatus": "PENDING",
     }).populate("userId");
 
@@ -1934,7 +1962,7 @@ exports.declareGameResult = async (req, res) => {
 
     const oddEvenBets = await OddEvenBet.find({
       gameName,
-      playedDate: todayDate,
+      playedDate: formattedDate,
       "bets.resultStatus": "PENDING",
     }).populate("userId");
 
@@ -1998,7 +2026,7 @@ exports.declareGameResult = async (req, res) => {
 
     const redBracketBets = await RedBracketBet.find({
       gameName,
-      playedDate: todayDate,
+      playedDate: formattedDate,
       "bets.resultStatus": "PENDING",
     }).populate("userId");
 
@@ -2060,7 +2088,7 @@ exports.declareGameResult = async (req, res) => {
 
     const spMotorBets = await SPMotorBet.find({
       gameName,
-      playedDate: todayDate,
+      playedDate: formattedDate,
       "bets.resultStatus": "PENDING",
     }).populate("userId");
 
@@ -2115,7 +2143,7 @@ exports.declareGameResult = async (req, res) => {
 ===================================================== */
     const dpMotorBets = await DPMotorBet.find({
       gameName,
-      playedDate: todayDate,
+      playedDate: formattedDate,
       "bets.resultStatus": "PENDING",
     }).populate("userId");
 
@@ -2169,58 +2197,59 @@ exports.declareGameResult = async (req, res) => {
    🔥 SP DP TP RESULT SETTLEMENT (OPEN / CLOSE DIRECT)
 ===================================================== */
 
-const spdptpBets = await spdptpBet.find({
-  gameName,
-  playedDate: todayDate,
-  "bets.resultStatus": "PENDING",
-}).populate("userId");
+    const spdptpBets = await spdptpBet
+      .find({
+        gameName,
+        playedDate: formattedDate,
+        "bets.resultStatus": "PENDING",
+      })
+      .populate("userId");
 
-for (const bet of spdptpBets) {
-  let totalWinAmount = 0;
+    for (const bet of spdptpBets) {
+      let totalWinAmount = 0;
 
-  bet.bets.forEach((item) => {
-    if (item.resultStatus !== "PENDING") return;
+      bet.bets.forEach((item) => {
+        if (item.resultStatus !== "PENDING") return;
 
-    /* ================= 🟡 OPEN SESSION ================= */
-    if (session === "OPEN" && item.session === "Open") {
-      if (item.underNo === panna) {
-        // ✅ OPEN WIN
-        item.resultStatus = "WIN";
-        item.winAmount = item.amountPerUnderNo * 2;
-        totalWinAmount += item.winAmount;
-      } else {
-        // ❌ OPEN LOSS
-        item.resultStatus = "LOSS";
-        item.winAmount = 0;
+        /* ================= 🟡 OPEN SESSION ================= */
+        if (session === "OPEN" && item.session === "Open") {
+          if (item.underNo === panna) {
+            // ✅ OPEN WIN
+            item.resultStatus = "WIN";
+            item.winAmount = item.amountPerUnderNo * 2;
+            totalWinAmount += item.winAmount;
+          } else {
+            // ❌ OPEN LOSS
+            item.resultStatus = "LOSS";
+            item.winAmount = 0;
+          }
+        }
+
+        /* ================= 🔴 CLOSE SESSION ================= */
+        if (session === "CLOSE" && item.session === "Close") {
+          if (item.underNo === panna) {
+            // ✅ CLOSE WIN
+            item.resultStatus = "WIN";
+            item.winAmount = item.amountPerUnderNo * 2;
+            totalWinAmount += item.winAmount;
+          } else {
+            // ❌ CLOSE LOSS
+            item.resultStatus = "LOSS";
+            item.winAmount = 0;
+          }
+        }
+      });
+
+      /* ================= 💰 WALLET UPDATE (SAME SESSION) ================= */
+      if (totalWinAmount > 0) {
+        bet.userId.wallet += totalWinAmount;
+        await bet.userId.save();
+
+        bet.afterWallet = bet.userId.wallet;
       }
+
+      await bet.save();
     }
-
-    /* ================= 🔴 CLOSE SESSION ================= */
-    if (session === "CLOSE" && item.session === "Close") {
-      if (item.underNo === panna) {
-        // ✅ CLOSE WIN
-        item.resultStatus = "WIN";
-        item.winAmount = item.amountPerUnderNo * 2;
-        totalWinAmount += item.winAmount;
-      } else {
-        // ❌ CLOSE LOSS
-        item.resultStatus = "LOSS";
-        item.winAmount = 0;
-      }
-    }
-  });
-
-  /* ================= 💰 WALLET UPDATE (SAME SESSION) ================= */
-  if (totalWinAmount > 0) {
-    bet.userId.wallet += totalWinAmount;
-    await bet.userId.save();
-
-    bet.afterWallet = bet.userId.wallet;
-  }
-
-  await bet.save();
-}
-
 
     /* =====================================================
    🔥 FULL SANGAM RESULT SETTLEMENT (CORRECT LOGIC)
@@ -2228,7 +2257,7 @@ for (const bet of spdptpBets) {
 
     const fullSangamBets = await FullSangamBet.find({
       gameName,
-      playedDate: todayDate,
+      playedDate: formattedDate,
       "bets.resultStatus": "PENDING",
     }).populate("userId");
 
@@ -2276,7 +2305,7 @@ for (const bet of spdptpBets) {
 
     const halfSangamBets = await HalfSangamBet.find({
       gameName,
-      playedDate: todayDate,
+      playedDate: formattedDate,
       "bets.resultStatus": "PENDING",
     }).populate("userId");
 
@@ -2331,3 +2360,718 @@ for (const bet of spdptpBets) {
     });
   }
 };
+
+//Jackpot result declaration
+exports.jackpotGameResult = async (req, res) => {
+  try {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    });
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    // 🇮🇳 Today date (India)
+    const now = new Date().toLocaleString("en-US", {
+      timeZone: "Asia/Kolkata",
+    });
+    const todayDate = new Date(now).toISOString().split("T")[0];
+
+    // fetch today's results
+    const results = await JackpotGameResult.find({
+      resultDate: todayDate,
+    }).sort({ createdAt: 1 });
+
+    // 🔥 GROUP BY gameName
+    // 🔥 GROUP BY gameName WITH RESULTS
+    const groupedResults = {};
+
+    results.forEach((r) => {
+      if (!groupedResults[r.gameName]) {
+        groupedResults[r.gameName] = {
+          gameName: r.gameName,
+          resultDate: r.resultDate,
+          results: []   // 👈 line by line store here
+        };
+      }
+
+      groupedResults[r.gameName].results.push({
+        left: r.left,
+        right: r.right,
+        jodi: r.jodi,
+        resultTime: r.resultTime
+      });
+    });
+
+
+    res.render("Admin/jackpotGameResult", {
+      pageTitle: "Admin Jackpot Game Result",
+      admin,
+      isLoggedIn: req.session.isLoggedIn,
+      todayResults: Object.values(groupedResults),
+    });
+
+  } catch (err) {
+    console.error("Admin Jackpot Game Result Error:", err);
+    res.redirect("/admin/login");
+  }
+};
+
+exports.getJackpotPendingGames = async (req, res) => {
+  try {
+    // --------- ADMIN AUTH ----------
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    // --------- SELECTED DATE ----------
+    const dateParam = req.query.date; // ?date=YYYY-MM-DD
+    const date = dateParam
+      ? DateTime.fromISO(dateParam, { zone: "Asia/Kolkata" })
+      : DateTime.now().setZone("Asia/Kolkata");
+
+    const selectedDate = date.toFormat("yyyy-MM-dd");
+    const selectedDay = date.toFormat("cccc").toLowerCase(); // monday
+
+    // --------- ACTIVE JACKPOT GAMES ----------
+    const jackpotGames = await Game.find({
+      isDeleted: false,
+      isJackpot: true,
+      [`schedule.${selectedDay}.isActive`]: true,
+    }).select("gameName");
+
+    const jackpotGameNames = jackpotGames.map(g => g.gameName);
+
+    // --------- DECLARED JACKPOT RESULTS ----------
+    const declaredResults = await JackpotGameResult.find({
+      resultDate: selectedDate,
+    }).select("gameName");
+
+    const declaredGameSet = new Set(
+      declaredResults.map(r => r.gameName)
+    );
+
+    // --------- PENDING JACKPOT GAMES ----------
+    const pendingGames = jackpotGameNames.filter(
+      gameName => !declaredGameSet.has(gameName)
+    );
+
+    return res.json({
+      success: true,
+      date: selectedDate,
+      games: pendingGames
+    });
+
+  } catch (err) {
+    console.error("Jackpot pending game fetch error:", err);
+    return res.status(500).json({ success: false });
+  }
+};
+
+exports.declareJackpotGameResult = async (req, res) => {
+  try {
+    /* ================= ADMIN AUTH ================= */
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const admin = await User.findById(req.session.admin._id);
+    if (!admin) {
+      req.session.destroy();
+      return res.status(401).json({ success: false, message: "Session expired" });
+    }
+
+    /* ================= REQUEST DATA ================= */
+    const { gameName, left, right, resultDate } = req.body;
+
+    if (!gameName || !resultDate) {
+      return res.status(400).json({
+        success: false,
+        message: "Game name & result date are required",
+      });
+    }
+
+    const hasLeft = left !== undefined && left !== null && left !== "";
+    const hasRight = right !== undefined && right !== null && right !== "";
+
+    if (!hasLeft && !hasRight) {
+      return res.status(400).json({
+        success: false,
+        message: "At least LEFT or RIGHT digit must be provided",
+      });
+    }
+
+    const jodi = hasLeft && hasRight ? `${left}${right}` : null;
+
+    /* ================= IST DATE ================= */
+    const ist = DateTime.fromISO(resultDate, { zone: "Asia/Kolkata" });
+    const formattedDate = ist.toFormat("yyyy-MM-dd");
+    const formattedTime = ist.toFormat("HH:mm");
+    const weekday = ist.toFormat("cccc");
+
+    /* ================= SAVE RESULT ================= */
+    await JackpotGameResult.create({
+      gameName,
+      left: hasLeft ? left : null,
+      right: hasRight ? right : null,
+      jodi,
+      resultDate: formattedDate,
+      resultTime: formattedTime,
+      resultWeekday: weekday,
+    });
+
+    /* ======================================================
+       🎯 LEFT DIGIT SETTLEMENT
+    ====================================================== */
+    if (hasLeft) {
+      const leftDigitBets = await LeftDigitBet.find({
+        gameName,
+        playedDate: formattedDate,
+      });
+
+      for (const bet of leftDigitBets) {
+        let winAmount = 0;
+
+        bet.bets.forEach((item) => {
+          if (item.openDigit === String(left)) {
+            item.resultStatus = "WIN";
+            winAmount += item.amount * 9;
+          } else {
+            item.resultStatus = "LOSS";
+          }
+        });
+
+        if (winAmount > 0) {
+          await User.findByIdAndUpdate(bet.userId, {
+            $inc: { wallet: winAmount },
+          });
+        }
+
+        await bet.save();
+      }
+    }
+
+    /* ======================================================
+       🎯 RIGHT DIGIT SETTLEMENT
+    ====================================================== */
+    if (hasRight) {
+      const rightDigitBets = await RightDigitBet.find({
+        gameName,
+        playedDate: formattedDate,
+      });
+
+      for (const bet of rightDigitBets) {
+        let winAmount = 0;
+
+        bet.bets.forEach((item) => {
+          if (item.openDigit === String(right)) {
+            item.resultStatus = "WIN";
+            winAmount += item.amount * 9;
+          } else {
+            item.resultStatus = "LOSS";
+          }
+        });
+
+        if (winAmount > 0) {
+          await User.findByIdAndUpdate(bet.userId, {
+            $inc: { wallet: winAmount },
+          });
+        }
+
+        await bet.save();
+      }
+    }
+
+    /* ======================================================
+       🎯 CENTER JODI SETTLEMENT
+    ====================================================== */
+    if (hasLeft && hasRight) {
+      const centerJodiBets = await CenterJodiDigitBet.find({
+        gameName,
+        playedDate: formattedDate,
+      });
+
+      for (const bet of centerJodiBets) {
+        let winAmount = 0;
+
+        bet.bets.forEach((item) => {
+          if (item.openDigit === jodi) {
+            item.resultStatus = "WIN";
+            winAmount += item.amount * 90;
+          } else {
+            item.resultStatus = "LOSS";
+          }
+        });
+
+        if (winAmount > 0) {
+          await User.findByIdAndUpdate(bet.userId, {
+            $inc: { wallet: winAmount },
+          });
+        }
+
+        await bet.save();
+      }
+    }
+
+    /* ================= RESPONSE ================= */
+    return res.json({
+      success: true,
+      message: "Jackpot result declared & bets settled safely",
+    });
+
+  } catch (err) {
+    console.error("Declare jackpot result error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+
+// Starline game result declaration and display
+exports.starlineGameResult = async (req, res) => {
+    try {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    });
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    // 🇮🇳 Today date (India)
+    const now = new Date().toLocaleString("en-US", {
+      timeZone: "Asia/Kolkata",
+    });
+    const todayDate = new Date(now).toISOString().split("T")[0];
+
+    // fetch today's results
+    const results = await starlineGameDeclareResult.find({
+      resultDate: todayDate,
+    }).sort({ createdAt: 1 });
+
+    // 🔥 GROUP BY gameName
+    const groupedResults = {};
+
+    results.forEach((r) => {
+      if (!groupedResults[r.gameName]) {
+        groupedResults[r.gameName] = {
+          gameName: r.gameName,
+          resultDate: r.resultDate,
+          open: null,
+          close: null,
+        };
+      }
+
+      if (r.session === "OPEN") {
+        groupedResults[r.gameName].open = r;
+      }
+
+      if (r.session === "CLOSE") {
+        groupedResults[r.gameName].close = r;
+      }
+    });
+
+    res.render("Admin/starlineGameResult", {
+      pageTitle: "Admin Starline Game Result",
+      admin,
+      isLoggedIn: req.session.isLoggedIn,
+      todayResults: Object.values(groupedResults),
+    });
+  } catch (err) {
+    console.error("Admin Starline Game Result Error:", err);
+    res.redirect("/admin/login");
+  }
+};
+
+exports.getStarlinePendingGames = async (req, res) => {
+    try {
+    // --------- ADMIN AUTH ----------
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    // --------- SELECTED DATE ----------
+    const dateParam = req.query.date; // from frontend ?date=YYYY-MM-DD
+    const date = dateParam
+      ? DateTime.fromISO(dateParam, { zone: "Asia/Kolkata" })
+      : DateTime.now().setZone("Asia/Kolkata");
+
+    const selectedDate = date.toFormat("yyyy-MM-dd");
+    const selectedDay = date.toFormat("cccc").toLowerCase(); // monday
+
+    // --------- ACTIVE GAMES ON THAT DAY ----------
+    const games = await Game.find({
+      isDeleted: false,
+      isStarline: true, // only starline games
+      [`schedule.${selectedDay}.isActive`]: true,
+    }).select("gameName");
+
+    const allGameNames = games.map((g) => g.gameName);
+
+    // --------- ALREADY DECLARED RESULTS ON THAT DATE ----------
+    const declaredResults = await starlineGameDeclareResult.find({
+      resultDate: selectedDate,
+    }).select("gameName session");
+
+    const resultMap = {};
+    declaredResults.forEach((r) => {
+      if (!resultMap[r.gameName]) resultMap[r.gameName] = new Set();
+      resultMap[r.gameName].add(r.session);
+    });
+
+    // --------- FILTER PENDING GAMES ----------
+    const pendingGames = allGameNames.filter((gameName) => {
+      const sessionsDone = resultMap[gameName];
+      // no result at all
+      if (!sessionsDone) return true;
+      // missing OPEN or CLOSE
+      return !(sessionsDone.has("OPEN") && sessionsDone.has("CLOSE"));
+    });
+
+    return res.json({ success: true, games: pendingGames });
+  } catch (err) {
+    console.error("Pending game fetch error:", err);
+    return res.status(500).json({ success: false });
+  }
+};
+
+exports.declareStarlineGameResult = async (req, res) => {
+     try {
+    /* ================= ADMIN AUTH ================= */
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    });
+
+    if (!admin) {
+      req.session.destroy();
+      return res
+        .status(401)
+        .json({ success: false, message: "Session expired" });
+    }
+
+    /* ================= REQUEST DATA ================= */
+    const { gameName, session, panna, digit, resultDate } = req.body;
+
+    if (!gameName || !session || !panna || !digit || !resultDate) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing required fields" });
+    }
+
+    // --------- PARSE DATE IN IST ----------
+    const ist = DateTime.fromISO(resultDate, { zone: "Asia/Kolkata" });
+    const formattedDate = ist.toFormat("yyyy-MM-dd");
+    const formattedTime = ist.toFormat("HH:mm");
+    const weekday = ist.toFormat("cccc");
+
+    // --------- CREATE IST-SAFE Date object for createdAt ----------
+    const createdAtIST = new Date(
+      ist.year,
+      ist.month - 1, // JS months are 0-indexed
+      ist.day,
+      ist.hour,
+      ist.minute,
+      ist.second,
+      ist.millisecond,
+    );
+
+    // --------- SAVE RESULT ----------
+    await GameResult.create({
+      gameName,
+      session,
+      panna,
+      digit,
+      resultDate: formattedDate,
+      resultTime: formattedTime,
+      resultWeekday: weekday,
+      createdAt: createdAtIST,
+    });
+
+
+  /* =====================================================
+   🔥 SINGLE DIGIT RESULT SETTLEMENT (OPEN / CLOSE INDEPENDENT)
+===================================================== */
+
+    const singleDigitBets = await StarlineSingleDigitBet.find({
+      gameName,
+      playedDate: formattedDate,
+      "bets.resultStatus": "PENDING",
+    }).populate("userId");
+
+    for (const bet of singleDigitBets) {
+      let totalWinAmount = 0;
+
+      bet.bets.forEach((item) => {
+        if (item.resultStatus !== "PENDING") return;
+
+        /* 🟡 OPEN SESSION */
+        if (session === "OPEN" && item.mode === "OPEN") {
+          if (item.number === Number(digit)) {
+            // ✅ OPEN WIN
+            item.resultStatus = "WIN";
+            item.winAmount = item.amount * 2;
+            totalWinAmount += item.winAmount;
+          } else {
+            // ❌ OPEN LOSS
+            item.resultStatus = "LOSS";
+            item.winAmount = 0;
+          }
+        }
+
+        /* 🔴 CLOSE SESSION */
+        if (session === "CLOSE" && item.mode === "CLOSE") {
+          if (item.number === Number(digit)) {
+            // ✅ CLOSE WIN
+            item.resultStatus = "WIN";
+            item.winAmount = item.amount * 2;
+            totalWinAmount += item.winAmount;
+          } else {
+            // ❌ CLOSE LOSS
+            item.resultStatus = "LOSS";
+            item.winAmount = 0;
+          }
+        }
+      });
+
+      /* 💰 WALLET UPDATE (OPEN ya CLOSE dono pe ho sakta hai) */
+      if (totalWinAmount > 0) {
+        bet.userId.wallet += totalWinAmount;
+        await bet.userId.save();
+
+        bet.afterWallet = bet.userId.wallet;
+        bet.winningNumber = Number(digit);
+      }
+
+      await bet.save();
+    }
+
+  /* =====================================================
+   🔥 SINGLE PANNA RESULT SETTLEMENT (OPEN / CLOSE INDEPENDENT)
+===================================================== */
+
+    const singlePannaBets = await StarlineSinglePannaBet.find({
+      gameName,
+      playedDate: formattedDate,
+      "bets.resultStatus": "PENDING",
+    }).populate("userId");
+
+    for (const bet of singlePannaBets) {
+      let totalWinAmount = 0;
+
+      bet.bets.forEach((item) => {
+        if (item.resultStatus !== "PENDING") return;
+
+        /* 🟡 OPEN SESSION RESULT */
+        if (session === "OPEN" && item.mode === "OPEN") {
+          if (item.underNo === panna) {
+            // ✅ OPEN WIN
+            item.resultStatus = "WIN";
+            item.winAmount = item.amount * 2;
+            totalWinAmount += item.winAmount;
+          } else {
+            // ❌ OPEN LOSS
+            item.resultStatus = "LOSS";
+            item.winAmount = 0;
+          }
+        }
+
+        /* 🔴 CLOSE SESSION RESULT */
+        if (session === "CLOSE" && item.mode === "CLOSE") {
+          if (item.underNo === panna) {
+            // ✅ CLOSE WIN
+            item.resultStatus = "WIN";
+            item.winAmount = item.amount * 2;
+            totalWinAmount += item.winAmount;
+          } else {
+            // ❌ CLOSE LOSS
+            item.resultStatus = "LOSS";
+            item.winAmount = 0;
+          }
+        }
+      });
+
+      /* 💰 WALLET UPDATE — SAME SESSION */
+      if (totalWinAmount > 0) {
+        bet.userId.wallet += totalWinAmount;
+        await bet.userId.save();
+
+        bet.afterWallet = bet.userId.wallet;
+        bet.winningPanna = panna;
+      }
+
+      await bet.save();
+    }
+
+  /* =====================================================
+   🔥 DOUBLE PANNA RESULT SETTLEMENT (OPEN / CLOSE INDEPENDENT)
+===================================================== */
+    const bets = await StarlineDoublePannaBet.find({
+      gameName,
+      playedDate: formattedDate,
+      "bets.resultStatus": "PENDING",
+    }).populate("userId");
+
+    for (const bet of bets) {
+      let totalWinAmount = 0;
+
+      bet.bets.forEach((item) => {
+        if (item.resultStatus !== "PENDING") return;
+
+        /* ================= 🟡 OPEN SESSION ================= */
+        if (session === "OPEN" && item.mode === "OPEN") {
+          if (item.underNo === panna) {
+            // ✅ OPEN WIN
+            item.resultStatus = "WIN";
+            item.winAmount = item.amount * 2;
+            totalWinAmount += item.winAmount;
+          } else {
+            // ❌ OPEN LOSS
+            item.resultStatus = "LOSS";
+            item.winAmount = 0;
+          }
+        }
+
+        /* ================= 🔴 CLOSE SESSION ================= */
+        if (session === "CLOSE" && item.mode === "CLOSE") {
+          if (item.underNo === panna) {
+            // ✅ CLOSE WIN
+            item.resultStatus = "WIN";
+            item.winAmount = item.amount * 2;
+            totalWinAmount += item.winAmount;
+          } else {
+            // ❌ CLOSE LOSS
+            item.resultStatus = "LOSS";
+            item.winAmount = 0;
+          }
+        }
+      });
+
+      /* ================= 💰 WALLET UPDATE (SAME SESSION) ================= */
+      if (totalWinAmount > 0) {
+        bet.userId.wallet += totalWinAmount;
+        await bet.userId.save();
+
+        bet.afterWallet = bet.userId.wallet;
+        bet.winningPanna = panna;
+      }
+
+      await bet.save();
+    }
+
+ /* =====================================================
+   🔥 TRIPLE PANNA RESULT SETTLEMENT (OPEN / CLOSE)
+===================================================== */
+
+    const triplePannaBets = await StarlineTriplePannaBet.find({
+      gameName,
+      playedDate: formattedDate,
+      "bets.resultStatus": "PENDING",
+    }).populate("userId");
+
+    for (const bet of triplePannaBets) {
+      let totalWinAmount = 0;
+
+      bet.bets.forEach((item) => {
+        if (item.resultStatus !== "PENDING") return;
+
+        /* ================= 🟡 OPEN SESSION ================= */
+        if (session === "OPEN" && item.mode === "OPEN") {
+          if (item.number === panna) {
+            // ✅ OPEN WIN
+            item.resultStatus = "WIN";
+            item.winAmount = item.amount * 2;
+            totalWinAmount += item.winAmount;
+          } else {
+            // ❌ OPEN LOSS
+            item.resultStatus = "LOSS";
+            item.winAmount = 0;
+          }
+        }
+
+        /* ================= 🔴 CLOSE SESSION ================= */
+        if (session === "CLOSE" && item.mode === "CLOSE") {
+          if (item.number === panna) {
+            // ✅ CLOSE WIN
+            item.resultStatus = "WIN";
+            item.winAmount = item.amount * 2;
+            totalWinAmount += item.winAmount;
+          } else {
+            // ❌ CLOSE LOSS
+            item.resultStatus = "LOSS";
+            item.winAmount = 0;
+          }
+        }
+      });
+
+      /* ================= 💰 WALLET UPDATE (SAME SESSION) ================= */
+      if (totalWinAmount > 0) {
+        bet.userId.wallet += totalWinAmount;
+        await bet.userId.save();
+
+        bet.afterWallet = bet.userId.wallet;
+        bet.winningNumber = panna;
+      }
+
+      await bet.save();
+    }
+
+        /* ================= RESPONSE ================= */
+    return res.json({
+      success: true,
+      message: "Result declared & Double Panna bets settled successfully",
+    });
+  } catch (err) {
+    console.error("Declare result error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+}

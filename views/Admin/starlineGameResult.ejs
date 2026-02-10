@@ -283,7 +283,7 @@
         if (!date) return;
 
         try {
-          const res = await fetch(`/admin/pending-games?date=${date}`);
+          const res = await fetch(`/admin/starline-pending-games?date=${date}`);
           const data = await res.json();
 
           if (data.success) {
@@ -324,7 +324,7 @@
           return;
         }
 
-        fetch("/admin/declare-result", {
+        fetch("/admin/starline-declare-result", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ gameName, session, panna, digit, resultDate })
