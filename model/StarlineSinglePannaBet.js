@@ -6,36 +6,38 @@ const starlineSinglePannaItemSchema = new mongoose.Schema({
     type: Number,
     required: true,
     min: 0,
-    max: 9
+    max: 9,
   },
 
   underNo: {
     type: String,
     required: true,
-    match: /^[0-9]{3}$/
+    match: /^[0-9]{3}$/,
   },
 
   amount: {
     type: Number,
     required: true,
-    min: 1
+    min: 1,
   },
+
   winAmount: {
     type: Number,
     default: 0,
   },
+
   // 🔥 MODE PER PANNA
   mode: {
     type: String,
     enum: ["OPEN", "CLOSE"],
-    required: true
+    required: true,
   },
-      /* ================= RESULT ================= */
-    resultStatus: {
-      type: String,
-      enum: ["PENDING", "WIN", "LOSS"],
-      default: "PENDING"
-    },
+  /* ================= RESULT ================= */
+  resultStatus: {
+    type: String,
+    enum: ["PENDING", "WIN", "LOSS"],
+    default: "PENDING",
+  },
 });
 
 /* ================= SINGLE PANNA BET ================= */
@@ -44,39 +46,39 @@ const starlineSinglePannaBetSchema = new mongoose.Schema(
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true
+      required: true,
     },
 
     gameId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Game",
-      required: true
+      required: true,
     },
 
     gameName: {
       type: String,
-      required: true
+      required: true,
     },
     mainGame: {
       type: String,
       default: "STARLINE",
-      immutable: true
+      immutable: true,
     },
     gameType: {
       type: String,
       default: "SINGLE_PANNA",
-      immutable: true
+      immutable: true,
     },
 
     bets: {
       type: [starlineSinglePannaItemSchema],
       required: true,
       validate: [
-        arr => arr.length > 0,
-        "At least one single panna bet required"
-      ]
+        (arr) => arr.length > 0,
+        "At least one single panna bet required",
+      ],
     },
-        beforeWallet: {
+    beforeWallet: {
       type: Number,
       required: true,
       min: 1,
@@ -89,25 +91,23 @@ const starlineSinglePannaBetSchema = new mongoose.Schema(
     },
     totalAmount: {
       type: Number,
-      required: true
+      required: true,
     },
-
-
 
     winningPanna: {
       type: String,
-      default: null
+      default: null,
     },
 
     /* ================= INDIAN TIME ================= */
     playedDate: String,
     playedTime: String,
-    playedWeekday: String
+    playedWeekday: String,
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 module.exports = mongoose.model(
   "StarlineSinglePannaBet",
-  starlineSinglePannaBetSchema
+  starlineSinglePannaBetSchema,
 );
