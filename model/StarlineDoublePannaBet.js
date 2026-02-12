@@ -6,37 +6,40 @@ const starlineDoublePannaItemSchema = new mongoose.Schema({
     type: Number, // 0 - 9
     required: true,
     min: 0,
-    max: 9
+    max: 9,
   },
 
   underNo: {
     type: String, // "337"
     required: true,
-    match: /^[0-9]{3}$/
+    match: /^[0-9]{3}$/,
   },
 
   amount: {
     type: Number,
     required: true,
-    min: 1
+    min: 1,
   },
-  winAmount: {
-    type: Number,
-    default: 0,
-  },
+
   /* 🔥 IMPORTANT (OPEN / CLOSE per panna) */
   mode: {
     type: String,
     enum: ["OPEN", "CLOSE"],
-    required: true
+    required: true,
   },
-      /* ================= RESULT ================= */
-    resultStatus: {
-      type: String,
-      enum: ["PENDING", "WIN", "LOSS"],
-      default: "PENDING"
-    },
 
+  winAmount: {
+    type: Number,
+    default: 0,
+  },
+
+  /* ================= RESULT ================= */
+
+  resultStatus: {
+    type: String,
+    enum: ["PENDING", "WIN", "LOSS"],
+    default: "PENDING",
+  },
 });
 
 /* ================= DOUBLE PANNA BET ================= */
@@ -45,29 +48,29 @@ const starlineDoublePannaBetSchema = new mongoose.Schema(
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true
+      required: true,
     },
 
     gameId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Game",
-      required: true
+      required: true,
     },
 
     gameName: {
       type: String,
-      required: true
+      required: true,
     },
     mainGame: {
       type: String,
       default: "STARLINE",
-      immutable: true
+      immutable: true,
     },
     /* 🔒 FIXED GAME TYPE */
     gameType: {
       type: String,
       default: "DOUBLE_PANNA",
-      immutable: true
+      immutable: true,
     },
 
     /* 🔥 REMOVE betType (not needed here) */
@@ -75,10 +78,11 @@ const starlineDoublePannaBetSchema = new mongoose.Schema(
       type: [starlineDoublePannaItemSchema],
       required: true,
       validate: [
-        arr => arr.length > 0,
-        "At least one double panna bet required"
-      ]
+        (arr) => arr.length > 0,
+        "At least one double panna bet required",
+      ],
     },
+
     beforeWallet: {
       type: Number,
       required: true,
@@ -90,26 +94,23 @@ const starlineDoublePannaBetSchema = new mongoose.Schema(
       required: true,
       min: 1,
     },
+
     totalAmount: {
       type: Number,
-      required: true
+      required: true,
     },
-
 
     winningPanna: {
       type: String,
-      default: null
+      default: null,
     },
 
     /* ================= INDIAN TIME ================= */
-    playedDate: String,   // YYYY-MM-DD
-    playedTime: String,   // HH:mm
-    playedWeekday: String // Monday
+    playedDate: String, // YYYY-MM-DD
+    playedTime: String, // HH:mm
+    playedWeekday: String, // Monday
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-module.exports = mongoose.model(
-  "StarlineDoublePannaBet",
-  starlineDoublePannaBetSchema
-);
+module.exports = mongoose.model("StarlineDoublePannaBet", starlineDoublePannaBetSchema);

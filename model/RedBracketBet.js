@@ -110,17 +110,5 @@ const redBracketBetSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
-// /* ================= PRE-VALIDATE HOOK ================= */
-// redBracketBetSchema.pre("validate", function () {
-//   if (Array.isArray(this.bets)) {
-//     this.totalAmount = this.bets.reduce(
-//       (sum, b) => sum + (b.totalPoints || 0),
-//       0
-//     );
-//   }
-// });
-
-
 /* ================= EXPORT ================= */
 module.exports = mongoose.model("RedBracketBet", redBracketBetSchema);

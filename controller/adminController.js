@@ -1244,7 +1244,6 @@ exports.deleteGameRate = async (req, res) => {
   }
 };
 
-
 const betModels = [
   require("../model/SingleDigitBet"),
   require("../model/SingleBulkDigitBet"),
@@ -2270,26 +2269,25 @@ exports.declareGameResult = async (req, res) => {
         /* 🟡 OPEN RESULT */
         if (session === "OPEN") {
           if (item.openPanna === panna) {
-            item.openMatched = true; // ✅ store OPEN match
+            item.openMatched = true;
           }
           return;
         }
 
         /* 🔴 CLOSE RESULT (FINAL) */
         if (session === "CLOSE") {
-          if (
-            item.openMatched === true && // ✅ OPEN must match
-            item.closePanna === panna // ✅ CLOSE must match
-          ) {
+          if (item.openMatched === true && item.closePanna === panna) {
             item.resultStatus = "WIN";
-            totalWinAmount += item.totalAmount * 2;
+            item.winAmount = item.totalAmount * 2; // ✅ ADD THIS
+            totalWinAmount += item.winAmount;
           } else {
             item.resultStatus = "LOSS";
+            item.winAmount = 0; // ✅ ADD THIS
           }
         }
       });
 
-      /* 💰 WALLET UPDATE (ONLY ON CLOSE) */
+      /* 💰 WALLET UPDATE */
       if (session === "CLOSE" && totalWinAmount > 0) {
         bet.userId.wallet += totalWinAmount;
         await bet.userId.save();
@@ -2318,26 +2316,28 @@ exports.declareGameResult = async (req, res) => {
         /* 🟡 OPEN RESULT */
         if (session === "OPEN") {
           if (item.openPanna === panna) {
-            item.openMatched = true; // ✅ OPEN matched
+            item.openMatched = true;
           }
           return;
         }
 
         /* 🔴 CLOSE RESULT (FINAL) */
         if (session === "CLOSE") {
-          if (
-            item.openMatched === true && // ✅ OPEN must be matched
-            item.closeDigit === Number(digit) // ✅ CLOSE must match
-          ) {
+          if (item.openMatched === true && item.closeDigit === Number(digit)) {
             item.resultStatus = "WIN";
-            totalWinAmount += item.totalAmount * 2;
+
+            // ✅ ADD THIS
+            item.winAmount = item.totalAmount * 2;
+
+            totalWinAmount += item.winAmount;
           } else {
             item.resultStatus = "LOSS";
+            item.winAmount = 0; // ✅ safety
           }
         }
       });
 
-      /* 💰 WALLET UPDATE (ONLY ON CLOSE) */
+      /* 💰 WALLET UPDATE */
       if (session === "CLOSE" && totalWinAmount > 0) {
         bet.userId.wallet += totalWinAmount;
         await bet.userId.save();
@@ -2403,7 +2403,7 @@ exports.jackpotGameResult = async (req, res) => {
         groupedResults[r.gameName] = {
           gameName: r.gameName,
           resultDate: r.resultDate,
-          results: []   // 👈 line by line store here
+          results: [], // 👈 line by line store here
         };
       }
 
@@ -2411,10 +2411,9 @@ exports.jackpotGameResult = async (req, res) => {
         left: r.left,
         right: r.right,
         jodi: r.jodi,
-        resultTime: r.resultTime
+        resultTime: r.resultTime,
       });
     });
-
 
     res.render("Admin/jackpotGameResult", {
       pageTitle: "Admin Jackpot Game Result",
@@ -2422,7 +2421,6 @@ exports.jackpotGameResult = async (req, res) => {
       isLoggedIn: req.session.isLoggedIn,
       todayResults: Object.values(groupedResults),
     });
-
   } catch (err) {
     console.error("Admin Jackpot Game Result Error:", err);
     res.redirect("/admin/login");
@@ -2456,28 +2454,25 @@ exports.getJackpotPendingGames = async (req, res) => {
       [`schedule.${selectedDay}.isActive`]: true,
     }).select("gameName");
 
-    const jackpotGameNames = jackpotGames.map(g => g.gameName);
+    const jackpotGameNames = jackpotGames.map((g) => g.gameName);
 
     // --------- DECLARED JACKPOT RESULTS ----------
     const declaredResults = await JackpotGameResult.find({
       resultDate: selectedDate,
     }).select("gameName");
 
-    const declaredGameSet = new Set(
-      declaredResults.map(r => r.gameName)
-    );
+    const declaredGameSet = new Set(declaredResults.map((r) => r.gameName));
 
     // --------- PENDING JACKPOT GAMES ----------
     const pendingGames = jackpotGameNames.filter(
-      gameName => !declaredGameSet.has(gameName)
+      (gameName) => !declaredGameSet.has(gameName),
     );
 
     return res.json({
       success: true,
       date: selectedDate,
-      games: pendingGames
+      games: pendingGames,
     });
-
   } catch (err) {
     console.error("Jackpot pending game fetch error:", err);
     return res.status(500).json({ success: false });
@@ -2498,7 +2493,9 @@ exports.declareJackpotGameResult = async (req, res) => {
     const admin = await User.findById(req.session.admin._id);
     if (!admin) {
       req.session.destroy();
-      return res.status(401).json({ success: false, message: "Session expired" });
+      return res
+        .status(401)
+        .json({ success: false, message: "Session expired" });
     }
 
     /* ================= REQUEST DATA ================= */
@@ -2555,9 +2552,11 @@ exports.declareJackpotGameResult = async (req, res) => {
         bet.bets.forEach((item) => {
           if (item.openDigit === String(left)) {
             item.resultStatus = "WIN";
-            winAmount += item.amount * 9;
+            item.winAmount = item.amount * 9;
+            winAmount += item.winAmount;
           } else {
             item.resultStatus = "LOSS";
+            item.winAmount = 0;
           }
         });
 
@@ -2572,8 +2571,8 @@ exports.declareJackpotGameResult = async (req, res) => {
     }
 
     /* ======================================================
-       🎯 RIGHT DIGIT SETTLEMENT
-    ====================================================== */
+   🎯 RIGHT DIGIT SETTLEMENT
+====================================================== */
     if (hasRight) {
       const rightDigitBets = await RightDigitBet.find({
         gameName,
@@ -2586,9 +2585,11 @@ exports.declareJackpotGameResult = async (req, res) => {
         bet.bets.forEach((item) => {
           if (item.openDigit === String(right)) {
             item.resultStatus = "WIN";
-            winAmount += item.amount * 9;
+            item.winAmount = item.amount * 9; // ✅ Save individual win
+            winAmount += item.winAmount;
           } else {
             item.resultStatus = "LOSS";
+            item.winAmount = 0; // ✅ Reset for safety
           }
         });
 
@@ -2603,8 +2604,8 @@ exports.declareJackpotGameResult = async (req, res) => {
     }
 
     /* ======================================================
-       🎯 CENTER JODI SETTLEMENT
-    ====================================================== */
+   🎯 CENTER JODI SETTLEMENT
+====================================================== */
     if (hasLeft && hasRight) {
       const centerJodiBets = await CenterJodiDigitBet.find({
         gameName,
@@ -2617,9 +2618,11 @@ exports.declareJackpotGameResult = async (req, res) => {
         bet.bets.forEach((item) => {
           if (item.openDigit === jodi) {
             item.resultStatus = "WIN";
-            winAmount += item.amount * 90;
+            item.winAmount = item.amount * 90; // ✅ Save individual win
+            winAmount += item.winAmount;
           } else {
             item.resultStatus = "LOSS";
+            item.winAmount = 0; // ✅ Reset for safety
           }
         });
 
@@ -2638,7 +2641,6 @@ exports.declareJackpotGameResult = async (req, res) => {
       success: true,
       message: "Jackpot result declared & bets settled safely",
     });
-
   } catch (err) {
     console.error("Declare jackpot result error:", err);
     return res.status(500).json({
@@ -2648,10 +2650,9 @@ exports.declareJackpotGameResult = async (req, res) => {
   }
 };
 
-
 // Starline game result declaration and display
 exports.starlineGameResult = async (req, res) => {
-    try {
+  try {
     if (
       !req.session.isLoggedIn ||
       !req.session.admin ||
@@ -2678,9 +2679,11 @@ exports.starlineGameResult = async (req, res) => {
     const todayDate = new Date(now).toISOString().split("T")[0];
 
     // fetch today's results
-    const results = await starlineGameDeclareResult.find({
-      resultDate: todayDate,
-    }).sort({ createdAt: 1 });
+    const results = await starlineGameDeclareResult
+      .find({
+        resultDate: todayDate,
+      })
+      .sort({ createdAt: 1 });
 
     // 🔥 GROUP BY gameName
     const groupedResults = {};
@@ -2717,7 +2720,7 @@ exports.starlineGameResult = async (req, res) => {
 };
 
 exports.getStarlinePendingGames = async (req, res) => {
-    try {
+  try {
     // --------- ADMIN AUTH ----------
     if (
       !req.session.isLoggedIn ||
@@ -2746,9 +2749,11 @@ exports.getStarlinePendingGames = async (req, res) => {
     const allGameNames = games.map((g) => g.gameName);
 
     // --------- ALREADY DECLARED RESULTS ON THAT DATE ----------
-    const declaredResults = await starlineGameDeclareResult.find({
-      resultDate: selectedDate,
-    }).select("gameName session");
+    const declaredResults = await starlineGameDeclareResult
+      .find({
+        resultDate: selectedDate,
+      })
+      .select("gameName session");
 
     const resultMap = {};
     declaredResults.forEach((r) => {
@@ -2773,7 +2778,7 @@ exports.getStarlinePendingGames = async (req, res) => {
 };
 
 exports.declareStarlineGameResult = async (req, res) => {
-     try {
+  try {
     /* ================= ADMIN AUTH ================= */
     if (
       !req.session.isLoggedIn ||
@@ -2823,7 +2828,7 @@ exports.declareStarlineGameResult = async (req, res) => {
     );
 
     // --------- SAVE RESULT ----------
-    await GameResult.create({
+    await starlineGameDeclareResult.create({
       gameName,
       session,
       panna,
@@ -2834,8 +2839,7 @@ exports.declareStarlineGameResult = async (req, res) => {
       createdAt: createdAtIST,
     });
 
-
-  /* =====================================================
+    /* =====================================================
    🔥 SINGLE DIGIT RESULT SETTLEMENT (OPEN / CLOSE INDEPENDENT)
 ===================================================== */
 
@@ -2892,7 +2896,7 @@ exports.declareStarlineGameResult = async (req, res) => {
       await bet.save();
     }
 
-  /* =====================================================
+    /* =====================================================
    🔥 SINGLE PANNA RESULT SETTLEMENT (OPEN / CLOSE INDEPENDENT)
 ===================================================== */
 
@@ -2949,7 +2953,7 @@ exports.declareStarlineGameResult = async (req, res) => {
       await bet.save();
     }
 
-  /* =====================================================
+    /* =====================================================
    🔥 DOUBLE PANNA RESULT SETTLEMENT (OPEN / CLOSE INDEPENDENT)
 ===================================================== */
     const bets = await StarlineDoublePannaBet.find({
@@ -3005,7 +3009,7 @@ exports.declareStarlineGameResult = async (req, res) => {
       await bet.save();
     }
 
- /* =====================================================
+    /* =====================================================
    🔥 TRIPLE PANNA RESULT SETTLEMENT (OPEN / CLOSE)
 ===================================================== */
 
@@ -3062,7 +3066,7 @@ exports.declareStarlineGameResult = async (req, res) => {
       await bet.save();
     }
 
-        /* ================= RESPONSE ================= */
+    /* ================= RESPONSE ================= */
     return res.json({
       success: true,
       message: "Result declared & Double Panna bets settled successfully",
@@ -3074,4 +3078,884 @@ exports.declareStarlineGameResult = async (req, res) => {
       message: "Internal server error",
     });
   }
-}
+};
+
+//show preview winner list
+// exports.showPreviewWinnerList = async (req, res) => {
+//   try {
+//     if (
+//       !req.session.isLoggedIn ||
+//       !req.session.admin ||
+//       req.session.admin.role !== "admin"
+//     ) {
+//       return res.redirect("/admin/login");
+//     }
+
+//     const admin = await User.findOne({
+//       _id: req.session.admin._id,
+//       role: "admin",
+//       userStatus: "active",
+//     });
+
+//     if (!admin) {
+//       req.session.destroy();
+//       return res.redirect("/admin/login");
+//     }
+
+//     /* ================= REQUEST DATA ================= */
+//     const { gameName, session, panna, digit, resultDate } = req.body;
+
+//     if (!gameName || !session || !panna || !digit || !resultDate) {
+//       return res
+//         .status(400)
+//         .json({ success: false, message: "Missing required fields" });
+//     }
+
+//     // --------- PARSE DATE IN IST ----------
+//     const ist = DateTime.fromISO(resultDate, { zone: "Asia/Kolkata" });
+//     const formattedDate = ist.toFormat("yyyy-MM-dd");
+//     const formattedTime = ist.toFormat("HH:mm");
+//     const weekday = ist.toFormat("cccc");
+
+//     // --------- CREATE IST-SAFE Date object for createdAt ----------
+//     const createdAtIST = new Date(
+//       ist.year,
+//       ist.month - 1, // JS months are 0-indexed
+//       ist.day,
+//       ist.hour,
+//       ist.minute,
+//       ist.second,
+//       ist.millisecond,
+//     );
+
+//     /* ================= FETCH SINGLE DIGIT GAMES ================= */
+
+//     const commonQuery = {
+//       gameName: gameName,
+//       playedDate: formattedDate,
+//       bets: {
+//         $elemMatch: {
+//           number: Number(digit),
+//           mode: session,
+//           resultStatus: "PENDING",
+//         },
+//       },
+//     };
+
+//     const oddevenQuery = {
+//       gameName: gameName,
+//       playedDate: formattedDate,
+//       bets: {
+//         $elemMatch: {
+//           underNo: digit, // exact match
+//           mode: session,
+//           resultStatus: "PENDING",
+//         },
+//       },
+//     };
+
+//     const [singleDigitData, singleBulkData] = await Promise.all([
+//       SingleDigitBet.find(commonQuery, {
+//         gameName: gameName,
+//         bets: {
+//           $elemMatch: {
+//             number: Number(digit),
+//             mode: session,
+//             resultStatus: "PENDING",
+//           },
+//         },
+//       })
+//         .populate("userId")
+//         .lean(),
+
+//       SingleBulkDigitBet.find(commonQuery, {
+//         gameName: gameName,
+//         bets: {
+//           $elemMatch: {
+//             number: Number(digit),
+//             mode: session,
+//             resultStatus: "PENDING",
+//           },
+//         },
+//       })
+//         .populate("userId")
+//         .lean(),
+
+//       OddEvenBet.find(oddevenQuery, {
+//         gameName: gameName,
+//         bets: {
+//           $elemMatch: {
+//             underNo: digit,
+//             mode: session,
+//             resultStatus: "PENDING",
+//           },
+//         },
+//       })
+//         .populate("userId")
+//         .lean(),
+//     ]);
+
+//     /* ================= JODI DATA (ONLY IF CLOSE) ================= */
+
+//     let jodiDigitData = [];
+//     let jodiBulkDigitData = [];
+//     let redBracketData = [];
+
+//     if (session === "CLOSE") {
+//       const jodiQuery = {
+//         gameName: gameName,
+//         playedDate: formattedDate,
+//         bets: {
+//           $elemMatch: {
+//             openMatched: true,
+//             resultStatus: "PENDING",
+//             underNo: {
+//               $regex: `${digit}$`, // last digit match
+//             },
+//           },
+//         },
+//       };
+
+//       [jodiDigitData, jodiBulkDigitData, redBracketData] = await Promise.all([
+//         JodiDigitBet.find(jodiQuery).populate("userId").lean(),
+
+//         JodiDigitBulkBet.find(jodiQuery).populate("userId").lean(),
+
+//         RedBracketBet.find(jodiQuery).populate("userId").lean(),
+//       ]);
+//     }
+
+//     /* ================= PANNA BET (digit ignored, panna match only) ================= */
+
+//     const pannaQuery = {
+//       gameName: gameName,
+//       playedDate: formattedDate,
+//       bets: {
+//         $elemMatch: {
+//           underNo: panna, // exact match, 3 digit
+//           mode: session,
+//           resultStatus: "PENDING",
+//         },
+//       },
+//     };
+
+//     const triplepannaQuery = {
+//       gameName: gameName,
+//       playedDate: formattedDate,
+//       bets: {
+//         $elemMatch: {
+//           number: panna, // exact match, 3 digit
+//           mode: session,
+//           resultStatus: "PENDING",
+//         },
+//       },
+//     };
+
+//     const spanddppannaQuery = {
+//       gameName: gameName,
+//       playedDate: formattedDate,
+//       bets: {
+//         $elemMatch: {
+//           underNo: panna, // exact match, 3 digit
+//           session: session,
+//           resultStatus: "PENDING",
+//         },
+//       },
+//     };
+
+//     const [
+//       singlePannaData,
+//       singlePannaBulkData,
+//       doublePannaData,
+//       doublePannaBulkData,
+//       triplePannaData,
+//       spMotorData,
+//       dpMotorData,
+//       spdptpData,
+//     ] = await Promise.all([
+//       SinglePannaBet.find(pannaQuery, {
+//         gameName: gameName,
+//         bets: {
+//           $elemMatch: {
+//             underNo: panna,
+//             mode: session,
+//             resultStatus: "PENDING",
+//           },
+//         },
+//       })
+//         .populate("userId")
+//         .lean(),
+//       SinglePannaBulkBet.find(pannaQuery, {
+//         gameName: gameName,
+//         bets: {
+//           $elemMatch: {
+//             underNo: panna,
+//             mode: session,
+//             resultStatus: "PENDING",
+//           },
+//         },
+//       })
+//         .populate("userId")
+//         .lean(),
+//       DoublePannaBet.find(pannaQuery, {
+//         gameName: gameName,
+//         bets: {
+//           $elemMatch: {
+//             underNo: panna,
+//             mode: session,
+//             resultStatus: "PENDING",
+//           },
+//         },
+//       })
+//         .populate("userId")
+//         .lean(),
+//       DoublePannaBulkBet.find(pannaQuery, {
+//         gameName: gameName,
+//         bets: {
+//           $elemMatch: {
+//             underNo: panna,
+//             mode: session,
+//             resultStatus: "PENDING",
+//           },
+//         },
+//       })
+//         .populate("userId")
+//         .lean(),
+
+
+//       TriplePannaBet.find(triplepannaQuery, {
+//         gameName: gameName,
+//         bets: {
+//           $elemMatch: {
+//             number: panna,
+//             mode: session,
+//             resultStatus: "PENDING",
+//           },
+//         },
+//       })
+//         .populate("userId")
+//         .lean(),
+
+
+//       SPMotorBet.find(spanddppannaQuery, {
+//         gameName: gameName,
+//         bets: {
+//           $elemMatch: {
+//             underNo: panna,
+//             session: session,
+//             resultStatus: "PENDING",
+//           },
+//         },
+//       })
+//         .populate("userId")
+//         .lean(),
+//       DPMotorBet.find(spanddppannaQuery, {
+//         gameName: gameName,
+//         bets: {
+//           $elemMatch: {
+//             underNo: panna,
+//             session: session,
+//             resultStatus: "PENDING",
+//           },
+//         },
+//       })
+//         .populate("userId")
+//         .lean(),
+//       spdptpBet.find(spanddppannaQuery, {
+//         gameName: gameName,
+//         bets: {
+//           $elemMatch: {
+//             underNo: panna,
+//             session: session,
+//             resultStatus: "PENDING",
+//           },
+//         },
+//       })
+//         .populate("userId")
+//         .lean(),
+//     ]);
+
+
+
+//     // Half Sangam
+//     let halfSangamData = [];
+
+//     if (session === "CLOSE") {
+//       const halfSangamQuery = {
+//         gameName: gameName,
+//         playedDate: formattedDate,
+//         bets: {
+//           $elemMatch: {
+//             openMatched: true, // open phase already matched
+//             closeDigit: Number(digit), // close digit match
+//             resultStatus: "PENDING", // only pending
+//           },
+//         },
+//       };
+
+//       halfSangamData = await HalfSangamBet.find(halfSangamQuery)
+//         .populate("userId")
+//         .lean();
+//     }
+
+//     // Full Sanagam
+//     let fullSangamData = [];
+
+//     if (session === "CLOSE") {
+//       const fullSangamQuery = {
+//         gameName: gameName,
+//         playedDate: formattedDate,
+//         bets: {
+//           $elemMatch: {
+//             openMatched: true, // open phase already matched
+//             closePanna: panna, // close panna match
+//             resultStatus: "PENDING", // only pending bets
+//           },
+//         },
+//       };
+
+//       fullSangamData = await FullSangamBet.find(fullSangamQuery)
+//         .populate("userId")
+//         .lean();
+//     }
+
+//     /* ================= MERGE ALL DATA ================= */
+
+//     const finalData = [
+//       ...singleDigitData,
+//       ...singleBulkData,
+//       ...jodiDigitData,
+//       ...jodiBulkDigitData,
+//       ...singlePannaData,
+//       ...singlePannaBulkData,
+//       ...doublePannaData,
+//       ...doublePannaBulkData,
+//       ...triplePannaData,
+//       ...halfSangamData,
+//       ...fullSangamData,
+//       ...spMotorData,
+//       ...dpMotorData,
+//       ...spdptpData,
+//       ...redBracketData,
+//     ];
+
+//     return res.status(200).json({
+//       success: true,
+//       count: finalData.length,
+//       data: finalData,
+//     });
+//   } catch (error) {
+//     console.error("Error fetching matching bets:", error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "Server error",
+//     });
+//   }
+// };
+
+
+
+exports.showPreviewWinnerList = async (req, res) => {
+  try {
+
+    const { gameName, session, panna, digit, resultDate } = req.body;
+
+    if (!gameName || !session || !panna || !digit || !resultDate) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields"
+      });
+    }
+
+    const ist = DateTime.fromISO(resultDate, { zone: "Asia/Kolkata" });
+    const formattedDate = ist.toFormat("yyyy-MM-dd");
+
+    /* =====================================================
+       HELPER FUNCTION → QUERY + PROJECTION SAME RAKHEGA
+    ====================================================== */
+
+    const findWithElemMatch = async (Model, elemMatch) => {
+      return await Model.find(
+        {
+          gameName,
+          playedDate: formattedDate,
+          bets: { $elemMatch: elemMatch }
+        },
+        {
+          gameName: 1,
+          gameType: 1,
+          userId: 1,
+          bets: { $elemMatch: elemMatch }
+        }
+      )
+        .populate("userId")
+        .lean();
+    };
+
+    /* =====================================================
+       1️⃣ SINGLE DIGIT TYPE
+    ====================================================== */
+
+    const singleDigitMatch = {
+      number: Number(digit),
+      mode: session,
+      resultStatus: "PENDING"
+    };
+
+    const oddEvenMatch = {
+      underNo: digit,
+      mode: session,
+      resultStatus: "PENDING"
+    };
+
+    const [
+      singleDigitData,
+      singleBulkData,
+      oddEvenData
+    ] = await Promise.all([
+      findWithElemMatch(SingleDigitBet, singleDigitMatch),
+      findWithElemMatch(SingleBulkDigitBet, singleDigitMatch),
+      findWithElemMatch(OddEvenBet, oddEvenMatch)
+    ]);
+
+    /* =====================================================
+       2️⃣ PANNA TYPES
+    ====================================================== */
+
+    const pannaMatch = {
+      underNo: panna,
+      mode: session,
+      resultStatus: "PENDING"
+    };
+
+    const tripleMatch = {
+      number: panna,
+      mode: session,
+      resultStatus: "PENDING"
+    };
+
+    const [
+      singlePannaData,
+      singlePannaBulkData,
+      doublePannaData,
+      doublePannaBulkData,
+      triplePannaData
+    ] = await Promise.all([
+      findWithElemMatch(SinglePannaBet, pannaMatch),
+      findWithElemMatch(SinglePannaBulkBet, pannaMatch),
+      findWithElemMatch(DoublePannaBet, pannaMatch),
+      findWithElemMatch(DoublePannaBulkBet, pannaMatch),
+      findWithElemMatch(TriplePannaBet, tripleMatch)
+    ]);
+
+    /* =====================================================
+       3️⃣ CLOSE SESSION SPECIAL GAMES
+    ====================================================== */
+
+    let jodiData = [];
+    let redBracketData = [];
+    let halfSangamData = [];
+    let fullSangamData = [];
+
+    if (session === "CLOSE") {
+
+      const jodiMatch = {
+        openMatched: true,
+        resultStatus: "PENDING",
+        underNo: { $regex: `${digit}$` }
+      };
+
+      const halfSangamMatch = {
+        openMatched: true,
+        closeDigit: Number(digit),
+        resultStatus: "PENDING"
+      };
+
+      const fullSangamMatch = {
+        openMatched: true,
+        closePanna: panna,
+        resultStatus: "PENDING"
+      };
+
+      [
+        jodiData,
+        redBracketData,
+        halfSangamData,
+        fullSangamData
+      ] = await Promise.all([
+        findWithElemMatch(JodiDigitBet, jodiMatch),
+        findWithElemMatch(RedBracketBet, jodiMatch),
+        findWithElemMatch(HalfSangamBet, halfSangamMatch),
+        findWithElemMatch(FullSangamBet, fullSangamMatch)
+      ]);
+    }
+
+    /* =====================================================
+       MERGE ALL
+    ====================================================== */
+
+    const finalData = [
+      ...singleDigitData,
+      ...singleBulkData,
+      ...oddEvenData,
+      ...singlePannaData,
+      ...singlePannaBulkData,
+      ...doublePannaData,
+      ...doublePannaBulkData,
+      ...triplePannaData,
+      ...jodiData,
+      ...redBracketData,
+      ...halfSangamData,
+      ...fullSangamData
+    ];
+
+    return res.status(200).json({
+      success: true,
+      count: finalData.length,
+      data: finalData
+    });
+
+  } catch (error) {
+    console.error("Preview Winner Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error"
+    });
+  }
+};
+
+// end show preview winner list
+
+// Extra first check minum load of check preview winner users
+
+// exports.showPreviewWinnerList = async (req, res) => {
+//   try {
+//     // -------- AUTH CHECK --------
+//     if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== 'admin') {
+//       return res.redirect('/admin/login');
+//     }
+
+//     const admin = await User.findOne({ _id: req.session.admin._id, role: 'admin', userStatus: 'active' });
+//     if (!admin) {
+//       req.session.destroy();
+//       return res.redirect('/admin/login');
+//     }
+
+//     // -------- REQUEST DATA --------
+//     const { gameName, session, panna, digit, resultDate } = req.body;
+//     if (!gameName || !session || !panna || !digit || !resultDate) {
+//       return res.status(400).json({ success: false, message: 'Missing required fields' });
+//     }
+
+//     const ist = DateTime.fromISO(resultDate, { zone: 'Asia/Kolkata' });
+//     const formattedDate = ist.toFormat('yyyy-MM-dd');
+
+//     // -------- HELPER FUNCTIONS --------
+//     const makeQuery = (field, value, extra = {}) => ({
+//       gameName,
+//       playedDate: formattedDate,
+//       bets: { $elemMatch: { [field]: value, ...extra } },
+//     });
+
+// const normalizeBets = (item) => {
+//   const bets = item.bets.map(bet => ({
+//     ...bet,
+//     underNo: bet.underNo ?? bet.number ?? null,
+//     number: bet.number ?? bet.underNo ?? null,
+//     amountPerUnderNo: bet.amountPerUnderNo ?? bet.amount ?? 0,
+//     amount: bet.amount ?? bet.amountPerUnderNo ?? 0,
+//     mainGame: bet.mainGame ?? '',
+// mode: bet.mode ?? '',
+// session: bet.session ?? '',
+
+//   }));
+//   return { ...item, bets };
+// };
+
+//     // -------- QUERIES --------
+//     const queries = {
+//       singleDigit: makeQuery('number', Number(digit), { mode: session, resultStatus: 'PENDING' }),
+//       oddEven: makeQuery('underNo', digit, { mode: session, resultStatus: 'PENDING' }),
+//       panna: makeQuery('underNo', panna, { mode: session, resultStatus: 'PENDING' }),
+//       triplePanna: makeQuery('number', panna, { mode: session, resultStatus: 'PENDING' }),
+//       spdp: makeQuery('underNo', panna, { session: session, resultStatus: 'PENDING' }),
+//     };
+
+//     if (session === 'CLOSE') {
+//       queries.jodi = makeQuery('underNo', { $regex: `${digit}$` }, { openMatched: true, resultStatus: 'PENDING' });
+//       queries.halfSangam = makeQuery('closeDigit', Number(digit), { openMatched: true, resultStatus: 'PENDING' });
+//       queries.fullSangam = makeQuery('closePanna', panna, { openMatched: true, resultStatus: 'PENDING' });
+//     }
+
+//     // -------- COLLECTION FETCHES --------
+//     const collections = [
+//       { model: SingleDigitBet, query: queries.singleDigit },
+//       { model: SingleBulkDigitBet, query: queries.singleDigit },
+//       { model: OddEvenBet, query: queries.oddEven },
+//       { model: SinglePannaBet, query: queries.panna },
+//       { model: SinglePannaBulkBet, query: queries.panna },
+//       { model: DoublePannaBet, query: queries.panna },
+//       { model: DoublePannaBulkBet, query: queries.panna },
+//       { model: TriplePannaBet, query: queries.triplePanna },
+//       { model: SPMotorBet, query: queries.spdp },
+//       { model: DPMotorBet, query: queries.spdp },
+//       { model: spdptpBet, query: queries.spdp },
+//     ];
+
+//     if (session === 'CLOSE') {
+//       collections.push(
+//         { model: JodiDigitBet, query: queries.jodi },
+//         { model: JodiDigitBulkBet, query: queries.jodi },
+//         { model: RedBracketBet, query: queries.jodi },
+//         { model: HalfSangamBet, query: queries.halfSangam },
+//         { model: FullSangamBet, query: queries.fullSangam }
+//       );
+//     }
+
+//     // -------- PARALLEL FETCH & NORMALIZE --------
+//     const results = await Promise.all(collections.map(c => c.model.find(c.query).populate('userId').lean()));
+//     const finalData = results.flat().map(normalizeBets);
+
+//     // -------- RESPONSE --------
+//     return res.status(200).json({ success: true, count: finalData.length, data: finalData });
+
+//   } catch (error) {
+//     console.error('Error fetching matching bets:', error);
+//     return res.status(500).json({ success: false, message: 'Server error' });
+//   }
+// };
+
+//End  Extra first check minum load of check preview winner users
+
+// change bid amount and bid number by admin (for all games - single digit, double panna, single panna, jodi digit etc)
+exports.updateBidData = async (req, res) => {
+  try {
+    /* ================= ADMIN AUTH ================= */
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    });
+
+    if (!admin) {
+      req.session.destroy();
+      return res
+        .status(401)
+        .json({ success: false, message: "Session expired" });
+    }
+
+    /* ================= REQUEST DATA ================= */
+    const {
+      gameName,
+      session,
+      playedDate,
+      betId,
+      betItemId,
+      newNumber,
+      newAmount,
+    } = req.body;
+
+    if (!gameName || !playedDate || !betId || !betItemId) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields",
+      });
+    }
+
+    /* =====================================================
+       🔥 DOUBLE PANNA UPDATE
+    ===================================================== */
+
+    if (gameName === "DoublePanna") {
+      const bet = await DoublePannaBet.findOne({
+        _id: betId,
+        playedDate,
+      }).populate("userId");
+
+      if (!bet)
+        return res
+          .status(404)
+          .json({ success: false, message: "Bet not found" });
+
+      const item = bet.bets.id(betItemId);
+
+      if (!item)
+        return res
+          .status(404)
+          .json({ success: false, message: "Bet item not found" });
+
+      const beforeNumber = item.underNo;
+      const beforeAmount = item.amount;
+
+      if (session === item.mode) {
+        item.underNo = newNumber;
+        item.amount = Number(newAmount);
+      }
+
+      await bet.save();
+
+      await AdminBetEditHistory.create({
+        adminId: admin._id,
+        userId: bet.userId._id,
+        gameName,
+        gameType: "DOUBLE PANNA",
+        session,
+        playedDate,
+        betId,
+        betItemId,
+        beforeNumber,
+        afterNumber: newNumber,
+        beforeAmount,
+        afterAmount: newAmount,
+      });
+    }
+
+    /* =====================================================
+       🔥 SINGLE DIGIT UPDATE
+    ===================================================== */
+
+    if (gameName === "SingleDigit") {
+      const bet = await SingleDigitBet.findOne({
+        _id: betId,
+        playedDate,
+      }).populate("userId");
+
+      if (!bet)
+        return res
+          .status(404)
+          .json({ success: false, message: "Bet not found" });
+
+      const item = bet.bets.id(betItemId);
+
+      const beforeNumber = item.number;
+      const beforeAmount = item.amount;
+
+      if (session === item.mode) {
+        item.number = Number(newNumber);
+        item.amount = Number(newAmount);
+      }
+
+      await bet.save();
+
+      await AdminBetEditHistory.create({
+        adminId: admin._id,
+        userId: bet.userId._id,
+        gameName,
+        gameType: "SINGLE DIGIT",
+        session,
+        playedDate,
+        betId,
+        betItemId,
+        beforeNumber,
+        afterNumber: newNumber,
+        beforeAmount,
+        afterAmount: newAmount,
+      });
+    }
+
+    /* =====================================================
+       🔥 SINGLE PANNA UPDATE
+    ===================================================== */
+
+    if (gameName === "SinglePanna") {
+      const bet = await SinglePannaBet.findOne({
+        _id: betId,
+        playedDate,
+      }).populate("userId");
+
+      const item = bet.bets.id(betItemId);
+
+      const beforeNumber = item.underNo;
+      const beforeAmount = item.amount;
+
+      if (session === item.mode) {
+        item.underNo = newNumber;
+        item.amount = Number(newAmount);
+      }
+
+      await bet.save();
+
+      await AdminBetEditHistory.create({
+        adminId: admin._id,
+        userId: bet.userId._id,
+        gameName,
+        gameType: "SINGLE PANNA",
+        session,
+        playedDate,
+        betId,
+        betItemId,
+        beforeNumber,
+        afterNumber: newNumber,
+        beforeAmount,
+        afterAmount: newAmount,
+      });
+    }
+
+    /* =====================================================
+       🔥 JODI DIGIT UPDATE
+    ===================================================== */
+
+    if (gameName === "JodiDigit") {
+      const bet = await JodiDigitBet.findOne({
+        _id: betId,
+        playedDate,
+      }).populate("userId");
+
+      const item = bet.bets.id(betItemId);
+
+      const beforeNumber = item.underNo;
+      const beforeAmount = item.amount;
+
+      item.underNo = newNumber;
+      item.amount = Number(newAmount);
+
+      await bet.save();
+
+      await AdminBetEditHistory.create({
+        adminId: admin._id,
+        userId: bet.userId._id,
+        gameName,
+        gameType: "JODI DIGIT",
+        session,
+        playedDate,
+        betId,
+        betItemId,
+        beforeNumber,
+        afterNumber: newNumber,
+        beforeAmount,
+        afterAmount: newAmount,
+      });
+    }
+
+    /* =====================================================
+       🔥 YOU CAN COPY SAME BLOCK FOR:
+       - TriplePanna
+       - OddEven
+       - RedBracket
+       - SP Motor
+       - DP Motor
+       - Half Sangam
+       - Full Sangam
+       - Bulk Versions
+    ===================================================== */
+
+    return res.json({
+      success: true,
+      message: "Bet updated successfully",
+    });
+  } catch (err) {
+    console.error("Update Bet Error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};

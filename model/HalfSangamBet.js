@@ -3,12 +3,11 @@ const mongoose = require("mongoose");
 /* ================= HALF SANGAM ITEM SCHEMA ================= */
 const halfSangamItemSchema = new mongoose.Schema({
   // OPEN PANNA → 3 digit
-openPanna: {
-  type: String,
-  required: true,
-  match: /^\d{3}$/,
-},
-
+  openPanna: {
+    type: String,
+    required: true,
+    match: /^\d{3}$/,
+  },
 
   // CLOSE DIGIT → single digit (0–9)
   closeDigit: {
@@ -22,6 +21,11 @@ openPanna: {
     type: Number,
     required: true,
     min: 1,
+  },
+
+  winAmount: {
+    type: Number,
+    default: 0,
   },
 
   openMatched: {
@@ -74,7 +78,7 @@ const halfSangamBetSchema = new mongoose.Schema(
       type: [halfSangamItemSchema],
       required: true,
       validate: {
-        validator: arr => Array.isArray(arr) && arr.length > 0,
+        validator: (arr) => Array.isArray(arr) && arr.length > 0,
         message: "At least one bet required",
       },
     },
@@ -111,14 +115,14 @@ const halfSangamBetSchema = new mongoose.Schema(
       required: true,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 /* ================= AUTO TOTAL (ANTI-TAMPER) ================= */
 halfSangamBetSchema.pre("validate", function () {
   this.totalAmount = this.bets.reduce(
     (sum, b) => sum + (b.totalAmount || 0),
-    0
+    0,
   );
 });
 

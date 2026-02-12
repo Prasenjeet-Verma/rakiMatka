@@ -3212,7 +3212,7 @@ exports.placeStarlineSinglePannaBet = async (req, res, next) => {
 };
 
 exports.placeStarlineDoublePannaBet = async (req, res, next) => {
-  try {
+ try {
     /* ================= AUTH ================= */
     if (
       !req.session.isLoggedIn ||

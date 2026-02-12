@@ -12,6 +12,10 @@ const centerJodiDigitItemSchema = new mongoose.Schema({
     enum: ["PENDING", "WIN", "LOSS"],
     default: "PENDING"
   },
+    winAmount: {
+    type: Number,
+    default: 0,
+  },
 });
 
 const centerJodiDigitBetSchema = new mongoose.Schema(

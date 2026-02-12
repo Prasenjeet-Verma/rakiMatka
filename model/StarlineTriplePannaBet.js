@@ -12,7 +12,7 @@ const starlineTriplePannaItemSchema = new mongoose.Schema({
     required: true,
     min: 1
   },
-    winAmount: {
+  winAmount: {
     type: Number,
     default: 0,
   },
@@ -21,11 +21,11 @@ const starlineTriplePannaItemSchema = new mongoose.Schema({
     enum: ["OPEN", "CLOSE"],
     required: true
   },
-      resultStatus: {
-      type: String,
-      enum: ["PENDING", "WIN", "LOSS"],
-      default: "PENDING"
-    },
+  resultStatus: {
+    type: String,
+    enum: ["PENDING", "WIN", "LOSS"],
+    default: "PENDING"
+  },
 });
 
 /* ================= TRIPLE PANNA BET ================= */
@@ -63,7 +63,7 @@ const starlineTriplePannaBetSchema = new mongoose.Schema(
         "At least one triple panna bet required"
       ]
     },
-            beforeWallet: {
+    beforeWallet: {
       type: Number,
       required: true,
       min: 1,

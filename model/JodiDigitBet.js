@@ -18,7 +18,7 @@ const underNoItemSchema = new mongoose.Schema({
     required: true,
     min: 1,
   },
-      openMatched: {
+  openMatched: {
     type: Boolean,
     default: false,
   },

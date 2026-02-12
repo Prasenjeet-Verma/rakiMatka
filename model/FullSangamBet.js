@@ -17,6 +17,10 @@ const fullSangamItemSchema = new mongoose.Schema({
     required: true,
     min: 1,
   },
+    winAmount: {
+    type: Number,
+    default: 0,
+  },
   // 🔥 ADD THIS HERE (ITEM LEVEL)
   openMatched: {
     type: Boolean,

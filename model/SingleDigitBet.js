@@ -6,14 +6,13 @@ const singleDigitItemSchema = new mongoose.Schema({
     type: Number,
     min: 0,
     max: 9,
-    required: true
+    required: true,
   },
   amount: {
     type: Number,
     required: true,
-    min: 1
+    min: 1,
   },
-
   winAmount: {
     type: Number,
     default: 0,
@@ -21,13 +20,13 @@ const singleDigitItemSchema = new mongoose.Schema({
   mode: {
     type: String,
     enum: ["OPEN", "CLOSE"],
-    required: true
+    required: true,
   },
-      resultStatus: {
-      type: String,
-      enum: ["PENDING", "WIN", "LOSS"],
-      default: "PENDING"
-    },
+  resultStatus: {
+    type: String,
+    enum: ["PENDING", "WIN", "LOSS"],
+    default: "PENDING",
+  },
 });
 
 /* ================= SINGLE DIGIT BET ================= */
@@ -36,36 +35,36 @@ const singleDigitBetSchema = new mongoose.Schema(
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true
+      required: true,
     },
     gameId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Game",
-      required: true
+      required: true,
     },
     gameName: {
       type: String,
-      required: true
+      required: true,
     },
-        mainGame: {
+    mainGame: {
       type: String,
       default: "MAIN_GAME",
-      immutable: true
+      immutable: true,
     },
     gameType: {
       type: String,
       default: "SINGLE_DIGIT",
-      immutable: true
+      immutable: true,
     },
     bets: {
       type: [singleDigitItemSchema],
       required: true,
       validate: [
-        arr => arr.length > 0,
-        "At least one single digit bet required"
-      ]
+        (arr) => arr.length > 0,
+        "At least one single digit bet required",
+      ],
     },
-            beforeWallet: {
+    beforeWallet: {
       type: Number,
       required: true,
       min: 1,
@@ -78,20 +77,20 @@ const singleDigitBetSchema = new mongoose.Schema(
     },
     totalAmount: {
       type: Number,
-      required: true
+      required: true,
     },
 
     winningNumber: {
       type: Number,
       min: 0,
       max: 9,
-      default: null
+      default: null,
     },
     playedDate: String,
     playedTime: String,
-    playedWeekday: String
+    playedWeekday: String,
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 module.exports = mongoose.model("SingleDigitBet", singleDigitBetSchema);

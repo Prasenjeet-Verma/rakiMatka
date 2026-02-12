@@ -7,6 +7,10 @@ const leftDigitItemSchema = new mongoose.Schema({
     match: /^[0-9]$/, // Only single digit 0-9
   },
   amount: { type: Number, required: true, min: 1 },
+  winAmount: {
+    type: Number,
+    default: 0,
+  },
   resultStatus: {
     type: String,
     enum: ["PENDING", "WIN", "LOSS"],

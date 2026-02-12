@@ -35,4 +35,6 @@ adminRouter.post("/admin/jackpot-declare-result", adminController.declareJackpot
 adminRouter.get("/admin/starlineGameResult", adminController.starlineGameResult);
 adminRouter.get("/admin/starline-pending-games", adminController.getStarlinePendingGames);
 adminRouter.post("/admin/starline-declare-result", adminController.declareStarlineGameResult);
+// Route to fetch game result details for a specific game (for admin)
+adminRouter.post("/admin/show-preview-winner-list", adminController.showPreviewWinnerList);
 module.exports = adminRouter;
