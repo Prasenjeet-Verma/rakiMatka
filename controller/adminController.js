@@ -3457,7 +3457,16 @@ exports.declareStarlineGameResult = async (req, res) => {
 
 exports.showPreviewWinnerList = async (req, res) => {
   try {
+     // -------- AUTH CHECK --------
+    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== 'admin') {
+      return res.redirect('/admin/login');
+    }
 
+    const admin = await User.findOne({ _id: req.session.admin._id, role: 'admin', userStatus: 'active' });
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect('/admin/login');
+    }
     const { gameName, session, panna, digit, resultDate } = req.body;
 
     if (!gameName || !session || !panna || !digit || !resultDate) {
@@ -3470,9 +3479,9 @@ exports.showPreviewWinnerList = async (req, res) => {
     const ist = DateTime.fromISO(resultDate, { zone: "Asia/Kolkata" });
     const formattedDate = ist.toFormat("yyyy-MM-dd");
 
-    /* =====================================================
-       HELPER FUNCTION → QUERY + PROJECTION SAME RAKHEGA
-    ====================================================== */
+    /* =========================================
+       COMMON HELPER (QUERY + PROJECTION SAME)
+    ========================================== */
 
     const findWithElemMatch = async (Model, elemMatch) => {
       return await Model.find(
@@ -3492,9 +3501,9 @@ exports.showPreviewWinnerList = async (req, res) => {
         .lean();
     };
 
-    /* =====================================================
-       1️⃣ SINGLE DIGIT TYPE
-    ====================================================== */
+    /* =========================================
+       1️⃣ SINGLE DIGIT
+    ========================================== */
 
     const singleDigitMatch = {
       number: Number(digit),
@@ -3518,9 +3527,9 @@ exports.showPreviewWinnerList = async (req, res) => {
       findWithElemMatch(OddEvenBet, oddEvenMatch)
     ]);
 
-    /* =====================================================
-       2️⃣ PANNA TYPES
-    ====================================================== */
+    /* =========================================
+       2️⃣ PANNA TYPE
+    ========================================== */
 
     const pannaMatch = {
       underNo: panna,
@@ -3534,25 +3543,46 @@ exports.showPreviewWinnerList = async (req, res) => {
       resultStatus: "PENDING"
     };
 
+    const spdpMatch = {
+      underNo: panna,
+      session: session,
+      resultStatus: "PENDING"
+    };
+
+    const spdptpMatch = {
+  underNo: panna,
+  session: session === "OPEN" ? "Open" : "Close", // convert only here
+  resultStatus: "PENDING"
+}; 
+
     const [
       singlePannaData,
       singlePannaBulkData,
       doublePannaData,
       doublePannaBulkData,
-      triplePannaData
+      triplePannaData,
+      spMotorData,
+      dpMotorData,
+      spdptpData
     ] = await Promise.all([
       findWithElemMatch(SinglePannaBet, pannaMatch),
       findWithElemMatch(SinglePannaBulkBet, pannaMatch),
       findWithElemMatch(DoublePannaBet, pannaMatch),
       findWithElemMatch(DoublePannaBulkBet, pannaMatch),
-      findWithElemMatch(TriplePannaBet, tripleMatch)
+      findWithElemMatch(TriplePannaBet, tripleMatch),
+
+      // ✅ SP / DP / SPDPTP added properly
+      findWithElemMatch(SPMotorBet, spdpMatch),
+      findWithElemMatch(DPMotorBet, spdpMatch),
+      findWithElemMatch(spdptpBet, spdptpMatch)
     ]);
 
-    /* =====================================================
-       3️⃣ CLOSE SESSION SPECIAL GAMES
-    ====================================================== */
+    /* =========================================
+       3️⃣ CLOSE SPECIAL GAMES
+    ========================================== */
 
     let jodiData = [];
+    let jodiDigitBulkData = [];
     let redBracketData = [];
     let halfSangamData = [];
     let fullSangamData = [];
@@ -3584,15 +3614,16 @@ exports.showPreviewWinnerList = async (req, res) => {
         fullSangamData
       ] = await Promise.all([
         findWithElemMatch(JodiDigitBet, jodiMatch),
+        findWithElemMatch(JodiDigitBulkBet, jodiMatch),   // ✅ ADD THIS
         findWithElemMatch(RedBracketBet, jodiMatch),
         findWithElemMatch(HalfSangamBet, halfSangamMatch),
         findWithElemMatch(FullSangamBet, fullSangamMatch)
       ]);
     }
 
-    /* =====================================================
-       MERGE ALL
-    ====================================================== */
+    /* =========================================
+       MERGE ALL DATA
+    ========================================== */
 
     const finalData = [
       ...singleDigitData,
@@ -3603,7 +3634,11 @@ exports.showPreviewWinnerList = async (req, res) => {
       ...doublePannaData,
       ...doublePannaBulkData,
       ...triplePannaData,
+      ...spMotorData,
+      ...dpMotorData,
+      ...spdptpData,
       ...jodiData,
+      ...jodiDigitBulkData,
       ...redBracketData,
       ...halfSangamData,
       ...fullSangamData
