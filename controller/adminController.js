@@ -3080,380 +3080,6 @@ exports.declareStarlineGameResult = async (req, res) => {
   }
 };
 
-//show preview winner list
-// exports.showPreviewWinnerList = async (req, res) => {
-//   try {
-//     if (
-//       !req.session.isLoggedIn ||
-//       !req.session.admin ||
-//       req.session.admin.role !== "admin"
-//     ) {
-//       return res.redirect("/admin/login");
-//     }
-
-//     const admin = await User.findOne({
-//       _id: req.session.admin._id,
-//       role: "admin",
-//       userStatus: "active",
-//     });
-
-//     if (!admin) {
-//       req.session.destroy();
-//       return res.redirect("/admin/login");
-//     }
-
-//     /* ================= REQUEST DATA ================= */
-//     const { gameName, session, panna, digit, resultDate } = req.body;
-
-//     if (!gameName || !session || !panna || !digit || !resultDate) {
-//       return res
-//         .status(400)
-//         .json({ success: false, message: "Missing required fields" });
-//     }
-
-//     // --------- PARSE DATE IN IST ----------
-//     const ist = DateTime.fromISO(resultDate, { zone: "Asia/Kolkata" });
-//     const formattedDate = ist.toFormat("yyyy-MM-dd");
-//     const formattedTime = ist.toFormat("HH:mm");
-//     const weekday = ist.toFormat("cccc");
-
-//     // --------- CREATE IST-SAFE Date object for createdAt ----------
-//     const createdAtIST = new Date(
-//       ist.year,
-//       ist.month - 1, // JS months are 0-indexed
-//       ist.day,
-//       ist.hour,
-//       ist.minute,
-//       ist.second,
-//       ist.millisecond,
-//     );
-
-//     /* ================= FETCH SINGLE DIGIT GAMES ================= */
-
-//     const commonQuery = {
-//       gameName: gameName,
-//       playedDate: formattedDate,
-//       bets: {
-//         $elemMatch: {
-//           number: Number(digit),
-//           mode: session,
-//           resultStatus: "PENDING",
-//         },
-//       },
-//     };
-
-//     const oddevenQuery = {
-//       gameName: gameName,
-//       playedDate: formattedDate,
-//       bets: {
-//         $elemMatch: {
-//           underNo: digit, // exact match
-//           mode: session,
-//           resultStatus: "PENDING",
-//         },
-//       },
-//     };
-
-//     const [singleDigitData, singleBulkData] = await Promise.all([
-//       SingleDigitBet.find(commonQuery, {
-//         gameName: gameName,
-//         bets: {
-//           $elemMatch: {
-//             number: Number(digit),
-//             mode: session,
-//             resultStatus: "PENDING",
-//           },
-//         },
-//       })
-//         .populate("userId")
-//         .lean(),
-
-//       SingleBulkDigitBet.find(commonQuery, {
-//         gameName: gameName,
-//         bets: {
-//           $elemMatch: {
-//             number: Number(digit),
-//             mode: session,
-//             resultStatus: "PENDING",
-//           },
-//         },
-//       })
-//         .populate("userId")
-//         .lean(),
-
-//       OddEvenBet.find(oddevenQuery, {
-//         gameName: gameName,
-//         bets: {
-//           $elemMatch: {
-//             underNo: digit,
-//             mode: session,
-//             resultStatus: "PENDING",
-//           },
-//         },
-//       })
-//         .populate("userId")
-//         .lean(),
-//     ]);
-
-//     /* ================= JODI DATA (ONLY IF CLOSE) ================= */
-
-//     let jodiDigitData = [];
-//     let jodiBulkDigitData = [];
-//     let redBracketData = [];
-
-//     if (session === "CLOSE") {
-//       const jodiQuery = {
-//         gameName: gameName,
-//         playedDate: formattedDate,
-//         bets: {
-//           $elemMatch: {
-//             openMatched: true,
-//             resultStatus: "PENDING",
-//             underNo: {
-//               $regex: `${digit}$`, // last digit match
-//             },
-//           },
-//         },
-//       };
-
-//       [jodiDigitData, jodiBulkDigitData, redBracketData] = await Promise.all([
-//         JodiDigitBet.find(jodiQuery).populate("userId").lean(),
-
-//         JodiDigitBulkBet.find(jodiQuery).populate("userId").lean(),
-
-//         RedBracketBet.find(jodiQuery).populate("userId").lean(),
-//       ]);
-//     }
-
-//     /* ================= PANNA BET (digit ignored, panna match only) ================= */
-
-//     const pannaQuery = {
-//       gameName: gameName,
-//       playedDate: formattedDate,
-//       bets: {
-//         $elemMatch: {
-//           underNo: panna, // exact match, 3 digit
-//           mode: session,
-//           resultStatus: "PENDING",
-//         },
-//       },
-//     };
-
-//     const triplepannaQuery = {
-//       gameName: gameName,
-//       playedDate: formattedDate,
-//       bets: {
-//         $elemMatch: {
-//           number: panna, // exact match, 3 digit
-//           mode: session,
-//           resultStatus: "PENDING",
-//         },
-//       },
-//     };
-
-//     const spanddppannaQuery = {
-//       gameName: gameName,
-//       playedDate: formattedDate,
-//       bets: {
-//         $elemMatch: {
-//           underNo: panna, // exact match, 3 digit
-//           session: session,
-//           resultStatus: "PENDING",
-//         },
-//       },
-//     };
-
-//     const [
-//       singlePannaData,
-//       singlePannaBulkData,
-//       doublePannaData,
-//       doublePannaBulkData,
-//       triplePannaData,
-//       spMotorData,
-//       dpMotorData,
-//       spdptpData,
-//     ] = await Promise.all([
-//       SinglePannaBet.find(pannaQuery, {
-//         gameName: gameName,
-//         bets: {
-//           $elemMatch: {
-//             underNo: panna,
-//             mode: session,
-//             resultStatus: "PENDING",
-//           },
-//         },
-//       })
-//         .populate("userId")
-//         .lean(),
-//       SinglePannaBulkBet.find(pannaQuery, {
-//         gameName: gameName,
-//         bets: {
-//           $elemMatch: {
-//             underNo: panna,
-//             mode: session,
-//             resultStatus: "PENDING",
-//           },
-//         },
-//       })
-//         .populate("userId")
-//         .lean(),
-//       DoublePannaBet.find(pannaQuery, {
-//         gameName: gameName,
-//         bets: {
-//           $elemMatch: {
-//             underNo: panna,
-//             mode: session,
-//             resultStatus: "PENDING",
-//           },
-//         },
-//       })
-//         .populate("userId")
-//         .lean(),
-//       DoublePannaBulkBet.find(pannaQuery, {
-//         gameName: gameName,
-//         bets: {
-//           $elemMatch: {
-//             underNo: panna,
-//             mode: session,
-//             resultStatus: "PENDING",
-//           },
-//         },
-//       })
-//         .populate("userId")
-//         .lean(),
-
-
-//       TriplePannaBet.find(triplepannaQuery, {
-//         gameName: gameName,
-//         bets: {
-//           $elemMatch: {
-//             number: panna,
-//             mode: session,
-//             resultStatus: "PENDING",
-//           },
-//         },
-//       })
-//         .populate("userId")
-//         .lean(),
-
-
-//       SPMotorBet.find(spanddppannaQuery, {
-//         gameName: gameName,
-//         bets: {
-//           $elemMatch: {
-//             underNo: panna,
-//             session: session,
-//             resultStatus: "PENDING",
-//           },
-//         },
-//       })
-//         .populate("userId")
-//         .lean(),
-//       DPMotorBet.find(spanddppannaQuery, {
-//         gameName: gameName,
-//         bets: {
-//           $elemMatch: {
-//             underNo: panna,
-//             session: session,
-//             resultStatus: "PENDING",
-//           },
-//         },
-//       })
-//         .populate("userId")
-//         .lean(),
-//       spdptpBet.find(spanddppannaQuery, {
-//         gameName: gameName,
-//         bets: {
-//           $elemMatch: {
-//             underNo: panna,
-//             session: session,
-//             resultStatus: "PENDING",
-//           },
-//         },
-//       })
-//         .populate("userId")
-//         .lean(),
-//     ]);
-
-
-
-//     // Half Sangam
-//     let halfSangamData = [];
-
-//     if (session === "CLOSE") {
-//       const halfSangamQuery = {
-//         gameName: gameName,
-//         playedDate: formattedDate,
-//         bets: {
-//           $elemMatch: {
-//             openMatched: true, // open phase already matched
-//             closeDigit: Number(digit), // close digit match
-//             resultStatus: "PENDING", // only pending
-//           },
-//         },
-//       };
-
-//       halfSangamData = await HalfSangamBet.find(halfSangamQuery)
-//         .populate("userId")
-//         .lean();
-//     }
-
-//     // Full Sanagam
-//     let fullSangamData = [];
-
-//     if (session === "CLOSE") {
-//       const fullSangamQuery = {
-//         gameName: gameName,
-//         playedDate: formattedDate,
-//         bets: {
-//           $elemMatch: {
-//             openMatched: true, // open phase already matched
-//             closePanna: panna, // close panna match
-//             resultStatus: "PENDING", // only pending bets
-//           },
-//         },
-//       };
-
-//       fullSangamData = await FullSangamBet.find(fullSangamQuery)
-//         .populate("userId")
-//         .lean();
-//     }
-
-//     /* ================= MERGE ALL DATA ================= */
-
-//     const finalData = [
-//       ...singleDigitData,
-//       ...singleBulkData,
-//       ...jodiDigitData,
-//       ...jodiBulkDigitData,
-//       ...singlePannaData,
-//       ...singlePannaBulkData,
-//       ...doublePannaData,
-//       ...doublePannaBulkData,
-//       ...triplePannaData,
-//       ...halfSangamData,
-//       ...fullSangamData,
-//       ...spMotorData,
-//       ...dpMotorData,
-//       ...spdptpData,
-//       ...redBracketData,
-//     ];
-
-//     return res.status(200).json({
-//       success: true,
-//       count: finalData.length,
-//       data: finalData,
-//     });
-//   } catch (error) {
-//     console.error("Error fetching matching bets:", error);
-//     return res.status(500).json({
-//       success: false,
-//       message: "Server error",
-//     });
-//   }
-// };
-
-
 
 exports.showPreviewWinnerList = async (req, res) => {
   try {
@@ -3609,15 +3235,16 @@ exports.showPreviewWinnerList = async (req, res) => {
 
       [
         jodiData,
+        jodiDigitBulkData,
         redBracketData,
         halfSangamData,
-        fullSangamData
+        fullSangamData,
       ] = await Promise.all([
         findWithElemMatch(JodiDigitBet, jodiMatch),
         findWithElemMatch(JodiDigitBulkBet, jodiMatch),   // ✅ ADD THIS
         findWithElemMatch(RedBracketBet, jodiMatch),
         findWithElemMatch(HalfSangamBet, halfSangamMatch),
-        findWithElemMatch(FullSangamBet, fullSangamMatch)
+        findWithElemMatch(FullSangamBet, fullSangamMatch),
       ]);
     }
 
@@ -3641,7 +3268,7 @@ exports.showPreviewWinnerList = async (req, res) => {
       ...jodiDigitBulkData,
       ...redBracketData,
       ...halfSangamData,
-      ...fullSangamData
+      ...fullSangamData,
     ];
 
     return res.status(200).json({
@@ -3659,111 +3286,10 @@ exports.showPreviewWinnerList = async (req, res) => {
   }
 };
 
-// end show preview winner list
 
-// Extra first check minum load of check preview winner users
-
-// exports.showPreviewWinnerList = async (req, res) => {
-//   try {
-//     // -------- AUTH CHECK --------
-//     if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== 'admin') {
-//       return res.redirect('/admin/login');
-//     }
-
-//     const admin = await User.findOne({ _id: req.session.admin._id, role: 'admin', userStatus: 'active' });
-//     if (!admin) {
-//       req.session.destroy();
-//       return res.redirect('/admin/login');
-//     }
-
-//     // -------- REQUEST DATA --------
-//     const { gameName, session, panna, digit, resultDate } = req.body;
-//     if (!gameName || !session || !panna || !digit || !resultDate) {
-//       return res.status(400).json({ success: false, message: 'Missing required fields' });
-//     }
-
-//     const ist = DateTime.fromISO(resultDate, { zone: 'Asia/Kolkata' });
-//     const formattedDate = ist.toFormat('yyyy-MM-dd');
-
-//     // -------- HELPER FUNCTIONS --------
-//     const makeQuery = (field, value, extra = {}) => ({
-//       gameName,
-//       playedDate: formattedDate,
-//       bets: { $elemMatch: { [field]: value, ...extra } },
-//     });
-
-// const normalizeBets = (item) => {
-//   const bets = item.bets.map(bet => ({
-//     ...bet,
-//     underNo: bet.underNo ?? bet.number ?? null,
-//     number: bet.number ?? bet.underNo ?? null,
-//     amountPerUnderNo: bet.amountPerUnderNo ?? bet.amount ?? 0,
-//     amount: bet.amount ?? bet.amountPerUnderNo ?? 0,
-//     mainGame: bet.mainGame ?? '',
-// mode: bet.mode ?? '',
-// session: bet.session ?? '',
-
-//   }));
-//   return { ...item, bets };
-// };
-
-//     // -------- QUERIES --------
-//     const queries = {
-//       singleDigit: makeQuery('number', Number(digit), { mode: session, resultStatus: 'PENDING' }),
-//       oddEven: makeQuery('underNo', digit, { mode: session, resultStatus: 'PENDING' }),
-//       panna: makeQuery('underNo', panna, { mode: session, resultStatus: 'PENDING' }),
-//       triplePanna: makeQuery('number', panna, { mode: session, resultStatus: 'PENDING' }),
-//       spdp: makeQuery('underNo', panna, { session: session, resultStatus: 'PENDING' }),
-//     };
-
-//     if (session === 'CLOSE') {
-//       queries.jodi = makeQuery('underNo', { $regex: `${digit}$` }, { openMatched: true, resultStatus: 'PENDING' });
-//       queries.halfSangam = makeQuery('closeDigit', Number(digit), { openMatched: true, resultStatus: 'PENDING' });
-//       queries.fullSangam = makeQuery('closePanna', panna, { openMatched: true, resultStatus: 'PENDING' });
-//     }
-
-//     // -------- COLLECTION FETCHES --------
-//     const collections = [
-//       { model: SingleDigitBet, query: queries.singleDigit },
-//       { model: SingleBulkDigitBet, query: queries.singleDigit },
-//       { model: OddEvenBet, query: queries.oddEven },
-//       { model: SinglePannaBet, query: queries.panna },
-//       { model: SinglePannaBulkBet, query: queries.panna },
-//       { model: DoublePannaBet, query: queries.panna },
-//       { model: DoublePannaBulkBet, query: queries.panna },
-//       { model: TriplePannaBet, query: queries.triplePanna },
-//       { model: SPMotorBet, query: queries.spdp },
-//       { model: DPMotorBet, query: queries.spdp },
-//       { model: spdptpBet, query: queries.spdp },
-//     ];
-
-//     if (session === 'CLOSE') {
-//       collections.push(
-//         { model: JodiDigitBet, query: queries.jodi },
-//         { model: JodiDigitBulkBet, query: queries.jodi },
-//         { model: RedBracketBet, query: queries.jodi },
-//         { model: HalfSangamBet, query: queries.halfSangam },
-//         { model: FullSangamBet, query: queries.fullSangam }
-//       );
-//     }
-
-//     // -------- PARALLEL FETCH & NORMALIZE --------
-//     const results = await Promise.all(collections.map(c => c.model.find(c.query).populate('userId').lean()));
-//     const finalData = results.flat().map(normalizeBets);
-
-//     // -------- RESPONSE --------
-//     return res.status(200).json({ success: true, count: finalData.length, data: finalData });
-
-//   } catch (error) {
-//     console.error('Error fetching matching bets:', error);
-//     return res.status(500).json({ success: false, message: 'Server error' });
-//   }
-// };
-
-//End  Extra first check minum load of check preview winner users
 
 // change bid amount and bid number by admin (for all games - single digit, double panna, single panna, jodi digit etc)
-exports.updateBidData = async (req, res) => {
+exports.changeBidNumberAmount = async (req, res) => {
   try {
     /* ================= ADMIN AUTH ================= */
     if (
@@ -3788,206 +3314,170 @@ exports.updateBidData = async (req, res) => {
     }
 
     /* ================= REQUEST DATA ================= */
-    const {
-      gameName,
-      session,
-      playedDate,
-      betId,
-      betItemId,
-      newNumber,
-      newAmount,
-    } = req.body;
+    const { betId, underNo, amountPerUnderNo } = req.body;
 
-    if (!gameName || !playedDate || !betId || !betItemId) {
+    if (!betId) {
       return res.status(400).json({
         success: false,
-        message: "Missing required fields",
+        message: "Bet ID required",
       });
     }
 
-    /* =====================================================
-       🔥 DOUBLE PANNA UPDATE
-    ===================================================== */
+    /* ================= ALL MODELS ================= */
+    const betModels = [
+      SingleDigitBet,
+      SingleBulkDigitBet,
+      JodiDigitBet,
+      JodiDigitBulkBet,
+      SinglePannaBet,
+      SinglePannaBulkBet,
+      DoublePannaBet,
+      DoublePannaBulkBet,
+      TriplePannaBet,
+      OddEvenBet,
+      HalfSangamBet,
+      FullSangamBet,
+      SPMotorBet,
+      DPMotorBet,
+      spdptpBet,
+      RedBracketBet,
+    ];
 
-    if (gameName === "DoublePanna") {
-      const bet = await DoublePannaBet.findOne({
-        _id: betId,
-        playedDate,
-      }).populate("userId");
+    let betDocument = null;
 
-      if (!bet)
-        return res
-          .status(404)
-          .json({ success: false, message: "Bet not found" });
+    /* ================= FIND BET ================= */
+    for (const model of betModels) {
 
-      const item = bet.bets.id(betItemId);
-
-      if (!item)
-        return res
-          .status(404)
-          .json({ success: false, message: "Bet item not found" });
-
-      const beforeNumber = item.underNo;
-      const beforeAmount = item.amount;
-
-      if (session === item.mode) {
-        item.underNo = newNumber;
-        item.amount = Number(newAmount);
+      let found = await model.findById(betId);
+      if (found) {
+        betDocument = found;
+        break;
       }
 
-      await bet.save();
+      found = await model.findOne({ "bets._id": betId });
+      if (found) {
+        betDocument = found;
+        break;
+      }
+    }
 
-      await AdminBetEditHistory.create({
-        adminId: admin._id,
-        userId: bet.userId._id,
-        gameName,
-        gameType: "DOUBLE PANNA",
-        session,
-        playedDate,
-        betId,
-        betItemId,
-        beforeNumber,
-        afterNumber: newNumber,
-        beforeAmount,
-        afterAmount: newAmount,
+    if (!betDocument) {
+      return res.status(404).json({
+        success: false,
+        message: "Bet not found",
       });
     }
 
-    /* =====================================================
-       🔥 SINGLE DIGIT UPDATE
-    ===================================================== */
+    /* ================= UPDATE LOGIC ================= */
 
-    if (gameName === "SingleDigit") {
-      const bet = await SingleDigitBet.findOne({
-        _id: betId,
-        playedDate,
-      }).populate("userId");
+    /* ===== CASE 1 : ARRAY BET ===== */
+    if (Array.isArray(betDocument.bets)) {
 
-      if (!bet)
-        return res
-          .status(404)
-          .json({ success: false, message: "Bet not found" });
+      const subBet = betDocument.bets.id(betId);
 
-      const item = bet.bets.id(betItemId);
-
-      const beforeNumber = item.number;
-      const beforeAmount = item.amount;
-
-      if (session === item.mode) {
-        item.number = Number(newNumber);
-        item.amount = Number(newAmount);
+      if (!subBet) {
+        return res.status(404).json({
+          success: false,
+          message: "Sub bet not found",
+        });
       }
 
-      await bet.save();
+      /* ---- UPDATE NUMBER ---- */
+      if (underNo !== undefined) {
+        if (subBet.underNo !== undefined) subBet.underNo = underNo;
+        if (subBet.number !== undefined) subBet.number = underNo;
+        if (subBet.closeDigit !== undefined) subBet.closeDigit = underNo;
 
-      await AdminBetEditHistory.create({
-        adminId: admin._id,
-        userId: bet.userId._id,
-        gameName,
-        gameType: "SINGLE DIGIT",
-        session,
-        playedDate,
-        betId,
-        betItemId,
-        beforeNumber,
-        afterNumber: newNumber,
-        beforeAmount,
-        afterAmount: newAmount,
-      });
-    }
+        if (
+          subBet.openPanna !== undefined &&
+          typeof underNo === "string" &&
+          underNo.length === 3
+        ) {
+          subBet.openPanna = underNo;
+        }
 
-    /* =====================================================
-       🔥 SINGLE PANNA UPDATE
-    ===================================================== */
-
-    if (gameName === "SinglePanna") {
-      const bet = await SinglePannaBet.findOne({
-        _id: betId,
-        playedDate,
-      }).populate("userId");
-
-      const item = bet.bets.id(betItemId);
-
-      const beforeNumber = item.underNo;
-      const beforeAmount = item.amount;
-
-      if (session === item.mode) {
-        item.underNo = newNumber;
-        item.amount = Number(newAmount);
+        if (
+          subBet.closePanna !== undefined &&
+          typeof underNo === "string" &&
+          underNo.length === 3
+        ) {
+          subBet.closePanna = underNo;
+        }
       }
 
-      await bet.save();
+      /* ---- UPDATE AMOUNT ---- */
+      if (amountPerUnderNo !== undefined) {
 
-      await AdminBetEditHistory.create({
-        adminId: admin._id,
-        userId: bet.userId._id,
-        gameName,
-        gameType: "SINGLE PANNA",
-        session,
-        playedDate,
-        betId,
-        betItemId,
-        beforeNumber,
-        afterNumber: newNumber,
-        beforeAmount,
-        afterAmount: newAmount,
-      });
+        const amt = Number(amountPerUnderNo);
+
+        if (subBet.amount !== undefined) subBet.amount = amt;
+        if (subBet.amountPerUnderNo !== undefined) subBet.amountPerUnderNo = amt;
+        if (subBet.totalAmount !== undefined) subBet.totalAmount = amt;
+      }
+
+      /* ---- RESET RESULT ---- */
+      if (subBet.winAmount !== undefined) subBet.winAmount = 0;
+      if (subBet.resultStatus !== undefined) subBet.resultStatus = "PENDING";
     }
 
-    /* =====================================================
-       🔥 JODI DIGIT UPDATE
-    ===================================================== */
+    /* ===== CASE 2 : SINGLE OBJECT BET ===== */
+    else {
 
-    if (gameName === "JodiDigit") {
-      const bet = await JodiDigitBet.findOne({
-        _id: betId,
-        playedDate,
-      }).populate("userId");
+      /* ---- UPDATE NUMBER ---- */
+      if (underNo !== undefined) {
+        if (betDocument.underNo !== undefined) betDocument.underNo = underNo;
+        if (betDocument.number !== undefined) betDocument.number = underNo;
+        if (betDocument.closeDigit !== undefined) betDocument.closeDigit = underNo;
 
-      const item = bet.bets.id(betItemId);
+        if (
+          betDocument.openPanna !== undefined &&
+          typeof underNo === "string" &&
+          underNo.length === 3
+        ) {
+          betDocument.openPanna = underNo;
+        }
 
-      const beforeNumber = item.underNo;
-      const beforeAmount = item.amount;
+        if (
+          betDocument.closePanna !== undefined &&
+          typeof underNo === "string" &&
+          underNo.length === 3
+        ) {
+          betDocument.closePanna = underNo;
+        }
+      }
 
-      item.underNo = newNumber;
-      item.amount = Number(newAmount);
+      /* ---- UPDATE AMOUNT ---- */
+      if (amountPerUnderNo !== undefined) {
 
-      await bet.save();
+        const amt = Number(amountPerUnderNo);
 
-      await AdminBetEditHistory.create({
-        adminId: admin._id,
-        userId: bet.userId._id,
-        gameName,
-        gameType: "JODI DIGIT",
-        session,
-        playedDate,
-        betId,
-        betItemId,
-        beforeNumber,
-        afterNumber: newNumber,
-        beforeAmount,
-        afterAmount: newAmount,
-      });
+        if (betDocument.amount !== undefined) betDocument.amount = amt;
+        if (betDocument.amountPerUnderNo !== undefined)
+          betDocument.amountPerUnderNo = amt;
+        if (betDocument.totalAmount !== undefined)
+          betDocument.totalAmount = amt;
+      }
+
+      /* ---- RESET RESULT ---- */
+      if (betDocument.winAmount !== undefined)
+        betDocument.winAmount = 0;
+
+      if (betDocument.resultStatus !== undefined)
+        betDocument.resultStatus = "PENDING";
     }
 
-    /* =====================================================
-       🔥 YOU CAN COPY SAME BLOCK FOR:
-       - TriplePanna
-       - OddEven
-       - RedBracket
-       - SP Motor
-       - DP Motor
-       - Half Sangam
-       - Full Sangam
-       - Bulk Versions
-    ===================================================== */
+    /* ================= SAVE ================= */
+    await betDocument.save();
 
-    return res.json({
+    return res.status(200).json({
       success: true,
       message: "Bet updated successfully",
+      data: betDocument,
     });
+
   } catch (err) {
-    console.error("Update Bet Error:", err);
+    console.error("Update Bid amount and number Error:", err);
+
     return res.status(500).json({
       success: false,
       message: "Internal server error",

@@ -37,4 +37,8 @@ adminRouter.get("/admin/starline-pending-games", adminController.getStarlinePend
 adminRouter.post("/admin/starline-declare-result", adminController.declareStarlineGameResult);
 // Route to fetch game result details for a specific game (for admin)
 adminRouter.post("/admin/show-preview-winner-list", adminController.showPreviewWinnerList);
+//Change bid number and amount route
+adminRouter.post("/admin/change-bid-number-amount", adminController.changeBidNumberAmount);
+
+
 module.exports = adminRouter;

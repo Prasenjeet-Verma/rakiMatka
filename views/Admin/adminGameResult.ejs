@@ -383,7 +383,7 @@ showResultBtn.addEventListener("click", async function () {
           const newBidAmount = row.querySelector(".bidAmount").value;
 
           try {
-            const response = await fetch("/admin/update-bid", {
+            const response = await fetch("/admin/change-bid-number-amount", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
