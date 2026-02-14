@@ -40,5 +40,5 @@ adminRouter.post("/admin/show-preview-winner-list", adminController.showPreviewW
 //Change bid number and amount route
 adminRouter.post("/admin/change-bid-number-amount", adminController.changeBidNumberAmount);
 
-
+adminRouter.get("/admin/ViewThisGameAllPendingResult", adminController.viewThisGameAllPendingResult);
 module.exports = adminRouter;

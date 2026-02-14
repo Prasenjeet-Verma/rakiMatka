@@ -235,7 +235,7 @@
                       <th class="p-3 text-left border-r border-gray-300">Market</th>
                       <th class="p-3 text-left border-r border-gray-300">Session</th>
                       <th class="p-3 text-left border-r border-gray-300">Game</th>
-                      <th class="p-3 text-left border-r border-gray-300">Submit</th>
+                      <th class="p-3 text-left border-r border-gray-300">Action</th>
                     </tr>
                   </thead>
                   <tbody id="winnerTbody">
@@ -353,7 +353,7 @@ showResultBtn.addEventListener("click", async function () {
 
         row.innerHTML = `
           <td class="p-3 border-r border-gray-300">
-            <a href="adminViewResult.html">
+         <a href="/admin/ViewThisGameAllPendingResult?betId=${bet._id}">
               <button class="text-blue-500 hover:underline">View</button>
             </a>
           </td>
