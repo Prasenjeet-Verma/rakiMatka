@@ -32,16 +32,11 @@ const LeftDigitBet = require("../model/JackpotLeftDigitBet");
 const RightDigitBet = require("../model/JackpotRightDigitBet");
 const CenterJodiDigitBet = require("../model/JackpotCentreJodiDigitBet");
 // Starline game related models
-// const StarlineSingleDigitBet = require("../model/StarlineSingleDigitBet");
-// const StarlineJodiDigitBet = require("../model/StarlineJodiDigitBet");
-// const StarlineSinglePannaBet = require("../model/StarlineSinglePannaBet");
-// const StarlineDoublePannaBet = require("../model/StarlineDoublePannaBet");
-// const StarlineTriplePannaBet = require("../model/StarlineTriplePannaBet");
-const starlineGameDeclareResult = require("../model/starlineGameDeclareResult");
 const StarlineSingleDigitBet = require("../model/StarlineSingleDigitBet");
 const StarlineSinglePannaBet = require("../model/StarlineSinglePannaBet");
 const StarlineDoublePannaBet = require("../model/StarlineDoublePannaBet");
 const StarlineTriplePannaBet = require("../model/StarlineTriplePannaBet");
+const starlineGameDeclareResult = require("../model/starlineGameDeclareResult");
 
 exports.getAdminLoginPage = async (req, res, next) => {
   res.render("Admin/adminLogin", {
@@ -3699,6 +3694,489 @@ if (search && search.trim() !== "") {
     });
   } catch (err) {
     console.error("View this game all pending result Error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+// starline game preview winner list
+exports.starlinePreviewWinnerList = async (req, res) => {
+  try {
+    // ================= AUTH CHECK =================
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    });
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    const { gameName, session, panna, digit, resultDate } = req.body;
+
+    if (!gameName || !session || !panna || !digit || !resultDate) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields",
+      });
+    }
+
+    const ist = DateTime.fromISO(resultDate, { zone: "Asia/Kolkata" });
+    const formattedDate = ist.toFormat("yyyy-MM-dd");
+
+    // =========================================================
+    // 🔥 MASTER HELPER (MULTI BET SAFE)
+    // =========================================================
+
+    const findAndFilterBets = async (Model, elemMatch) => {
+      const docs = await Model.find({
+        gameName,
+        playedDate: formattedDate,
+        bets: { $elemMatch: elemMatch },
+      })
+        .populate("userId")
+        .lean();
+
+      return docs
+        .map((doc) => ({
+          _id: doc._id,
+          gameName: doc.gameName,
+          gameType: doc.gameType,
+          userId: doc.userId,
+          bets: doc.bets.filter((bet) =>
+            Object.keys(elemMatch).every((key) => {
+              const condition = elemMatch[key];
+
+              if (condition?.$regex) {
+                return new RegExp(condition.$regex).test(bet[key]);
+              }
+
+              return bet[key] === condition;
+            })
+          ),
+        }))
+        .filter((doc) => doc.bets.length > 0);
+    };
+
+    // =========================================================
+    // 1️⃣ STARLINE SINGLE DIGIT
+    // =========================================================
+
+    const singleDigitMatch = {
+      number: Number(digit),
+      mode: session,
+      resultStatus: "PENDING",
+    };
+
+    // =========================================================
+    // 2️⃣ STARLINE PANNA TYPES
+    // =========================================================
+
+    const pannaMatch = {
+      underNo: panna,
+      mode: session,
+      resultStatus: "PENDING",
+    };
+
+    const tripleMatch = {
+      number: panna,
+      mode: session,
+      resultStatus: "PENDING",
+    };
+
+    const [
+      singleDigitData,
+      singlePannaData,
+      doublePannaData,
+      triplePannaData,
+    ] = await Promise.all([
+      findAndFilterBets(StarlineSingleDigitBet, singleDigitMatch),
+      findAndFilterBets(StarlineSinglePannaBet, pannaMatch),
+      findAndFilterBets(StarlineDoublePannaBet, pannaMatch),
+      findAndFilterBets(StarlineTriplePannaBet, tripleMatch),
+    ]);
+
+    // =========================================================
+    // 🔥 MERGE ALL STARLINE DATA
+    // =========================================================
+
+    const finalData = [
+      ...singleDigitData,
+      ...singlePannaData,
+      ...doublePannaData,
+      ...triplePannaData,
+    ];
+
+    return res.status(200).json({
+      success: true,
+      count: finalData.length,
+      data: finalData,
+    });
+
+  } catch (error) {
+    console.error("Starline Preview Winner Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
+exports.starlineChangeBidNumberAndAmount = async (req, res) => {
+  try {
+    /* ================= ADMIN AUTH ================= */
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    });
+
+    if (!admin) {
+      req.session.destroy();
+      return res
+        .status(401)
+        .json({ success: false, message: "Session expired" });
+    }
+
+    /* ================= REQUEST DATA ================= */
+    const { betId, underNo, amountPerUnderNo } = req.body;
+
+    if (!betId) {
+      return res.status(400).json({
+        success: false,
+        message: "Bet ID required",
+      });
+    }
+
+    /* ================= STARLINE MODELS ONLY ================= */
+    const betModels = [
+      StarlineSingleDigitBet,
+      StarlineSinglePannaBet,
+      StarlineDoublePannaBet,
+      StarlineTriplePannaBet,
+    ];
+
+    let betDocument = null;
+
+    /* ================= FIND BET ================= */
+    for (const model of betModels) {
+      let found = await model.findById(betId);
+      if (found) {
+        betDocument = found;
+        break;
+      }
+
+      found = await model.findOne({ "bets._id": betId });
+      if (found) {
+        betDocument = found;
+        break;
+      }
+    }
+
+    if (!betDocument) {
+      return res.status(404).json({
+        success: false,
+        message: "Bet not found",
+      });
+    }
+
+    /* ================= UPDATE LOGIC ================= */
+
+    if (Array.isArray(betDocument.bets)) {
+      /* ===== ARRAY BET ===== */
+      const subBet = betDocument.bets.id(betId);
+
+      if (!subBet) {
+        return res.status(404).json({
+          success: false,
+          message: "Sub bet not found",
+        });
+      }
+
+      /* ---- UPDATE NUMBER ---- */
+      if (underNo !== undefined) {
+        if (subBet.underNo !== undefined) subBet.underNo = underNo;
+        if (subBet.number !== undefined) subBet.number = underNo;
+      }
+
+      /* ---- UPDATE AMOUNT ---- */
+      if (amountPerUnderNo !== undefined) {
+        const amt = Number(amountPerUnderNo);
+
+        if (subBet.amount !== undefined) subBet.amount = amt;
+        if (subBet.amountPerUnderNo !== undefined)
+          subBet.amountPerUnderNo = amt;
+        if (subBet.totalAmount !== undefined) subBet.totalAmount = amt;
+      }
+
+      /* ---- RESET RESULT ---- */
+      if (subBet.winAmount !== undefined) subBet.winAmount = 0;
+      if (subBet.resultStatus !== undefined)
+        subBet.resultStatus = "PENDING";
+
+    } else {
+      /* ===== SINGLE OBJECT BET ===== */
+
+      if (underNo !== undefined) {
+        if (betDocument.underNo !== undefined)
+          betDocument.underNo = underNo;
+
+        if (betDocument.number !== undefined)
+          betDocument.number = underNo;
+      }
+
+      if (amountPerUnderNo !== undefined) {
+        const amt = Number(amountPerUnderNo);
+
+        if (betDocument.amount !== undefined)
+          betDocument.amount = amt;
+
+        if (betDocument.amountPerUnderNo !== undefined)
+          betDocument.amountPerUnderNo = amt;
+
+        if (betDocument.totalAmount !== undefined)
+          betDocument.totalAmount = amt;
+      }
+
+      if (betDocument.winAmount !== undefined)
+        betDocument.winAmount = 0;
+
+      if (betDocument.resultStatus !== undefined)
+        betDocument.resultStatus = "PENDING";
+    }
+
+    /* ================= SAVE ================= */
+    await betDocument.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Starline bet updated successfully",
+      data: betDocument,
+    });
+
+  } catch (err) {
+    console.error("Starline Update Error:", err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+exports.viewStarlineThisGameAllPendingResult = async (req, res) => {
+  try {
+    /* ================= ADMIN AUTH ================= */
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    });
+
+    if (!admin) {
+      req.session.destroy();
+      return res
+        .status(401)
+        .json({ success: false, message: "Session expired" });
+    }
+
+    const { betId } = req.query;
+
+    if (!betId) {
+      return res.status(400).json({
+        success: false,
+        message: "Bet ID required",
+      });
+    }
+
+    /* ================= STARLINE MODELS ================= */
+    const betModels = [
+      StarlineSingleDigitBet,
+      StarlineSinglePannaBet,
+      StarlineDoublePannaBet,
+      StarlineTriplePannaBet,
+    ];
+
+    let betDocument = null;
+    let subBet = null;
+
+    /* ================= FIND BET ================= */
+    for (const model of betModels) {
+      let found = await model.findById(betId);
+      if (found) {
+        betDocument = found;
+        subBet = found;
+        break;
+      }
+
+      found = await model.findOne({ "bets._id": betId });
+      if (found) {
+        betDocument = found;
+        subBet = found.bets.id(betId);
+        break;
+      }
+    }
+
+    if (!betDocument || !subBet) {
+      return res.status(404).json({
+        success: false,
+        message: "Bet not found",
+      });
+    }
+
+    /* ================= EXTRACT VALUES ================= */
+
+    const bidValue = [
+      subBet.underNo,
+      subBet.number,
+    ].find((v) => v !== undefined && v !== null);
+
+    const bidAmount =
+      [subBet.amountPerUnderNo, subBet.amount, subBet.totalAmount].find(
+        (v) => v !== undefined && v !== null
+      ) ?? 0;
+
+    /* ================= FIND ALL PENDING IN SAME MARKET ================= */
+
+    let allMarketPendingBets = [];
+
+    const userId = betDocument.userId;
+    const gameName = betDocument.gameName;
+
+    for (const model of betModels) {
+      const docs = await model
+        .find({
+          userId,
+          gameName,
+        })
+        .lean();
+
+      docs.forEach((doc) => {
+        if (Array.isArray(doc.bets)) {
+          doc.bets.forEach((sub) => {
+            if (sub.resultStatus === "PENDING") {
+              allMarketPendingBets.push({
+                betId: sub._id,
+                gameType: doc.gameType,
+                gameName: doc.gameName,
+                session: sub.mode || "",
+                digit: sub.underNo || sub.number,
+                amount:
+                  sub.amountPerUnderNo || sub.amount || sub.totalAmount,
+                createdAt: doc.createdAt,
+              });
+            }
+          });
+        } else {
+          if (doc.resultStatus === "PENDING") {
+            allMarketPendingBets.push({
+              betId: doc._id,
+              gameType: doc.gameType,
+              gameName: doc.gameName,
+              session: doc.mode || "",
+              digit: doc.underNo || doc.number,
+              amount:
+                doc.amountPerUnderNo || doc.amount || doc.totalAmount,
+              createdAt: doc.createdAt,
+            });
+          }
+        }
+      });
+    }
+
+    /* ================= SEARCH FILTER ================= */
+
+    const { search } = req.query;
+
+    if (search && search.trim() !== "") {
+      const searchLower = search.toLowerCase().trim();
+
+      allMarketPendingBets = allMarketPendingBets.filter((bet) => {
+        const market = bet.gameName?.toLowerCase() || "";
+        const type = bet.gameType?.toLowerCase() || "";
+        const session = bet.session?.toLowerCase() || "";
+        const digit =
+          bet.digit !== undefined && bet.digit !== null
+            ? bet.digit.toString().toLowerCase()
+            : "";
+
+        return (
+          market.includes(searchLower) ||
+          type.includes(searchLower) ||
+          session.includes(searchLower) ||
+          digit.includes(searchLower)
+        );
+      });
+    }
+
+    /* ================= PAGINATION ================= */
+
+    let { page = 1, limit = 10 } = req.query;
+
+    page = parseInt(page);
+    limit = limit === "All" ? "All" : parseInt(limit);
+
+    const totalRecords = allMarketPendingBets.length;
+
+    let paginatedData = [];
+    let totalPages = 1;
+
+    if (limit === "All") {
+      paginatedData = allMarketPendingBets;
+    } else {
+      totalPages = Math.ceil(totalRecords / limit);
+      const startIndex = (page - 1) * limit;
+      const endIndex = startIndex + limit;
+      paginatedData = allMarketPendingBets.slice(startIndex, endIndex);
+    }
+
+    /* ================= RENDER ================= */
+
+    res.render("Admin/viewStarlineThisGameAllPendingResult", {
+      pageTitle: "Starline View Result",
+      admin,
+      isLoggedIn: req.session.isLoggedIn,
+      betId,
+      bidValue,
+      bidAmount,
+      allMarketPendingBets: paginatedData,
+      totalRecords,
+      totalPages,
+      currentPage: page,
+      limit,
+      search,
+    });
+
+  } catch (err) {
+    console.error("View Starline Pending Result Error:", err);
     return res.status(500).json({
       success: false,
       message: "Internal server error",

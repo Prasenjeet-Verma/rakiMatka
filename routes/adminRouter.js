@@ -39,6 +39,10 @@ adminRouter.post("/admin/starline-declare-result", adminController.declareStarli
 adminRouter.post("/admin/show-preview-winner-list", adminController.showPreviewWinnerList);
 //Change bid number and amount route
 adminRouter.post("/admin/change-bid-number-amount", adminController.changeBidNumberAmount);
-
+//admin route to view all pending result of a specific game
 adminRouter.get("/admin/ViewThisGameAllPendingResult", adminController.viewThisGameAllPendingResult);
+//admin route to see preview winner result of a specific starline game
+adminRouter.post("/admin/starline-show-preview-winner-list", adminController.starlinePreviewWinnerList);
+adminRouter.post("/admin/starline-change-bid-number-amount", adminController.starlineChangeBidNumberAndAmount);
+adminRouter.get("/admin/ViewStarlineThisGameAllPendingResult", adminController.viewStarlineThisGameAllPendingResult);
 module.exports = adminRouter;
