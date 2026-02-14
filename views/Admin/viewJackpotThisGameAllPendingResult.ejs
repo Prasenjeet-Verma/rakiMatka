@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  <link rel="stylesheet" href="/css/adminDashbord.css">
+
+  <style>
+    /* Custom scrollbar for the table wrapper */
+    .custom-scrollbar::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 10px;
+    }
+  </style>
+
+</head>
+
+<body class="flex min-h-screen">
+  <aside id="sidebar"
+    class="sidebar border-r border-gray-200 fixed inset-y-0 left-0 z-50 lg:relative lg:translate-x-0 transform -translate-x-full lg:block">
+    <div class="p-4">
+      <div class="relative mb-4">
+        <input type="text" placeholder="Search"
+          class="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
+        <button class="absolute right-0 top-0 bottom-0 px-3 bg-neutral-800 text-white rounded-r">
+          <i class="fas fa-search"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- ============================= Nav is here ============================ -->
+
+    <%- include('../partials/adminNav') %>
+  </aside>
+
+  <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+    <!-- ============================= Header is here ============================ -->
+    <%- include('../partials/adminHeader') %>
+      <header class="bg-white h-14 flex items-center justify-between px-4 border-b border-gray-200">
+      </header> <!-- header overflow done -->
+
+      <!-- ==================================== Body Start Here ========================================= -->
+
+
+      <div class="w-full bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+
+        <div class="px-4 py-3 border-b border-gray-100 bg-white">
+          <h2 class="text-gray-700 font-medium text-lg">Bet Edit</h2>
+        </div>
+
+        <div class="p-6 space-y-5">
+
+          <div>
+            <label for="number" class="block text-sm font-bold text-gray-800 mb-2">
+              Number:
+            </label>
+            <input type="text" id="number" value="<%= bidValue ?? '' %>"
+              class="w-full px-3 py-2 border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all" />
+          </div>
+
+          <div>
+            <label for="amount" class="block text-sm font-bold text-gray-800 mb-2">
+              Amount:
+            </label>
+            <input type="text" id="amount" value="<%= bidAmount ?? 0 %>"
+              class="w-full px-3 py-2 border border-gray-300 rounded text-gray-500 focus:outline-none focus:border-blue-400 transition-all" />
+          </div>
+
+          <div class="pt-2">
+            <button id="updateBid"
+              class="bg-[#eeb433] hover:bg-[#d9a32b] text-white font-medium py-2 px-6 rounded shadow-sm transition-colors duration-200">
+              Update Bet
+            </button>
+          </div>
+
+        </div>
+
+        <div class="px-2 py-1 bg-gray-50 flex justify-between items-center border-t border-gray-100">
+          <div class="text-gray-400 text-xs">◀</div>
+          <div class="flex space-x-2 text-gray-400 text-xs">
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================== Bid History ======================== -->
+      <record class="bg-gray-100 p-4">
+        <div class="bg-white rounded-lg shadow p-4">
+          <div class="flex items-center gap-2 text-sm">
+            <label>Search:</label>
+           <input type="text"
+  id="GameName"
+  class="border rounded px-2 py-1"
+  placeholder="Search Game Name"
+  value="<%= search ? search : '' %>">
+          </div>
+          <!-- CONTROLS -->
+          <div class="flex justify-around md:flex-row md:items-center md:justify-between gap-4 mb-4">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="text-sm">Show</span>
+              <select class="border rounded px-2 py-1 text-sm" onchange="changeLimit(this.value)">
+                <option value="10" <%=limit==10 ? 'selected' : '' %>>10</option>
+                <option value="50" <%=limit==50 ? 'selected' : '' %>>50</option>
+                <option value="100" <%=limit==100 ? 'selected' : '' %>>100</option>
+                <option value="All" <%=limit==='All' ? 'selected' : '' %>>All</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- TABLE -->
+          <div class="overflow-x-auto">
+            <table class="min-w-[1400px] w-full border text-sm">
+              <thead class="bg-gray-100">
+                <tr>
+                  <th class="border px-3 py-2 text-left">ID</th>
+                  <th class="border px-3 py-2 text-left">Market</th>
+                  <th class="border px-3 py-2 text-left">Amount</th>
+                  <th class="border px-3 py-2 text-left">Digits</th>
+                  <th class="border px-3 py-2 text-left">Game Name</th>
+                  <th class="border px-3 py-2 text-left">Game Status</th>
+                  <th class="border px-3 py-2 text-left">Placed on</th>
+                  <th class="border px-3 py-2 text-left">Action</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <% if (allMarketPendingBets.length===0) { %>
+                  <tr>
+                    <td colspan="9" class="border px-3 py-4 text-center text-gray-500">
+                      No pending bets found
+                    </td>
+                  </tr>
+                  <% } %>
+
+                    <% allMarketPendingBets.forEach((bet, index)=> { %>
+                      <tr class="<%= index % 2 === 0 ? 'bg-blue-50' : '' %>">
+
+                        <!-- Dynamic Serial Number -->
+                        <td class="border px-3 py-2">
+                          <%= limit==="All" ? index + 1 : ((currentPage - 1) * limit) + index + 1 %>
+                        </td>
+
+                        <!-- Market -->
+                        <td class="border px-3 py-2">
+                          <%= bet.gameName || '—' %>
+                        </td>
+
+                        <!-- Amount -->
+                        <td class="border px-3 py-2">
+                          <input type="text" value="<%= bet.amount %>" id="amount_<%= bet.betId %>"
+                            class="border px-2 py-1 w-20 rounded">
+                        </td>
+
+                        <!-- Digit -->
+                        <td class="border px-3 py-2">
+                          <input type="text" value="<%= bet.digit %>" id="digit_<%= bet.betId %>"
+                            class="border px-2 py-1 w-20 rounded">
+                        </td>
+
+                        <!-- Game Name -->
+                        <td class="border px-3 py-2">
+                          <%= bet.gameType %>
+                        </td>
+
+                        <!-- Status -->
+                        <td class="border px-3 py-2">
+                          <span class="bg-yellow-600 text-white text-xs px-2 py-1 rounded">
+                            Pending
+                          </span>
+                        </td>
+
+                        <!-- Created At -->
+                        <td class="border px-3 py-2">
+                          <%= new Date(bet.createdAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" ,
+                            day: "2-digit" , month: "2-digit" , year: "numeric" , hour: "2-digit" , minute: "2-digit" ,
+                            second: "2-digit" , hour12: true }) %>
+                        </td>
+
+                        <!-- Change Button -->
+                        <td class="border px-3 py-2">
+                          <button type="button" onclick="changeBet('<%= bet.betId %>')"
+                            class="bg-blue-500 text-white px-2 py-1 rounded text-xs">
+                            Change
+                          </button>
+                        </td>
+
+                      </tr>
+                      <% }) %>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- FOOTER -->
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-4 text-sm">
+            <p>
+              Showing
+              <%= limit==="All" ? 1 : ((currentPage - 1) * limit) + 1 %>
+                to
+                <%= limit==="All" ? totalRecords : Math.min(currentPage * limit, totalRecords) %>
+                  of <%= totalRecords %> entries
+            </p>
+
+            <div class="flex items-center gap-2 flex-wrap">
+
+              <% if (currentPage> 1) { %>
+                <a href="?betId=<%= betId %>&page=<%= currentPage - 1 %>&limit=<%= limit %><%= search ? '&search=' + search : '' %>"
+                  class="border px-3 py-1 rounded text-gray-600">
+                  Previous
+                </a>
+                <% } %>
+
+                  <% for(let i=1; i <=totalPages; i++) { %>
+                    <a href="?betId=<%= betId %>&page=<%= i %>&limit=<%= limit %><%= search ? '&search=' + search : '' %>"
+                      class="border px-3 py-1 rounded <%= i === currentPage ? 'bg-gray-200' : '' %>">
+                      <%= i %>
+                    </a>
+                    <% } %>
+
+                      <% if (currentPage < totalPages) { %>
+                        <a href="?betId=<%= betId %>&page=<%= currentPage + 1 %>&limit=<%= limit %><%= search ? '&search=' + search : '' %>"
+                          class="border px-3 py-1 rounded text-gray-600">
+                          Next
+                        </a>
+                        <% } %>
+
+            </div>
+          </div>
+        </div>
+      </record>
+
+
+      <!-- =============================================== Footer is here ===================================== -->
+  </main>
+  
+<script>
+  function changeLimit(value) {
+    const urlParams = new URLSearchParams(window.location.search);
+    urlParams.set("limit", value);
+    urlParams.set("page", 1);
+
+    // search already present hoga to automatically preserve ho jayega
+    window.location.search = urlParams.toString();
+  }
+</script>
+
+<script>
+  const searchInput = document.getElementById("GameName");
+
+  let debounceTimer;
+
+  searchInput.addEventListener("input", function () {
+    clearTimeout(debounceTimer);
+
+    debounceTimer = setTimeout(() => {
+      const value = this.value.trim();
+      const urlParams = new URLSearchParams(window.location.search);
+
+      if (value) {
+        urlParams.set("search", value);
+      } else {
+        urlParams.delete("search");
+      }
+
+      urlParams.set("page", 1); // reset page
+
+      window.location.search = urlParams.toString();
+    }, 400); // 400ms delay
+  });
+</script>
+
+  <script>
+    async function changeBet(betId) {
+      const digitInput = document.getElementById("digit_" + betId);
+      const amountInput = document.getElementById("amount_" + betId);
+
+      if (!digitInput || !amountInput) {
+        alert("Invalid bet row");
+        return;
+      }
+
+      const underNo = digitInput.value.trim();
+      const amountPerUnderNo = amountInput.value.trim();
+
+      if (!underNo || !amountPerUnderNo) {
+        alert("Digit and Amount are required");
+        return;
+      }
+
+      if (isNaN(amountPerUnderNo)) {
+        alert("Amount must be a number");
+        return;
+      }
+
+      if (!confirm("Are you sure you want to update this bet?")) {
+        return;
+      }
+
+      try {
+        const response = await fetch("/admin/jackpot-change-bid-number-amount", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            betId,
+            underNo,
+            amountPerUnderNo
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          alert("Bet updated successfully");
+          location.reload();
+        } else {
+          alert(data.message || "Update failed");
+        }
+
+      } catch (error) {
+        console.error("Update error:", error);
+        alert("Something went wrong");
+      }
+    }
+  </script>
+  <script>
+    const updateBtn = document.getElementById("updateBid");
+    const betId = "<%= betId %>";
+
+    updateBtn.addEventListener("click", async () => {
+
+      const newNumber = document.getElementById("number").value;
+      const newAmount = document.getElementById("amount").value;
+
+      if (!newNumber || !newAmount) {
+        alert("Please fill all fields");
+        return;
+      }
+
+      try {
+        const res = await fetch("/admin/jackpot-change-bid-number-amount", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            betId: betId,
+            underNo: newNumber,
+            amountPerUnderNo: newAmount
+          })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          alert("✅ Bet updated successfully!");
+        } else {
+          alert(data.message || "Error updating bet");
+        }
+
+      } catch (err) {
+        console.error(err);
+        alert("Server error");
+      }
+    });
+  </script>
+  <script src="/js/sidebar.js"></script>
+  <!-- <script src="/js/calander.js"></script> -->
+  <script src="/js/adminResult.js"></script>
+</body>
+
+</html>

@@ -4183,3 +4183,475 @@ exports.viewStarlineThisGameAllPendingResult = async (req, res) => {
     });
   }
 };
+
+// Jackpot game preview winner list
+exports.jackpotPreviewWinnerList = async (req, res) => {
+  try {
+    /* ================= ADMIN AUTH ================= */
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    });
+
+    if (!admin) {
+      req.session.destroy();
+      return res.status(401).json({
+        success: false,
+        message: "Session expired",
+      });
+    }
+
+    const { gameName, left, right, resultDate } = req.body;
+
+    if (!gameName || !left || !right || !resultDate) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required fields",
+      });
+    }
+
+    const ist = DateTime.fromISO(resultDate, { zone: "Asia/Kolkata" });
+    const formattedDate = ist.toFormat("yyyy-MM-dd");
+
+    /* =========================================================
+       🔥 MASTER HELPER
+    ========================================================= */
+
+    const findAndFilterBets = async (Model, elemMatch) => {
+      const docs = await Model.find({
+        gameName,
+        playedDate: formattedDate,
+        bets: { $elemMatch: elemMatch },
+      })
+        .populate("userId")
+        .lean();
+
+      return docs
+        .map((doc) => ({
+          _id: doc._id,
+          gameName: doc.gameName,
+          gameType: doc.gameType,
+          userId: doc.userId,
+          bets: doc.bets.filter((bet) =>
+            Object.keys(elemMatch).every((key) => {
+              return String(bet[key]) === String(elemMatch[key]); // ✅ SAFE MATCH
+            })
+          ),
+        }))
+        .filter((doc) => doc.bets.length > 0);
+    };
+
+const leftMatch = {
+  openDigit: String(left),
+  resultStatus: "PENDING",
+};
+
+const rightMatch = {
+  openDigit: String(right),
+  resultStatus: "PENDING",
+};
+
+    /* =========================================================
+       3️⃣ CENTER JODI MATCH
+       (Example: left=2 right=5 → "25")
+    ========================================================= */
+
+    const centerJodiMatch = {
+      openDigit: `${left}${right}`,
+      resultStatus: "PENDING",
+    };
+
+    const [
+      leftDigitData,
+      rightDigitData,
+      centerJodiData,
+    ] = await Promise.all([
+      findAndFilterBets(LeftDigitBet, leftMatch),
+      findAndFilterBets(RightDigitBet, rightMatch),
+      findAndFilterBets(CenterJodiDigitBet, centerJodiMatch),
+    ]);
+
+    /* =========================================================
+       🔥 MERGE ALL JACKPOT DATA
+    ========================================================= */
+
+    const finalData = [
+      ...leftDigitData,
+      ...rightDigitData,
+      ...centerJodiData,
+    ];
+
+    return res.status(200).json({
+      success: true,
+      count: finalData.length,
+      data: finalData,
+    });
+
+  } catch (error) {
+    console.error("Jackpot Preview Winner Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
+exports.jackpotChangeBidNumberAndAmount = async (req, res) => {
+  try {
+    /* ================= ADMIN AUTH ================= */
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    });
+
+    if (!admin) {
+      req.session.destroy();
+      return res
+        .status(401)
+        .json({ success: false, message: "Session expired" });
+    }
+
+    /* ================= REQUEST DATA ================= */
+    const { betId, openDigit, amount } = req.body;
+
+    if (!betId) {
+      return res.status(400).json({
+        success: false,
+        message: "Bet ID required",
+      });
+    }
+
+    /* ================= JACKPOT MODELS ================= */
+    const betModels = [
+      LeftDigitBet,
+      RightDigitBet,
+      CenterJodiDigitBet,
+    ];
+
+    let betDocument = null;
+
+    /* ================= FIND BET ================= */
+    for (const model of betModels) {
+      let found = await model.findById(betId);
+      if (found) {
+        betDocument = found;
+        break;
+      }
+
+      found = await model.findOne({ "bets._id": betId });
+      if (found) {
+        betDocument = found;
+        break;
+      }
+    }
+
+    if (!betDocument) {
+      return res.status(404).json({
+        success: false,
+        message: "Bet not found",
+      });
+    }
+
+    /* ================= UPDATE LOGIC ================= */
+
+    if (Array.isArray(betDocument.bets)) {
+      const subBet = betDocument.bets.id(betId);
+
+      if (!subBet) {
+        return res.status(404).json({
+          success: false,
+          message: "Sub bet not found",
+        });
+      }
+
+      /* ---- UPDATE DIGIT ---- */
+      if (openDigit !== undefined) {
+        if (subBet.openDigit !== undefined)
+          subBet.openDigit = openDigit;
+      }
+
+      /* ---- UPDATE AMOUNT ---- */
+      if (amount !== undefined) {
+        const amt = Number(amount);
+
+        if (subBet.amount !== undefined)
+          subBet.amount = amt;
+
+        if (subBet.amountPerUnderNo !== undefined)
+          subBet.amountPerUnderNo = amt;
+
+        if (subBet.totalAmount !== undefined)
+          subBet.totalAmount = amt;
+      }
+
+      /* ---- RESET RESULT ---- */
+      if (subBet.winAmount !== undefined)
+        subBet.winAmount = 0;
+
+      if (subBet.resultStatus !== undefined)
+        subBet.resultStatus = "PENDING";
+
+    } else {
+
+      /* ===== SINGLE OBJECT BET ===== */
+
+      if (openDigit !== undefined) {
+        if (betDocument.openDigit !== undefined)
+          betDocument.openDigit = openDigit;
+      }
+
+      if (amount !== undefined) {
+        const amt = Number(amount);
+
+        if (betDocument.amount !== undefined)
+          betDocument.amount = amt;
+
+        if (betDocument.amountPerUnderNo !== undefined)
+          betDocument.amountPerUnderNo = amt;
+
+        if (betDocument.totalAmount !== undefined)
+          betDocument.totalAmount = amt;
+      }
+
+      if (betDocument.winAmount !== undefined)
+        betDocument.winAmount = 0;
+
+      if (betDocument.resultStatus !== undefined)
+        betDocument.resultStatus = "PENDING";
+    }
+
+    /* ================= SAVE ================= */
+    await betDocument.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Jackpot bet updated successfully",
+      data: betDocument,
+    });
+
+  } catch (err) {
+    console.error("Jackpot Update Error:", err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+exports.viewJackpotThisGameAllPendingResult = async (req, res) => {
+  try {
+    /* ================= ADMIN AUTH ================= */
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    });
+
+    if (!admin) {
+      req.session.destroy();
+      return res
+        .status(401)
+        .json({ success: false, message: "Session expired" });
+    }
+
+    const { betId } = req.query;
+
+    if (!betId) {
+      return res.status(400).json({
+        success: false,
+        message: "Bet ID required",
+      });
+    }
+
+    /* ================= JACKPOT MODELS ================= */
+    const betModels = [
+      LeftDigitBet,
+      RightDigitBet,
+      CenterJodiDigitBet,
+    ];
+
+    let betDocument = null;
+    let subBet = null;
+
+    /* ================= FIND BET ================= */
+    for (const model of betModels) {
+      let found = await model.findById(betId);
+      if (found) {
+        betDocument = found;
+        subBet = found;
+        break;
+      }
+
+      found = await model.findOne({ "bets._id": betId });
+      if (found) {
+        betDocument = found;
+        subBet = found.bets.id(betId);
+        break;
+      }
+    }
+
+    if (!betDocument || !subBet) {
+      return res.status(404).json({
+        success: false,
+        message: "Bet not found",
+      });
+    }
+
+    /* ================= EXTRACT VALUES ================= */
+
+    const bidValue = subBet.openDigit ?? null;
+
+    const bidAmount =
+      [subBet.amount, subBet.amountPerUnderNo, subBet.totalAmount].find(
+        (v) => v !== undefined && v !== null
+      ) ?? 0;
+
+    /* ================= FIND ALL PENDING IN SAME MARKET ================= */
+
+    let allMarketPendingBets = [];
+
+    const userId = betDocument.userId;
+    const gameName = betDocument.gameName;
+
+    for (const model of betModels) {
+      const docs = await model
+        .find({
+          userId,
+          gameName,
+        })
+        .lean();
+
+      docs.forEach((doc) => {
+        if (Array.isArray(doc.bets)) {
+          doc.bets.forEach((sub) => {
+            if (sub.resultStatus === "PENDING") {
+              allMarketPendingBets.push({
+                betId: sub._id,
+                gameType: doc.gameType,
+                gameName: doc.gameName,
+                session: sub.mode || "",
+                digit: sub.openDigit,
+                amount:
+                  sub.amount || sub.amountPerUnderNo || sub.totalAmount,
+                createdAt: doc.createdAt,
+              });
+            }
+          });
+        } else {
+          if (doc.resultStatus === "PENDING") {
+            allMarketPendingBets.push({
+              betId: doc._id,
+              gameType: doc.gameType,
+              gameName: doc.gameName,
+              session: doc.mode || "",
+              digit: doc.openDigit,
+              amount:
+                doc.amount || doc.amountPerUnderNo || doc.totalAmount,
+              createdAt: doc.createdAt,
+            });
+          }
+        }
+      });
+    }
+
+    /* ================= SEARCH FILTER ================= */
+
+    const { search } = req.query;
+
+    if (search && search.trim() !== "") {
+      const searchLower = search.toLowerCase().trim();
+
+      allMarketPendingBets = allMarketPendingBets.filter((bet) => {
+        const market = bet.gameName?.toLowerCase() || "";
+        const type = bet.gameType?.toLowerCase() || "";
+        const session = bet.session?.toLowerCase() || "";
+        const digit =
+          bet.digit !== undefined && bet.digit !== null
+            ? bet.digit.toString().toLowerCase()
+            : "";
+
+        return (
+          market.includes(searchLower) ||
+          type.includes(searchLower) ||
+          session.includes(searchLower) ||
+          digit.includes(searchLower)
+        );
+      });
+    }
+
+    /* ================= PAGINATION ================= */
+
+    let { page = 1, limit = 10 } = req.query;
+
+    page = parseInt(page);
+    limit = limit === "All" ? "All" : parseInt(limit);
+
+    const totalRecords = allMarketPendingBets.length;
+
+    let paginatedData = [];
+    let totalPages = 1;
+
+    if (limit === "All") {
+      paginatedData = allMarketPendingBets;
+    } else {
+      totalPages = Math.ceil(totalRecords / limit);
+      const startIndex = (page - 1) * limit;
+      const endIndex = startIndex + limit;
+      paginatedData = allMarketPendingBets.slice(startIndex, endIndex);
+    }
+
+    /* ================= RENDER ================= */
+
+    res.render("Admin/viewJackpotThisGameAllPendingResult", {
+      pageTitle: "Jackpot View Result",
+      admin,
+      isLoggedIn: req.session.isLoggedIn,
+      betId,
+      bidValue,
+      bidAmount,
+      allMarketPendingBets: paginatedData,
+      totalRecords,
+      totalPages,
+      currentPage: page,
+      limit,
+      search,
+    });
+
+  } catch (err) {
+    console.error("View Jackpot Pending Result Error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};

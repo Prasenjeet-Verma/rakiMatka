@@ -45,4 +45,9 @@ adminRouter.get("/admin/ViewThisGameAllPendingResult", adminController.viewThisG
 adminRouter.post("/admin/starline-show-preview-winner-list", adminController.starlinePreviewWinnerList);
 adminRouter.post("/admin/starline-change-bid-number-amount", adminController.starlineChangeBidNumberAndAmount);
 adminRouter.get("/admin/ViewStarlineThisGameAllPendingResult", adminController.viewStarlineThisGameAllPendingResult);
+
+//Jackpot game routes to see preview winner result of a specific starline game
+adminRouter.post("/admin/jackpot-show-preview-winner-list", adminController.jackpotPreviewWinnerList);
+adminRouter.post("/admin/jackpot-change-bid-number-amount", adminController.jackpotChangeBidNumberAndAmount);
+adminRouter.get("/admin/ViewJackpotThisGameAllPendingResult", adminController.viewJackpotThisGameAllPendingResult);
 module.exports = adminRouter;

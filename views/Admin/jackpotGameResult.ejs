@@ -190,12 +190,11 @@
           </div>
           <!-- =============================================== Modal is here ===================================== -->
 
-          <div id="resultContainer"
+                 <div id="resultContainer"
             class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
 
             <div
               class="bg-white rounded-lg shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col justify-start animate-fade-in-up">
-
               <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-lg">
                 <h2 class="text-lg font-bold text-gray-800">Winners List</h2>
                 <button id="closeResultBtn" class="text-gray-400 hover:text-red-500 transition-colors p-2">
@@ -204,7 +203,7 @@
               </div>
 
               <div class="p-4 overflow-auto custom-scrollbar">
-                <table
+                <table id="winnerTable"
                   class="w-full border border-gray-300 border-collapse text-xs font-bold text-gray-800 whitespace-nowrap">
                   <thead>
                     <tr class="bg-gray-100 border-b border-gray-300">
@@ -215,26 +214,12 @@
                       <th class="p-3 text-left border-r border-gray-300">Bid Amount</th>
                       <th class="p-3 text-left border-r border-gray-300">Win Amount</th>
                       <th class="p-3 text-left border-r border-gray-300">Market</th>
-                      <th class="p-3 text-left border-r border-gray-300">Session</th>
                       <th class="p-3 text-left border-r border-gray-300">Game</th>
-                      <th class="p-3 text-left">Bid Time</th>
+                      <th class="p-3 text-left border-r border-gray-300">Action</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    <tr class="border-b border-gray-200 hover:bg-gray-50">
-                      <td class="p-3 border-r border-gray-300"><a href="adminViewResult.html"><button
-                            class="text-blue-500 hover:underline">View</button></a></td>
-                      <td class="p-3 border-r border-gray-300">9876543210</td>
-                      <td class="p-3 border-r border-gray-300">John Doe</td>
-                      <td class="p-3 border-r border-gray-300">147</td>
-                      <td class="p-3 border-r border-gray-300">500</td>
-                      <td class="p-3 border-r border-gray-300 text-green-600">5000</td>
-                      <td class="p-3 border-r border-gray-300">Sridevi</td>
-                      <td class="p-3 border-r border-gray-300">OPEN</td>
-                      <td class="p-3 border-r border-gray-300">Single Pana</td>
-                      <td class="p-3">10:05 AM</td>
-                    </tr>
-
+                  <tbody id="winnerTbody">
+                    <!-- Rows will be injected dynamically -->
                   </tbody>
                 </table>
               </div>
@@ -285,6 +270,141 @@
       dateInput.addEventListener("change", () => {
         fetchPendingGames(dateInput.value);
       });
+
+
+
+
+
+   // --------- Advanced Show Winner List Frontend --------
+const showResultBtn = document.getElementById("showResultBtn");
+
+showResultBtn.addEventListener("click", async function () {
+        const gameName = gameSelect.value;
+        const left = document.getElementById("leftInput").value;
+        const right = document.getElementById("rightInput").value;
+        const resultDate = dateInput.value;
+
+  if (!gameName || !left || !right || !resultDate) {
+    showMessage("⚠️ Please fill all fields", "error");
+    return;
+  }
+
+  try {
+    const res = await fetch("/admin/jackpot-show-preview-winner-list", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ gameName, left, right, resultDate })
+    });
+
+    if (!res.ok) throw new Error("Network response not OK");
+
+    const data = await res.json();
+    if (!data.success) {
+      showMessage(data.message || "Error fetching data", "error");
+      return;
+    }
+
+    const tbody = document.getElementById("winnerTbody");
+    tbody.innerHTML = "";
+
+    // 🔥 LOOP ALL ITEMS
+    data.data.forEach((item) => {
+
+      const user = item.userId || {};
+
+      // 🔥 LOOP ALL BETS (IMPORTANT FIX)
+      item.bets.forEach((bet) => {
+
+        const row = document.createElement("tr");
+        row.className = "border-b border-gray-200 hover:bg-gray-50";
+
+        // ✅ Safe bid value selector (0 bhi show hoga)
+        const bidValue = [
+          bet.openDigit,
+        ].find(v => v !== undefined && v !== null);
+
+        const bidAmount = [
+          bet.amount,
+        ].find(v => v !== undefined && v !== null) ?? 0;
+
+        const winAmount = bet.winAmount ?? 0;
+
+        row.innerHTML = `
+          <td class="p-3 border-r border-gray-300">
+         <a href="/admin/ViewJackpotThisGameAllPendingResult?betId=${bet._id}">
+              <button class="text-blue-500 hover:underline">View</button>
+            </a>
+          </td>
+          <td class="p-3 border-r border-gray-300">${user.phoneNo ?? ''}</td>
+          <td class="p-3 border-r border-gray-300">${user.username ?? ''}</td>
+          <td class="p-3 border-r border-gray-300">
+            <input type="text" class="bidNumber" value="${bidValue ?? ''}">
+          </td>
+          <td class="p-3 border-r border-gray-300">
+            <input type="number" class="bidAmount" value="${bidAmount}">
+          </td>
+          <td class="p-3 border-r border-gray-300 text-green-600">${winAmount}</td>
+          <td class="p-3 border-r border-gray-300">${item.gameName}</td>
+          <td class="p-3 border-r border-gray-300">${item.gameType}</td>
+          <td class="p-3 border-r border-gray-300">
+            <button class="updateBidBtn text-blue-500 hover:underline">Change Value</button>
+          </td>
+        `;
+
+        tbody.appendChild(row);
+
+        // ✅ Update button logic per bet
+        row.querySelector(".updateBidBtn").addEventListener("click", async () => {
+
+          const newBidNumber = row.querySelector(".bidNumber").value;
+          const newBidAmount = row.querySelector(".bidAmount").value;
+
+          try {
+            const response = await fetch("/admin/jackpot-change-bid-number-amount", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                betId: bet._id,   // ✅ correct bet id
+                openDigit: newBidNumber,
+                amount: newBidAmount
+              })
+            });
+
+            const resData = await response.json();
+
+            if (resData.success) {
+              showMessage("✅ Bid updated successfully!", "success");
+              row.querySelector(".bidNumber").value = resData.data.underNo;
+              row.querySelector(".bidAmount").value = resData.data.amountPerUnderNo;
+            } else {
+              showMessage(resData.message || "Error updating bid", "error");
+            }
+
+          } catch (err) {
+            console.error(err);
+            showMessage("Server error while updating bid", "error");
+          }
+
+        });
+
+      });
+
+    });
+
+    document.getElementById("resultContainer").classList.remove("hidden");
+
+  } catch (err) {
+    console.error("Error fetching winner list:", err);
+    showMessage("Server error", "error");
+  }
+});
+
+
+
+
+
+
+
 
       // --------- Declare Result ----------
       const declareBtn = document.getElementById("declareResult");
