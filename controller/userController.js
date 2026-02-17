@@ -923,6 +923,28 @@ exports.placeSingleDigitBet = async (req, res) => {
     const afterWallet = user.wallet; // ✅ ADD
 
     await user.save();
+    // =====================================
+    // ✅ GET ACTIVE GAME RATE (SINGLE DIGIT)
+    // =====================================
+    const singleDigitRate = await GameRate.findOne({
+      gameType: "SINGLE_DIGIT",
+      isActive: true,
+    });
+
+    if (!singleDigitRate) {
+      return res.json({
+        success: false,
+        message: "Game rate not found ❌",
+      });
+    }
+
+    const multiplier = singleDigitRate.profitAmount / singleDigitRate.betAmount;
+
+    // ✅ ADD WIN AMOUNT IN EACH BET (POTENTIAL WIN)
+    const updatedBets = bets.map((b) => ({
+      ...b,
+      gameRateWinAmount: b.amount * multiplier, // 🔥 IMPORTANT
+    }));
 
     // ✅ SAVE BET
     // Store bets as they come: OPEN and CLOSE in the same document
@@ -930,7 +952,7 @@ exports.placeSingleDigitBet = async (req, res) => {
       userId: user._id,
       gameId,
       gameName: game.gameName,
-      bets, // array can have mixed OPEN & CLOSE
+      bets: updatedBets, // 👈 Only this changed
       beforeWallet, // ✅ ADD
       afterWallet, // ✅ ADD
       totalAmount,
@@ -1030,13 +1052,35 @@ exports.placeSingleBulkDigitBet = async (req, res) => {
     const afterWallet = user.wallet; // ✅ ADD
 
     await user.save();
+    // =====================================
+    // ✅ GET ACTIVE GAME RATE (SINGLE BULK DIGIT)
+    // =====================================
+    const singleBulkDigitRate = await GameRate.findOne({
+      gameType: "SINGLE_BULK_DIGIT",
+      isActive: true,
+    });
 
+    if (!singleBulkDigitRate) {
+      return res.json({
+        success: false,
+        message: "Game rate not found ❌",
+      });
+    }
+
+    const multiplier =
+      singleBulkDigitRate.profitAmount / singleBulkDigitRate.betAmount;
+
+    // ✅ ADD WIN AMOUNT IN EACH BET (POTENTIAL WIN)
+    const updatedBets = bets.map((b) => ({
+      ...b,
+      gameRateWinAmount: b.amount * multiplier, // 🔥 IMPORTANT
+    }));
     // ✅ 8. Save bet in DB
     await SingleBulkDigitBet.create({
       userId: user._id,
       gameId,
       gameName: game.gameName,
-      bets,
+      bets: updatedBets,
       beforeWallet, // ✅ ADD
       afterWallet, // ✅ ADD
       totalAmount,
@@ -1172,12 +1216,35 @@ exports.placeJodiDigitBet = async (req, res) => {
 
     await user.save();
 
+    // =====================================
+    // ✅ GET ACTIVE GAME RATE (JODI DIGIT)
+    // =====================================
+    const jodiDigitRate = await GameRate.findOne({
+      gameType: "JODI_DIGIT",
+      isActive: true,
+    });
+
+    if (!jodiDigitRate) {
+      return res.json({
+        success: false,
+        message: "Game rate not found ❌",
+      });
+    }
+
+    const multiplier = jodiDigitRate.profitAmount / jodiDigitRate.betAmount;
+
+    // ✅ ADD WIN AMOUNT IN EACH BET (POTENTIAL WIN)
+    const updatedBets = bets.map((b) => ({
+      ...b,
+      gameRateWinAmount: b.amount * multiplier, // 🔥 IMPORTANT
+    }));
+
     /* ================= SAVE BET ================= */
     const betDoc = new JodiDigitBet({
       userId: user._id,
       gameId,
       gameName: game.gameName || gameName,
-      bets,
+      bets: updatedBets,
       beforeWallet, // ✅ ADD
       afterWallet, // ✅ ADD
       totalAmount,
@@ -1280,11 +1347,34 @@ exports.placeJodiDigitBulkBet = async (req, res) => {
     const afterWallet = user.wallet;
     await user.save();
 
+    // =====================================
+    // ✅ GET ACTIVE GAME RATE (JODI DIGIT BULK)
+    // =====================================
+    const jodiRate = await GameRate.findOne({
+      gameType: "JODI_DIGIT_BULK", // 👈 exact DB wala naam
+      isActive: true,
+    });
+
+    if (!jodiRate) {
+      return res.json({
+        success: false,
+        message: "Jodi Bulk rate not found ❌",
+      });
+    }
+
+    const multiplier = jodiRate.profitAmount / jodiRate.betAmount;
+
+    // ✅ ADD WIN AMOUNT IN EACH BET
+    const updatedFinalBets = finalBets.map((b) => ({
+      ...b,
+      gameRateWinAmount: b.amountPerUnderNo * multiplier,
+    }));
+
     await JodiDigitBulkBet.create({
       userId: user._id,
       gameId,
       gameName,
-      bets: finalBets,
+      bets: updatedFinalBets,
       beforeWallet,
       afterWallet,
       totalAmount,
@@ -1421,13 +1511,35 @@ exports.placeSinglePannaBet = async (req, res) => {
 
     await user.save();
 
+    // =====================================
+    // ✅ GET ACTIVE GAME RATE (SINGLE PANNA)
+    // =====================================
+    const pannaRate = await GameRate.findOne({
+      gameType: "SINGLE_PANNA",
+      isActive: true,
+    });
+
+    if (!pannaRate) {
+      return res.json({
+        success: false,
+        message: "Single Panna rate not found ❌",
+      });
+    }
+
+    const multiplier = pannaRate.profitAmount / pannaRate.betAmount;
+
+    const updatedBets = bets.map((b) => ({
+      ...b,
+      gameRateWinAmount: b.amount * multiplier, // 🔥 user ko jitne par kitna milega
+      resultStatus: "PENDING",
+    }));
     /* ================= SAVE BET ================= */
     await SinglePannaBet.create({
       userId: user._id,
       gameId,
       gameName: game.gameName,
       gameType: "SINGLE_PANNA",
-      bets, // 🔥 each bet has its own mode
+      bets: updatedBets,
       beforeWallet, // ✅ ADD
       afterWallet, // ✅ ADD
       totalAmount,
@@ -1493,6 +1605,20 @@ exports.placeSinglePannaBulkBet = async (req, res) => {
       return res.json({ success: false, message: "Market closed ❌" });
     }
 
+    /* ===== GET ACTIVE GAME RATE ===== */
+    const pannaRate = await GameRate.findOne({
+      gameType: "SINGLE_PANNA_BULK", // 👈 DB me exact value check kar lena
+      isActive: true,
+    });
+
+    if (!pannaRate) {
+      return res.json({
+        success: false,
+        message: "Single Panna Bulk rate not found ❌",
+      });
+    }
+
+    const multiplier = pannaRate.profitAmount / pannaRate.betAmount;
     let finalBets = [];
     let totalAmount = 0;
 
@@ -1543,6 +1669,7 @@ exports.placeSinglePannaBulkBet = async (req, res) => {
           amountPerUnderNo,
           mode,
           resultStatus: "PENDING",
+          gameRateWinAmount: amountPerUnderNo * multiplier, // 🔥 ye add karna hai
         });
 
         totalAmount += amountPerUnderNo;
@@ -1642,7 +1769,21 @@ exports.placeDoublePannaBet = async (req, res) => {
         message: "Market closed today ❌",
       });
     }
+    /* ===== GET ACTIVE GAME RATE ===== */
+    const doublePannaRate = await GameRate.findOne({
+      gameType: "DOUBLE_PANNA",
+      isActive: true,
+    });
 
+    if (!doublePannaRate) {
+      return res.json({
+        success: false,
+        message: "Double Panna rate not found ❌",
+      });
+    }
+
+    // Multiplier = profit per 1 unit bet
+    const multiplier = doublePannaRate.profitAmount / doublePannaRate.betAmount;
     /* ================= VALIDATION & TOTAL ================= */
     let totalAmount = 0;
 
@@ -1688,6 +1829,7 @@ exports.placeDoublePannaBet = async (req, res) => {
         }
       }
 
+      b.gameRateWinAmount = b.amount * multiplier; // 🔥 yahi important
       totalAmount += b.amount;
     }
 
@@ -1786,6 +1928,22 @@ exports.placeDoublePannaBulkBet = async (req, res) => {
     let totalAmount = 0;
     const processedBets = [];
 
+    // 🔥 ADD THIS BLOCK JUST UPPER
+    const doublePannaBulkRate = await GameRate.findOne({
+      gameType: "DOUBLE_PANNA_BULK", // 👈 DB me exact value check kar lena
+      isActive: true,
+    });
+
+    if (!doublePannaBulkRate) {
+      return res.json({
+        success: false,
+        message: "Double Panna Bulk rate not found ❌",
+      });
+    }
+
+    // Multiplier = profit per 1 unit bet
+    const multiplier = doublePannaBulkRate.profitAmount / doublePannaBulkRate.betAmount;
+
     for (const batch of bets) {
       const { mainNo, underNos, amountPerUnderNo, mode } = batch;
 
@@ -1831,6 +1989,7 @@ exports.placeDoublePannaBulkBet = async (req, res) => {
           amountPerUnderNo,
           mode,
           resultStatus: "PENDING",
+          gameRateWinAmount: amountPerUnderNo * multiplier, // 🔥 yaha add karna hai
         });
 
         totalAmount += amountPerUnderNo;
@@ -1911,9 +2070,22 @@ exports.placeTriplePannaBet = async (req, res, next) => {
     if (!schedule || !schedule.isActive) {
       return res.json({ success: false, message: "Market closed today ❌" });
     }
+    // 🔥 ADD THIS BLOCK JUST UPPER
+    const triplePannaRate = await GameRate.findOne({
+      gameType: "TRIPLE_PANNA",
+      isActive: true,
+    });
 
+    if (!triplePannaRate) {
+      return res.json({
+        success: false,
+        message: "Triple Panna rate not found ❌",
+      });
+    }
+
+    // Multiplier = profit per 1 unit bet
+    const multiplier = triplePannaRate.profitAmount / triplePannaRate.betAmount;
     let totalAmount = 0;
-
     // ✅ VALIDATION & OPEN TIME LOCK
     for (const b of bets) {
       if (
@@ -1944,7 +2116,7 @@ exports.placeTriplePannaBet = async (req, res, next) => {
           });
         }
       }
-
+      b.gameRateWinAmount = b.amount * multiplier; // 🔥 yaha add karna hai
       totalAmount += b.amount;
     }
 
@@ -2017,6 +2189,23 @@ exports.placeOddEvenBet = async (req, res) => {
       return res.json({ success: false, message: "Market closed ❌" });
     }
 
+
+    // ===== GET ACTIVE GAME RATE =====
+    const oddEvenRate = await GameRate.findOne({
+      gameType: "ODD_EVEN",
+      isActive: true,
+    });
+
+    if (!oddEvenRate) {
+      return res.json({
+        success: false,
+        message: "Odd–Even rate not found ❌",
+      });
+    }
+
+    // Multiplier = profit per 1 unit bet
+    const multiplier = oddEvenRate.profitAmount / oddEvenRate.betAmount;
+
     let finalBets = [];
     let totalAmount = 0;
 
@@ -2066,6 +2255,7 @@ exports.placeOddEvenBet = async (req, res) => {
           amountPerUnderNo,
           mode,
           resultStatus: "PENDING",
+          gameRateWinAmount: amountPerUnderNo * multiplier, // 🔥 yahi add karna hai
         });
 
         totalAmount += amountPerUnderNo;
@@ -2182,7 +2372,21 @@ exports.placeHalfSangamBet = async (req, res) => {
         message: "Game Closed ❌",
       });
     }
+    // ===== GET ACTIVE GAME RATE =====
+    const halfSangamRate = await GameRate.findOne({
+      gameType: "HALF_SANGAM",
+      isActive: true,
+    });
 
+    if (!halfSangamRate) {
+      return res.json({
+        success: false,
+        message: "Half Sangam rate not found ❌",
+      });
+    }
+
+    // Multiplier = profit per 1 unit bet
+    const multiplier = halfSangamRate.profitAmount / halfSangamRate.betAmount;
     /* ================= BET VALIDATION ================= */
     let totalAmount = 0;
     const formattedBets = [];
@@ -2217,6 +2421,7 @@ exports.placeHalfSangamBet = async (req, res) => {
         openPanna, // 🔥 STRING (000 safe)
         closeDigit,
         totalAmount: betAmount,
+        gameRateWinAmount: betAmount * multiplier, // 🔥 yahi add karna hai
       });
     }
 
@@ -2334,6 +2539,22 @@ exports.placeFullSangamBet = async (req, res) => {
     }
 
     /* ================= BET VALIDATION ================= */
+    // ===== GET ACTIVE GAME RATE =====
+    const fullSangamRate = await GameRate.findOne({
+      gameType: "FULL_SANGAM",
+      isActive: true,
+    });
+
+    if (!fullSangamRate) {
+      return res.json({
+        success: false,
+        message: "Full Sangam rate not found ❌",
+      });
+    }
+
+    // Multiplier = profit per 1 unit bet
+    const multiplier = fullSangamRate.profitAmount / fullSangamRate.betAmount;
+
     let totalAmount = 0;
     const formattedBets = [];
 
@@ -2364,6 +2585,7 @@ exports.placeFullSangamBet = async (req, res) => {
         openPanna,
         closePanna,
         totalAmount: points,
+        gameRateWinAmount: points * multiplier, // 🔥 yahi add karna hai
       });
     }
 
@@ -2443,6 +2665,21 @@ exports.placeSPMotorBet = async (req, res) => {
     }
 
     /* ================= BET PROCESS ================= */
+    // ===== GET ACTIVE GAME RATE =====
+    const spMotorRate = await GameRate.findOne({
+      gameType: "SP_MOTOR",
+      isActive: true,
+    });
+
+    if (!spMotorRate) {
+      return res.json({
+        success: false,
+        message: "SP Motor rate not found ❌",
+      });
+    }
+
+    // Multiplier = profit per 1 unit bet
+    const multiplier = spMotorRate.profitAmount / spMotorRate.betAmount;
     let totalAmount = 0;
     const finalBets = []; // 🔥 yahin individual bets banenge
 
@@ -2489,6 +2726,7 @@ exports.placeSPMotorBet = async (req, res) => {
           mainNo,
           underNo: uno, // ✅ single underNo
           amountPerUnderNo: perUnderNosPoints,
+          gameRateWinAmount: perUnderNosPoints * multiplier, // 🔥 add karna yahi
         });
 
         totalAmount += perUnderNosPoints; // ✅ correct total
@@ -2568,7 +2806,21 @@ exports.placeDPMotorBet = async (req, res) => {
     if (!schedule?.isActive) {
       return res.json({ success: false, message: "Market closed ❌" });
     }
+    // ===== GET ACTIVE GAME RATE =====
+    const dpMotorRate = await GameRate.findOne({
+      gameType: "DP_MOTOR",
+      isActive: true,
+    });
 
+    if (!dpMotorRate) {
+      return res.json({
+        success: false,
+        message: "DP Motor rate not found ❌",
+      });
+    }
+
+    // Multiplier = profit per 1 unit bet
+    const multiplier = dpMotorRate.profitAmount / dpMotorRate.betAmount;
     /* ================= BET PROCESS ================= */
     let totalAmount = 0;
     const finalBets = []; // 🔥 yahin individual bets banenge
@@ -2616,6 +2868,7 @@ exports.placeDPMotorBet = async (req, res) => {
           mainNo,
           underNo: uno, // ✅ single underNo
           amountPerUnderNo: perUnderNosPoints,
+          gameRateWinAmount: perUnderNosPoints * multiplier, // 🔥 add karna yahi
         });
 
         totalAmount += perUnderNosPoints; // ✅ correct total
@@ -2706,6 +2959,22 @@ exports.placeSpDpTpBet = async (req, res) => {
     if (!schedule?.isActive)
       return res.json({ success: false, message: "Market closed today ❌" });
 
+    // ===== GET ACTIVE GAME RATE =====
+    const spDpTpRate = await GameRate.findOne({
+      gameType: "SP_DP_TP",
+      isActive: true,
+    });
+
+    if (!spDpTpRate) {
+      return res.json({
+        success: false,
+        message: "SP DP TP rate not found ❌",
+      });
+    }
+
+    // Multiplier = profit per 1 unit bet
+    const multiplier = spDpTpRate.profitAmount / spDpTpRate.betAmount;
+
     /* ================= EXPLODE BETS ================= */
     let totalAmount = 0;
     const finalBets = [];
@@ -2770,6 +3039,7 @@ exports.placeSpDpTpBet = async (req, res) => {
           underNo: num, // ✅ NEW
           amountPerUnderNo: perUnderNosPoints, // ✅ NEW
           resultStatus: "PENDING",
+          gameRateWinAmount: perUnderNosPoints * multiplier,
         });
 
         totalAmount += perUnderNosPoints;
@@ -2835,6 +3105,21 @@ exports.placeRedBracketBet = async (req, res) => {
     }
 
     const now = moment().tz("Asia/Kolkata");
+    // ===== GET ACTIVE GAME RATE =====
+    const redBracketRate = await GameRate.findOne({
+      gameType: "RED_BRACKET",
+      isActive: true,
+    });
+
+    if (!redBracketRate) {
+      return res.json({
+        success: false,
+        message: "Red Bracket rate not found ❌",
+      });
+    }
+
+    // Multiplier = profit per 1 unit bet
+    const multiplier = redBracketRate.profitAmount / redBracketRate.betAmount;
 
     let totalAmount = 0;
     const finalBets = [];
@@ -2858,6 +3143,7 @@ exports.placeRedBracketBet = async (req, res) => {
           bracketType,
           underNo: digit, // ✅ OLD NAME
           amountPerUnderNo: perUnderNoAmount,
+          gameRateWinAmount: perUnderNoAmount * multiplier,
         });
 
         totalAmount += perUnderNoAmount;
@@ -3042,14 +3328,37 @@ exports.placeStarlineSingleDigitBet = async (req, res, next) => {
     const afterWallet = user.wallet; // ✅ ADD
 
     await user.save();
+    // =====================================
+    // ✅ GET ACTIVE GAME RATE (SINGLE DIGIT)
+    // =====================================
+    const singleDigitRate = await GameRate.findOne({
+      gameType: "SINGLE_DIGIT",
+      isStarline: true,
+      isJackpot: false,
+      isActive: true,
+    });
 
+    if (!singleDigitRate) {
+      return res.json({
+        success: false,
+        message: "Game rate not found ❌",
+      });
+    }
+
+    const multiplier = singleDigitRate.profitAmount / singleDigitRate.betAmount;
+
+    // ✅ ADD WIN AMOUNT IN EACH BET (POTENTIAL WIN)
+    const updatedBets = bets.map((b) => ({
+      ...b,
+      gameRateWinAmount: b.amount * multiplier, // 🔥 IMPORTANT
+    }));
     // ✅ SAVE BET
     // Store bets as they come: OPEN and CLOSE in the same document
     await starlineSingleDigitBet.create({
       userId: user._id,
       gameId,
       gameName: game.gameName,
-      bets, // array can have mixed OPEN & CLOSE
+      bets: updatedBets, // array can have mixed OPEN & CLOSE
       beforeWallet, // ✅ ADD
       afterWallet, // ✅ ADD
       totalAmount,
@@ -3182,6 +3491,30 @@ exports.placeStarlineSinglePannaBet = async (req, res, next) => {
     const afterWallet = user.wallet; // ✅ ADD
 
     await user.save();
+    // =====================================
+    // ✅ GET ACTIVE GAME RATE (SINGLE PANNA)
+    // =====================================
+    const pannaRate = await GameRate.findOne({
+      gameType: "SINGLE_PANNA",
+      isStarline: true,
+      isJackpot: false,
+      isActive: true,
+    });
+
+    if (!pannaRate) {
+      return res.json({
+        success: false,
+        message: "Single Panna rate not found ❌",
+      });
+    }
+
+    const multiplier = pannaRate.profitAmount / pannaRate.betAmount;
+
+    const updatedBets = bets.map((b) => ({
+      ...b,
+      gameRateWinAmount: b.amount * multiplier, // 🔥 user ko jitne par kitna milega
+      resultStatus: "PENDING",
+    }));
 
     /* ================= SAVE BET ================= */
     await StarlineSinglePannaBet.create({
@@ -3189,7 +3522,7 @@ exports.placeStarlineSinglePannaBet = async (req, res, next) => {
       gameId,
       gameName: game.gameName,
       gameType: "SINGLE_PANNA",
-      bets, // 🔥 each bet has its own mode
+      bets: updatedBets, // 🔥 each bet has its own mode
       beforeWallet, // ✅ ADD
       afterWallet, // ✅ ADD
       totalAmount,
@@ -3212,7 +3545,7 @@ exports.placeStarlineSinglePannaBet = async (req, res, next) => {
 };
 
 exports.placeStarlineDoublePannaBet = async (req, res, next) => {
- try {
+  try {
     /* ================= AUTH ================= */
     if (
       !req.session.isLoggedIn ||
@@ -3263,7 +3596,23 @@ exports.placeStarlineDoublePannaBet = async (req, res, next) => {
         message: "Market closed today ❌",
       });
     }
+    /* ===== GET ACTIVE GAME RATE ===== */
+    const doublePannaRate = await GameRate.findOne({
+      gameType: "DOUBLE_PANNA",
+      isStarline: true,
+      isJackpot: false,
+      isActive: true,
+    });
 
+    if (!doublePannaRate) {
+      return res.json({
+        success: false,
+        message: "Double Panna rate not found ❌",
+      });
+    }
+
+    // Multiplier = profit per 1 unit bet
+    const multiplier = doublePannaRate.profitAmount / doublePannaRate.betAmount;
     /* ================= VALIDATION & TOTAL ================= */
     let totalAmount = 0;
 
@@ -3308,8 +3657,9 @@ exports.placeStarlineDoublePannaBet = async (req, res, next) => {
           });
         }
       }
-
+      b.gameRateWinAmount = b.amount * multiplier; // 🔥 yahi important
       totalAmount += b.amount;
+
     }
 
     /* ================= WALLET ================= */
@@ -3394,7 +3744,23 @@ exports.placeStarlineTriplePannaBet = async (req, res, next) => {
     if (!schedule || !schedule.isActive) {
       return res.json({ success: false, message: "Market closed today ❌" });
     }
+    // 🔥 ADD THIS BLOCK JUST UPPER
+    const triplePannaRate = await GameRate.findOne({
+      gameType: "TRIPLE_PANNA",
+      isStarline: true,
+      isJackpot: false,
+      isActive: true,
+    });
 
+    if (!triplePannaRate) {
+      return res.json({
+        success: false,
+        message: "Triple Panna rate not found ❌",
+      });
+    }
+
+    // Multiplier = profit per 1 unit bet
+    const multiplier = triplePannaRate.profitAmount / triplePannaRate.betAmount;
     let totalAmount = 0;
 
     // ✅ VALIDATION & OPEN TIME LOCK
@@ -3427,7 +3793,7 @@ exports.placeStarlineTriplePannaBet = async (req, res, next) => {
           });
         }
       }
-
+      b.gameRateWinAmount = b.amount * multiplier; // 🔥 add this for win calculation later
       totalAmount += b.amount;
     }
 
@@ -3545,6 +3911,28 @@ exports.placeJackpotRightDigitBet = async (req, res) => {
     if (openTime && now.format("HH:mm") >= openTime) {
       return res.json({ success: false, message: "Game closed ❌" });
     }
+    // ===== GET ACTIVE GAME RATE =====
+    const rightDigitRate = await GameRate.findOne({
+      gameType: "RIGHT_DIGIT",
+      isStarline: false,
+      isJackpot: true,
+      isActive: true,
+    });
+
+    if (!rightDigitRate) {
+      return res.json({
+        success: false,
+        message: "Right Digit rate not found ❌",
+      });
+    }
+
+    const multiplier =
+      rightDigitRate.profitAmount / rightDigitRate.betAmount;
+    // 🔥 ADD THIS LOOP JUST ABOVE totalAmount reduce
+    for (const b of bets) {
+      const amount = Number(b.amount) || 0;
+      b.winAmount = amount * multiplier; // 🔥 add potential win amount to each bet for later use
+    }
 
     const totalAmount = bets.reduce((sum, b) => sum + Number(b.amount || 0), 0);
     if (user.wallet < totalAmount)
@@ -3600,7 +3988,28 @@ exports.placeJackpotLeftDigitBet = async (req, res, next) => {
     if (openTime && now.format("HH:mm") >= openTime) {
       return res.json({ success: false, message: "Game closed ❌" });
     }
+    // ===== GET ACTIVE GAME RATE =====
+    const leftDigitRate = await GameRate.findOne({
+      gameType: "LEFT_DIGIT",
+      isStarline: false,
+      isJackpot: true,
+      isActive: true,
+    });
 
+    if (!leftDigitRate) {
+      return res.json({
+        success: false,
+        message: "Left Digit rate not found ❌",
+      });
+    }
+
+    const multiplier =
+      leftDigitRate.profitAmount / leftDigitRate.betAmount;
+    // 🔥 ADD THIS LOOP JUST ABOVE totalAmount reduce
+    for (const b of bets) {
+      const amount = Number(b.amount) || 0;
+      b.winAmount = amount * multiplier;
+    }
     const totalAmount = bets.reduce((sum, b) => sum + Number(b.amount || 0), 0);
     if (user.wallet < totalAmount)
       return res.json({ success: false, message: "Insufficient balance ❌" });
@@ -3669,6 +4078,28 @@ exports.placeJackpotCenterJodiDigitBet = async (req, res, next) => {
           message: "Invalid bet amount ❌",
         });
       }
+    }
+    // ===== GET ACTIVE GAME RATE =====
+    const centerJodiRate = await GameRate.findOne({
+      gameType: "CENTER_JODI_DIGIT",
+      isStarline: false,
+      isJackpot: true,
+      isActive: true,
+    });
+
+    if (!centerJodiRate) {
+      return res.json({
+        success: false,
+        message: "Center Jodi rate not found ❌",
+      });
+    }
+
+    const multiplier =
+      centerJodiRate.profitAmount / centerJodiRate.betAmount;
+    // 🔥 ADD THIS LOOP JUST ABOVE totalAmount reduce
+    for (const b of bets) {
+      const amount = Number(b.amount) || 0;
+      b.winAmount = amount * multiplier;
     }
     const totalAmount = bets.reduce((sum, b) => sum + Number(b.amount || 0), 0);
     if (user.wallet < totalAmount)

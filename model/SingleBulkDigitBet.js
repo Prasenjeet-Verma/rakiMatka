@@ -17,6 +17,11 @@ const bulkDigitItemSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  
+  gameRateWinAmount: {
+    type: Number,
+    default: 0,
+  },
   mode: {
     type: String,
     enum: ["OPEN", "CLOSE"],

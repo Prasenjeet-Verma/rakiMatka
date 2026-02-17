@@ -16,6 +16,11 @@ const centerJodiDigitItemSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  
+    gameRateWinAmount: {
+    type: Number,
+    default: 0,
+  },
 });
 
 const centerJodiDigitBetSchema = new mongoose.Schema(

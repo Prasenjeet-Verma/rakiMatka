@@ -353,7 +353,7 @@ showResultBtn.addEventListener("click", async function () {
           bet.totalAmount
         ].find(v => v !== undefined && v !== null) ?? 0;
 
-        const winAmount = bet.winAmount ?? 0;
+        const winAmount = bet.gameRateWinAmount ?? 0;
 
         row.innerHTML = `
           <td class="p-3 border-r border-gray-300">
@@ -426,13 +426,7 @@ showResultBtn.addEventListener("click", async function () {
   }
 });
 
-
       // Show result click bracket end 
-
-
-
-
-
 
       // --------- Declare Result ----------
       const declareBtn = document.getElementById("declareResult");

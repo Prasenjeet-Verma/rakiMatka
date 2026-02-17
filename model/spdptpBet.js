@@ -36,7 +36,10 @@ const spdptpItemSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
-
+  gameRateWinAmount: {
+    type: Number,
+    default: 0,
+  },
   resultStatus: {
     type: String,
     enum: ["PENDING", "WIN", "LOSS"],

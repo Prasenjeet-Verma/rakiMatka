@@ -37,7 +37,35 @@ const StarlineSinglePannaBet = require("../model/StarlineSinglePannaBet");
 const StarlineDoublePannaBet = require("../model/StarlineDoublePannaBet");
 const StarlineTriplePannaBet = require("../model/StarlineTriplePannaBet");
 const starlineGameDeclareResult = require("../model/starlineGameDeclareResult");
-
+const betModels = [
+  require("../model/SingleDigitBet"),
+  require("../model/SingleBulkDigitBet"),
+  require("../model/JodiDigitBet"),
+  require("../model/JodiDigitBulkBet"),
+  require("../model/SinglePannaBet"),
+  require("../model/SinglePannaBulkBet"),
+  require("../model/DoublePannaBet"),
+  require("../model/DoublePannaBulkBet"),
+  require("../model/TriplePannaBet"),
+  require("../model/OddEvenBet"),
+  require("../model/HalfSangamBet"),
+  require("../model/FullSangamBet"),
+  require("../model/SPMotorBet"),
+  require("../model/DPMotorBet"),
+  require("../model/spdptpBet"),
+  require("../model/RedBracketBet"),
+];
+const jackpotBetModels = [
+  require("../model/JackpotLeftDigitBet"),
+  require("../model/JackpotRightDigitBet"),
+  require("../model/JackpotCentreJodiDigitBet"),
+];
+const starlineBetModels = [
+  require("../model/StarlineSingleDigitBet"),
+  require("../model/StarlineSinglePannaBet"),
+  require("../model/StarlineDoublePannaBet"),
+  require("../model/StarlineTriplePannaBet"),
+];
 exports.getAdminLoginPage = async (req, res, next) => {
   res.render("Admin/adminLogin", {
     pageTitle: "Admin Login",
@@ -1131,16 +1159,48 @@ exports.getAdminGameRatesPage = async (req, res, next) => {
       return res.redirect("/admin/login");
     }
 
-    // Fetch all game rates
-    const gameRates = await GameRate.find();
+    const type = req.query.type || "main";
 
-    // Render the game rates page
+    /* 🔥 Select Correct Model Group */
+    let selectedModels;
+
+    if (type === "starline") {
+      selectedModels = starlineBetModels;
+    } else if (type === "jackpot") {
+      selectedModels = jackpotBetModels;
+    } else {
+      selectedModels = betModels;
+    }
+
+    /* ✅ Extract gameTypes dynamically */
+    const gameTypes = selectedModels
+      .map(model => model.schema.obj.gameType?.default)
+      .filter(Boolean);
+
+    const uniqueGameTypes = [...new Set(gameTypes)];
+
+    /* ✅ Filter GameRates Based On Page Type */
+    let filter = {};
+
+    if (type === "starline") {
+      filter = { isStarline: true };
+    } else if (type === "jackpot") {
+      filter = { isJackpot: true };
+    } else {
+      filter = { isStarline: false, isJackpot: false };
+    }
+
+    const gameRates = await GameRate.find(filter);
+
     res.render("Admin/gameRates", {
       admin,
       gameRates,
+      gameTypes: uniqueGameTypes,
+      selectedType: type,
       isLoggedIn: req.session.isLoggedIn,
       pageTitle: "Game Rates",
     });
+
   } catch (err) {
     console.error(err);
     return res.redirect("/admin/dashboard");
@@ -1156,24 +1216,43 @@ exports.postGameRates = async (req, res, next) => {
     ) {
       return res.redirect("/admin/login");
     }
+
     const admin = await User.findOne({
       _id: req.session.admin._id,
       role: "admin",
       userStatus: "active",
     });
+
     if (!admin) {
       req.session.destroy();
       return res.redirect("/admin/login");
     }
+
     const { gameType, betAmount, profitAmount } = req.body;
-    // Create and save new game rate
+    const type = req.query.type || "main";
+
+    /* ✅ Decide Flags Based On Page */
+    let isStarline = false;
+    let isJackpot = false;
+
+    if (type === "starline") {
+      isStarline = true;
+    } else if (type === "jackpot") {
+      isJackpot = true;
+    }
+
     const newGameRate = new GameRate({
       gameType,
       betAmount,
       profitAmount,
+      isStarline,
+      isJackpot,
     });
+
     await newGameRate.save();
-    return res.redirect("/admin/GameRates");
+
+    return res.redirect(`/admin/GameRates?type=${type}`);
+
   } catch (err) {
     console.error(err);
     return res.redirect("/admin/dashboard");
@@ -1202,9 +1281,17 @@ exports.toggleGameRate = async (req, res) => {
     }
 
     const rate = await GameRate.findById(req.params.id);
+    if (!rate) {
+      return res.redirect("/admin/GameRates");
+    }
+
     rate.isActive = !rate.isActive;
     await rate.save();
-    return res.redirect("/admin/GameRates");
+
+    const type = req.query.type || "main";
+
+    return res.redirect(`/admin/GameRates?type=${type}`);
+
   } catch (err) {
     console.error(err);
     return res.redirect("/admin/dashboard");
@@ -1231,32 +1318,67 @@ exports.deleteGameRate = async (req, res) => {
       req.session.destroy();
       return res.redirect("/admin/login");
     }
+
     await GameRate.findByIdAndDelete(req.params.id);
-    return res.redirect("/admin/GameRates");
+
+    const type = req.query.type || "main";
+
+    return res.redirect(`/admin/GameRates?type=${type}`);
+
   } catch (err) {
     console.error(err);
     return res.redirect("/admin/dashboard");
   }
 };
 
-const betModels = [
-  require("../model/SingleDigitBet"),
-  require("../model/SingleBulkDigitBet"),
-  require("../model/JodiDigitBet"),
-  require("../model/JodiDigitBulkBet"),
-  require("../model/SinglePannaBet"),
-  require("../model/SinglePannaBulkBet"),
-  require("../model/DoublePannaBet"),
-  require("../model/DoublePannaBulkBet"),
-  require("../model/TriplePannaBet"),
-  require("../model/OddEvenBet"),
-  require("../model/HalfSangamBet"),
-  require("../model/FullSangamBet"),
-  require("../model/SPMotorBet"),
-  require("../model/DPMotorBet"),
-  require("../model/spdptpBet"),
-  require("../model/RedBracketBet"),
-];
+exports.updateGameRate = async (req, res) => {
+  try {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    });
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    const { id } = req.params;
+    let { gameType, betAmount, profitAmount } = req.body;
+
+    if (!gameType || !betAmount || !profitAmount) {
+      return res.status(400).send("All fields required");
+    }
+
+    betAmount = Number(betAmount);
+    profitAmount = Number(profitAmount);
+
+    await GameRate.findByIdAndUpdate(id, {
+      gameType: gameType.trim(),
+      betAmount,
+      profitAmount,
+    });
+
+    const type = req.query.type || "main";
+
+    return res.redirect(`/admin/GameRates?type=${type}`);
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).send("Server Error");
+  }
+};
+
+
 
 exports.gameResult = async (req, res) => {
   try {
@@ -1445,6 +1567,7 @@ exports.declareGameResult = async (req, res) => {
       resultWeekday: weekday,
       createdAt: createdAtIST,
     });
+
     /* =====================================================
    🔥 DOUBLE PANNA RESULT SETTLEMENT (OPEN / CLOSE INDEPENDENT)
 ===================================================== */
@@ -1466,7 +1589,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.underNo === panna) {
             // ✅ OPEN WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.amount * 2;
+            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ OPEN LOSS
@@ -1480,7 +1603,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.underNo === panna) {
             // ✅ CLOSE WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.amount * 2;
+            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ CLOSE LOSS
@@ -1523,7 +1646,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.underNo === panna) {
             // ✅ OPEN WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.amount * 2;
+            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ OPEN LOSS
@@ -1537,7 +1660,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.underNo === panna) {
             // ✅ CLOSE WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.amount * 2;
+            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ CLOSE LOSS
@@ -1580,7 +1703,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.underNo === panna) {
             // ✅ OPEN WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.amountPerUnderNo * 2;
+            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ OPEN LOSS
@@ -1594,7 +1717,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.underNo === panna) {
             // ✅ CLOSE WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.amountPerUnderNo * 2;
+            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ CLOSE LOSS
@@ -1637,7 +1760,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.number === Number(digit)) {
             // ✅ OPEN WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.amount * 2;
+            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ OPEN LOSS
@@ -1651,7 +1774,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.number === Number(digit)) {
             // ✅ CLOSE WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.amount * 2;
+            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ CLOSE LOSS
@@ -1694,7 +1817,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.number === Number(digit)) {
             // ✅ OPEN WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.amount * 2;
+            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ OPEN LOSS
@@ -1708,7 +1831,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.number === Number(digit)) {
             // ✅ CLOSE WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.amount * 2;
+            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ CLOSE LOSS
@@ -1751,7 +1874,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.number === panna) {
             // ✅ OPEN WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.amount * 2;
+            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ OPEN LOSS
@@ -1765,7 +1888,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.number === panna) {
             // ✅ CLOSE WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.amount * 2;
+            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ CLOSE LOSS
@@ -1820,7 +1943,7 @@ exports.declareGameResult = async (req, res) => {
 
           if (item.openMatched && closeMatched) {
             item.resultStatus = "WIN";
-            item.winAmount = item.amount * 2;
+            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             item.resultStatus = "LOSS";
@@ -1861,7 +1984,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.underNo === panna) {
             // ✅ OPEN WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.amountPerUnderNo * 2;
+            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ OPEN LOSS
@@ -1875,7 +1998,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.underNo === panna) {
             // ✅ CLOSE WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.amountPerUnderNo * 2;
+            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ CLOSE LOSS
@@ -1931,7 +2054,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.openMatched && closeMatched) {
             // ✅ BOTH MATCH → WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.amountPerUnderNo * 2;
+            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ ANY FAIL → LOSS
@@ -1979,7 +2102,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.underNo === String(digit) && patternMatched) {
             // ✅ OPEN WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.amountPerUnderNo * 2;
+            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ OPEN LOSS
@@ -1993,7 +2116,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.underNo === String(digit) && patternMatched) {
             // ✅ CLOSE WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.amountPerUnderNo * 2;
+            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ CLOSE LOSS
@@ -2054,7 +2177,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.openMatched && closeMatched) {
             // ✅ OPEN + CLOSE BOTH MATCH
             item.resultStatus = "WIN";
-            item.winAmount = item.amountPerUnderNo * 2;
+            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
 
             totalWinAmount += item.winAmount;
             isAnyWin = true;
@@ -2097,7 +2220,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.underNo === panna) {
             // ✅ OPEN WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.amountPerUnderNo * 2;
+            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ OPEN LOSS
@@ -2111,7 +2234,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.underNo === panna) {
             // ✅ CLOSE WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.amountPerUnderNo * 2;
+            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ CLOSE LOSS
@@ -2152,7 +2275,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.underNo === panna) {
             // ✅ OPEN WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.amountPerUnderNo * 2;
+            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ OPEN LOSS
@@ -2166,7 +2289,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.underNo === panna) {
             // ✅ CLOSE WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.amountPerUnderNo * 2;
+            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ CLOSE LOSS
@@ -2210,7 +2333,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.underNo === panna) {
             // ✅ OPEN WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.amountPerUnderNo * 2;
+            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ OPEN LOSS
@@ -2224,7 +2347,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.underNo === panna) {
             // ✅ CLOSE WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.amountPerUnderNo * 2;
+            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ CLOSE LOSS
@@ -2273,7 +2396,7 @@ exports.declareGameResult = async (req, res) => {
         if (session === "CLOSE") {
           if (item.openMatched === true && item.closePanna === panna) {
             item.resultStatus = "WIN";
-            item.winAmount = item.totalAmount * 2; // ✅ ADD THIS
+            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             item.resultStatus = "LOSS";
@@ -2322,7 +2445,7 @@ exports.declareGameResult = async (req, res) => {
             item.resultStatus = "WIN";
 
             // ✅ ADD THIS
-            item.winAmount = item.totalAmount * 2;
+            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
 
             totalWinAmount += item.winAmount;
           } else {
@@ -2547,7 +2670,7 @@ exports.declareJackpotGameResult = async (req, res) => {
         bet.bets.forEach((item) => {
           if (item.openDigit === String(left)) {
             item.resultStatus = "WIN";
-            item.winAmount = item.amount * 9;
+            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
             winAmount += item.winAmount;
           } else {
             item.resultStatus = "LOSS";
@@ -2580,7 +2703,7 @@ exports.declareJackpotGameResult = async (req, res) => {
         bet.bets.forEach((item) => {
           if (item.openDigit === String(right)) {
             item.resultStatus = "WIN";
-            item.winAmount = item.amount * 9; // ✅ Save individual win
+            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
             winAmount += item.winAmount;
           } else {
             item.resultStatus = "LOSS";
@@ -2613,7 +2736,7 @@ exports.declareJackpotGameResult = async (req, res) => {
         bet.bets.forEach((item) => {
           if (item.openDigit === jodi) {
             item.resultStatus = "WIN";
-            item.winAmount = item.amount * 90; // ✅ Save individual win
+            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
             winAmount += item.winAmount;
           } else {
             item.resultStatus = "LOSS";
@@ -2855,7 +2978,7 @@ exports.declareStarlineGameResult = async (req, res) => {
           if (item.number === Number(digit)) {
             // ✅ OPEN WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.amount * 2;
+            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ OPEN LOSS
@@ -2869,7 +2992,7 @@ exports.declareStarlineGameResult = async (req, res) => {
           if (item.number === Number(digit)) {
             // ✅ CLOSE WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.amount * 2;
+            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ CLOSE LOSS
@@ -2912,7 +3035,7 @@ exports.declareStarlineGameResult = async (req, res) => {
           if (item.underNo === panna) {
             // ✅ OPEN WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.amount * 2;
+            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ OPEN LOSS
@@ -2926,7 +3049,7 @@ exports.declareStarlineGameResult = async (req, res) => {
           if (item.underNo === panna) {
             // ✅ CLOSE WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.amount * 2;
+           item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ CLOSE LOSS
@@ -2968,7 +3091,7 @@ exports.declareStarlineGameResult = async (req, res) => {
           if (item.underNo === panna) {
             // ✅ OPEN WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.amount * 2;
+            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ OPEN LOSS
@@ -2982,7 +3105,7 @@ exports.declareStarlineGameResult = async (req, res) => {
           if (item.underNo === panna) {
             // ✅ CLOSE WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.amount * 2;
+            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ CLOSE LOSS
@@ -3025,7 +3148,7 @@ exports.declareStarlineGameResult = async (req, res) => {
           if (item.number === panna) {
             // ✅ OPEN WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.amount * 2;
+            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ OPEN LOSS
@@ -3039,7 +3162,7 @@ exports.declareStarlineGameResult = async (req, res) => {
           if (item.number === panna) {
             // ✅ CLOSE WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.amount * 2;
+            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ CLOSE LOSS
@@ -3137,7 +3260,7 @@ exports.showPreviewWinnerList = async (req, res) => {
               }
 
               return bet[key] === condition;
-            })
+            }),
           ),
         }))
         .filter((doc) => doc.bets.length > 0);
@@ -3159,11 +3282,7 @@ exports.showPreviewWinnerList = async (req, res) => {
       resultStatus: "PENDING",
     };
 
-    const [
-      singleDigitData,
-      singleBulkData,
-      oddEvenData,
-    ] = await Promise.all([
+    const [singleDigitData, singleBulkData, oddEvenData] = await Promise.all([
       findAndFilterBets(SingleDigitBet, singleDigitMatch),
       findAndFilterBets(SingleBulkDigitBet, singleDigitMatch),
       findAndFilterBets(OddEvenBet, oddEvenMatch),
@@ -3228,7 +3347,6 @@ exports.showPreviewWinnerList = async (req, res) => {
     let fullSangamData = [];
 
     if (session === "CLOSE") {
-
       const jodiMatch = {
         openMatched: true,
         resultStatus: "PENDING",
@@ -3290,7 +3408,6 @@ exports.showPreviewWinnerList = async (req, res) => {
       count: finalData.length,
       data: finalData,
     });
-
   } catch (error) {
     console.error("Preview Winner Error:", error);
     return res.status(500).json({
@@ -3585,7 +3702,7 @@ exports.viewThisGameAllPendingResult = async (req, res) => {
       [subBet.amountPerUnderNo, subBet.amount, subBet.totalAmount].find(
         (v) => v !== undefined && v !== null,
       ) ?? 0;
-      
+
     /* ================= FIND ALL PENDING IN SAME MARKET ================= */
 
     let allMarketPendingBets = [];
@@ -3636,27 +3753,28 @@ exports.viewThisGameAllPendingResult = async (req, res) => {
 
     /* ================= SEARCH FILTER ================= */
 
-const { search } = req.query;
+    const { search } = req.query;
 
-if (search && search.trim() !== "") {
-  const searchLower = search.toLowerCase().trim();
+    if (search && search.trim() !== "") {
+      const searchLower = search.toLowerCase().trim();
 
-  allMarketPendingBets = allMarketPendingBets.filter((bet) => {
-    const market = bet.gameName ? bet.gameName.toLowerCase() : "";
-    const type = bet.gameType ? bet.gameType.toLowerCase() : "";
-    const session = bet.session ? bet.session.toLowerCase() : "";
-    const digit = bet.digit !== undefined && bet.digit !== null
-      ? bet.digit.toString().toLowerCase()
-      : "";
+      allMarketPendingBets = allMarketPendingBets.filter((bet) => {
+        const market = bet.gameName ? bet.gameName.toLowerCase() : "";
+        const type = bet.gameType ? bet.gameType.toLowerCase() : "";
+        const session = bet.session ? bet.session.toLowerCase() : "";
+        const digit =
+          bet.digit !== undefined && bet.digit !== null
+            ? bet.digit.toString().toLowerCase()
+            : "";
 
-    return (
-      market.includes(searchLower) ||
-      type.includes(searchLower) ||
-      session.includes(searchLower) ||
-      digit.includes(searchLower)
-    );
-  });
-}
+        return (
+          market.includes(searchLower) ||
+          type.includes(searchLower) ||
+          session.includes(searchLower) ||
+          digit.includes(searchLower)
+        );
+      });
+    }
     /* ================= PAGINATION ================= */
 
     let { page = 1, limit = 10 } = req.query;
@@ -3764,7 +3882,7 @@ exports.starlinePreviewWinnerList = async (req, res) => {
               }
 
               return bet[key] === condition;
-            })
+            }),
           ),
         }))
         .filter((doc) => doc.bets.length > 0);
@@ -3796,17 +3914,13 @@ exports.starlinePreviewWinnerList = async (req, res) => {
       resultStatus: "PENDING",
     };
 
-    const [
-      singleDigitData,
-      singlePannaData,
-      doublePannaData,
-      triplePannaData,
-    ] = await Promise.all([
-      findAndFilterBets(StarlineSingleDigitBet, singleDigitMatch),
-      findAndFilterBets(StarlineSinglePannaBet, pannaMatch),
-      findAndFilterBets(StarlineDoublePannaBet, pannaMatch),
-      findAndFilterBets(StarlineTriplePannaBet, tripleMatch),
-    ]);
+    const [singleDigitData, singlePannaData, doublePannaData, triplePannaData] =
+      await Promise.all([
+        findAndFilterBets(StarlineSingleDigitBet, singleDigitMatch),
+        findAndFilterBets(StarlineSinglePannaBet, pannaMatch),
+        findAndFilterBets(StarlineDoublePannaBet, pannaMatch),
+        findAndFilterBets(StarlineTriplePannaBet, tripleMatch),
+      ]);
 
     // =========================================================
     // 🔥 MERGE ALL STARLINE DATA
@@ -3824,7 +3938,6 @@ exports.starlinePreviewWinnerList = async (req, res) => {
       count: finalData.length,
       data: finalData,
     });
-
   } catch (error) {
     console.error("Starline Preview Winner Error:", error);
     return res.status(500).json({
@@ -3931,25 +4044,20 @@ exports.starlineChangeBidNumberAndAmount = async (req, res) => {
 
       /* ---- RESET RESULT ---- */
       if (subBet.winAmount !== undefined) subBet.winAmount = 0;
-      if (subBet.resultStatus !== undefined)
-        subBet.resultStatus = "PENDING";
-
+      if (subBet.resultStatus !== undefined) subBet.resultStatus = "PENDING";
     } else {
       /* ===== SINGLE OBJECT BET ===== */
 
       if (underNo !== undefined) {
-        if (betDocument.underNo !== undefined)
-          betDocument.underNo = underNo;
+        if (betDocument.underNo !== undefined) betDocument.underNo = underNo;
 
-        if (betDocument.number !== undefined)
-          betDocument.number = underNo;
+        if (betDocument.number !== undefined) betDocument.number = underNo;
       }
 
       if (amountPerUnderNo !== undefined) {
         const amt = Number(amountPerUnderNo);
 
-        if (betDocument.amount !== undefined)
-          betDocument.amount = amt;
+        if (betDocument.amount !== undefined) betDocument.amount = amt;
 
         if (betDocument.amountPerUnderNo !== undefined)
           betDocument.amountPerUnderNo = amt;
@@ -3958,8 +4066,7 @@ exports.starlineChangeBidNumberAndAmount = async (req, res) => {
           betDocument.totalAmount = amt;
       }
 
-      if (betDocument.winAmount !== undefined)
-        betDocument.winAmount = 0;
+      if (betDocument.winAmount !== undefined) betDocument.winAmount = 0;
 
       if (betDocument.resultStatus !== undefined)
         betDocument.resultStatus = "PENDING";
@@ -3973,7 +4080,6 @@ exports.starlineChangeBidNumberAndAmount = async (req, res) => {
       message: "Starline bet updated successfully",
       data: betDocument,
     });
-
   } catch (err) {
     console.error("Starline Update Error:", err);
 
@@ -4054,14 +4160,13 @@ exports.viewStarlineThisGameAllPendingResult = async (req, res) => {
 
     /* ================= EXTRACT VALUES ================= */
 
-    const bidValue = [
-      subBet.underNo,
-      subBet.number,
-    ].find((v) => v !== undefined && v !== null);
+    const bidValue = [subBet.underNo, subBet.number].find(
+      (v) => v !== undefined && v !== null,
+    );
 
     const bidAmount =
       [subBet.amountPerUnderNo, subBet.amount, subBet.totalAmount].find(
-        (v) => v !== undefined && v !== null
+        (v) => v !== undefined && v !== null,
       ) ?? 0;
 
     /* ================= FIND ALL PENDING IN SAME MARKET ================= */
@@ -4089,8 +4194,7 @@ exports.viewStarlineThisGameAllPendingResult = async (req, res) => {
                 gameName: doc.gameName,
                 session: sub.mode || "",
                 digit: sub.underNo || sub.number,
-                amount:
-                  sub.amountPerUnderNo || sub.amount || sub.totalAmount,
+                amount: sub.amountPerUnderNo || sub.amount || sub.totalAmount,
                 createdAt: doc.createdAt,
               });
             }
@@ -4103,8 +4207,7 @@ exports.viewStarlineThisGameAllPendingResult = async (req, res) => {
               gameName: doc.gameName,
               session: doc.mode || "",
               digit: doc.underNo || doc.number,
-              amount:
-                doc.amountPerUnderNo || doc.amount || doc.totalAmount,
+              amount: doc.amountPerUnderNo || doc.amount || doc.totalAmount,
               createdAt: doc.createdAt,
             });
           }
@@ -4174,7 +4277,6 @@ exports.viewStarlineThisGameAllPendingResult = async (req, res) => {
       limit,
       search,
     });
-
   } catch (err) {
     console.error("View Starline Pending Result Error:", err);
     return res.status(500).json({
@@ -4247,21 +4349,21 @@ exports.jackpotPreviewWinnerList = async (req, res) => {
           bets: doc.bets.filter((bet) =>
             Object.keys(elemMatch).every((key) => {
               return String(bet[key]) === String(elemMatch[key]); // ✅ SAFE MATCH
-            })
+            }),
           ),
         }))
         .filter((doc) => doc.bets.length > 0);
     };
 
-const leftMatch = {
-  openDigit: String(left),
-  resultStatus: "PENDING",
-};
+    const leftMatch = {
+      openDigit: String(left),
+      resultStatus: "PENDING",
+    };
 
-const rightMatch = {
-  openDigit: String(right),
-  resultStatus: "PENDING",
-};
+    const rightMatch = {
+      openDigit: String(right),
+      resultStatus: "PENDING",
+    };
 
     /* =========================================================
        3️⃣ CENTER JODI MATCH
@@ -4273,11 +4375,7 @@ const rightMatch = {
       resultStatus: "PENDING",
     };
 
-    const [
-      leftDigitData,
-      rightDigitData,
-      centerJodiData,
-    ] = await Promise.all([
+    const [leftDigitData, rightDigitData, centerJodiData] = await Promise.all([
       findAndFilterBets(LeftDigitBet, leftMatch),
       findAndFilterBets(RightDigitBet, rightMatch),
       findAndFilterBets(CenterJodiDigitBet, centerJodiMatch),
@@ -4287,18 +4385,13 @@ const rightMatch = {
        🔥 MERGE ALL JACKPOT DATA
     ========================================================= */
 
-    const finalData = [
-      ...leftDigitData,
-      ...rightDigitData,
-      ...centerJodiData,
-    ];
+    const finalData = [...leftDigitData, ...rightDigitData, ...centerJodiData];
 
     return res.status(200).json({
       success: true,
       count: finalData.length,
       data: finalData,
     });
-
   } catch (error) {
     console.error("Jackpot Preview Winner Error:", error);
     return res.status(500).json({
@@ -4343,11 +4436,7 @@ exports.jackpotChangeBidNumberAndAmount = async (req, res) => {
     }
 
     /* ================= JACKPOT MODELS ================= */
-    const betModels = [
-      LeftDigitBet,
-      RightDigitBet,
-      CenterJodiDigitBet,
-    ];
+    const betModels = [LeftDigitBet, RightDigitBet, CenterJodiDigitBet];
 
     let betDocument = null;
 
@@ -4387,33 +4476,26 @@ exports.jackpotChangeBidNumberAndAmount = async (req, res) => {
 
       /* ---- UPDATE DIGIT ---- */
       if (openDigit !== undefined) {
-        if (subBet.openDigit !== undefined)
-          subBet.openDigit = openDigit;
+        if (subBet.openDigit !== undefined) subBet.openDigit = openDigit;
       }
 
       /* ---- UPDATE AMOUNT ---- */
       if (amount !== undefined) {
         const amt = Number(amount);
 
-        if (subBet.amount !== undefined)
-          subBet.amount = amt;
+        if (subBet.amount !== undefined) subBet.amount = amt;
 
         if (subBet.amountPerUnderNo !== undefined)
           subBet.amountPerUnderNo = amt;
 
-        if (subBet.totalAmount !== undefined)
-          subBet.totalAmount = amt;
+        if (subBet.totalAmount !== undefined) subBet.totalAmount = amt;
       }
 
       /* ---- RESET RESULT ---- */
-      if (subBet.winAmount !== undefined)
-        subBet.winAmount = 0;
+      if (subBet.winAmount !== undefined) subBet.winAmount = 0;
 
-      if (subBet.resultStatus !== undefined)
-        subBet.resultStatus = "PENDING";
-
+      if (subBet.resultStatus !== undefined) subBet.resultStatus = "PENDING";
     } else {
-
       /* ===== SINGLE OBJECT BET ===== */
 
       if (openDigit !== undefined) {
@@ -4424,8 +4506,7 @@ exports.jackpotChangeBidNumberAndAmount = async (req, res) => {
       if (amount !== undefined) {
         const amt = Number(amount);
 
-        if (betDocument.amount !== undefined)
-          betDocument.amount = amt;
+        if (betDocument.amount !== undefined) betDocument.amount = amt;
 
         if (betDocument.amountPerUnderNo !== undefined)
           betDocument.amountPerUnderNo = amt;
@@ -4434,8 +4515,7 @@ exports.jackpotChangeBidNumberAndAmount = async (req, res) => {
           betDocument.totalAmount = amt;
       }
 
-      if (betDocument.winAmount !== undefined)
-        betDocument.winAmount = 0;
+      if (betDocument.winAmount !== undefined) betDocument.winAmount = 0;
 
       if (betDocument.resultStatus !== undefined)
         betDocument.resultStatus = "PENDING";
@@ -4449,7 +4529,6 @@ exports.jackpotChangeBidNumberAndAmount = async (req, res) => {
       message: "Jackpot bet updated successfully",
       data: betDocument,
     });
-
   } catch (err) {
     console.error("Jackpot Update Error:", err);
 
@@ -4494,11 +4573,7 @@ exports.viewJackpotThisGameAllPendingResult = async (req, res) => {
     }
 
     /* ================= JACKPOT MODELS ================= */
-    const betModels = [
-      LeftDigitBet,
-      RightDigitBet,
-      CenterJodiDigitBet,
-    ];
+    const betModels = [LeftDigitBet, RightDigitBet, CenterJodiDigitBet];
 
     let betDocument = null;
     let subBet = null;
@@ -4533,7 +4608,7 @@ exports.viewJackpotThisGameAllPendingResult = async (req, res) => {
 
     const bidAmount =
       [subBet.amount, subBet.amountPerUnderNo, subBet.totalAmount].find(
-        (v) => v !== undefined && v !== null
+        (v) => v !== undefined && v !== null,
       ) ?? 0;
 
     /* ================= FIND ALL PENDING IN SAME MARKET ================= */
@@ -4561,8 +4636,7 @@ exports.viewJackpotThisGameAllPendingResult = async (req, res) => {
                 gameName: doc.gameName,
                 session: sub.mode || "",
                 digit: sub.openDigit,
-                amount:
-                  sub.amount || sub.amountPerUnderNo || sub.totalAmount,
+                amount: sub.amount || sub.amountPerUnderNo || sub.totalAmount,
                 createdAt: doc.createdAt,
               });
             }
@@ -4575,8 +4649,7 @@ exports.viewJackpotThisGameAllPendingResult = async (req, res) => {
               gameName: doc.gameName,
               session: doc.mode || "",
               digit: doc.openDigit,
-              amount:
-                doc.amount || doc.amountPerUnderNo || doc.totalAmount,
+              amount: doc.amount || doc.amountPerUnderNo || doc.totalAmount,
               createdAt: doc.createdAt,
             });
           }
@@ -4646,7 +4719,6 @@ exports.viewJackpotThisGameAllPendingResult = async (req, res) => {
       limit,
       search,
     });
-
   } catch (err) {
     console.error("View Jackpot Pending Result Error:", err);
     return res.status(500).json({

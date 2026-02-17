@@ -25,7 +25,10 @@ const starlineSinglePannaItemSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
-
+  gameRateWinAmount: {
+    type: Number,
+    default: 0,
+  },
   // 🔥 MODE PER PANNA
   mode: {
     type: String,

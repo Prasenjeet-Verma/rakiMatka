@@ -27,7 +27,10 @@ const halfSangamItemSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
-
+  gameRateWinAmount: {
+    type: Number,
+    default: 0,
+  },
   openMatched: {
     type: Boolean,
     default: false,

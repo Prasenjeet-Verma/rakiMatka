@@ -23,6 +23,17 @@ const gameRateSchema = new mongoose.Schema(
       min: 0
     },
 
+      /* 🔥 NEW FIELDS */
+    isStarline: {
+      type: Boolean,
+      default: false
+    },
+
+    isJackpot: {
+      type: Boolean,
+      default: false
+    },
+
     isActive: {
       type: Boolean,
       default: true

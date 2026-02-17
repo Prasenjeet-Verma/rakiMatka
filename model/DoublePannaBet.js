@@ -32,7 +32,11 @@ const doublePannaItemSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
-
+  
+  gameRateWinAmount: {
+    type: Number,
+    default: 0,
+  },
   /* ================= RESULT ================= */
 
   resultStatus: {

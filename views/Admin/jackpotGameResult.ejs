@@ -327,7 +327,7 @@ showResultBtn.addEventListener("click", async function () {
           bet.amount,
         ].find(v => v !== undefined && v !== null) ?? 0;
 
-        const winAmount = bet.winAmount ?? 0;
+        const winAmount = bet.gameRateWinAmount ?? 0;
 
         row.innerHTML = `
           <td class="p-3 border-r border-gray-300">
