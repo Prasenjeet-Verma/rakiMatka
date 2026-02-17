@@ -4164,7 +4164,6 @@ const betModels = [
 
 exports.getUserWinHistory = async (req, res, next) => {
   try {
-    // AUTH CHECK
     if (!req.session.isLoggedIn || req.session.user.role !== "user") {
       return res.redirect("/login");
     }
@@ -4184,23 +4183,23 @@ exports.getUserWinHistory = async (req, res, next) => {
     let fromDate = null;
     let toDate = null;
 
-    // DATE FILTER LOGIC (UNCHANGED)
+    // ===== DATE FILTER LOGIC (UNCHANGED) =====
     if (startDate && endDate) {
       fromDate = new Date(startDate);
       toDate = new Date(endDate);
       toDate.setHours(23, 59, 59, 999);
     } else if (source) {
       switch (source) {
-        case "source1": // Live 24h
+        case "source1":
           fromDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
           toDate = now;
           break;
-        case "source3": // Old 3 months
+        case "source3":
           fromDate = new Date();
           fromDate.setMonth(fromDate.getMonth() - 3);
           toDate = now;
           break;
-        case "source2": // Backup 6 months
+        case "source2":
           fromDate = new Date();
           fromDate.setMonth(fromDate.getMonth() - 6);
           toDate = now;
@@ -4213,7 +4212,6 @@ exports.getUserWinHistory = async (req, res, next) => {
 
     let allWinRows = [];
 
-    // MAIN GAME MAP (UNCHANGED)
     const mainGameMap = {
       "Main Market": "MAIN_GAME",
       Jackpot: "JACKPOT",
@@ -4221,7 +4219,7 @@ exports.getUserWinHistory = async (req, res, next) => {
     };
     const mainGameValue = mainGame ? mainGameMap[mainGame] : null;
 
-    // LOOP ALL BET COLLECTIONS
+    // ===== LOOP ALL BET COLLECTIONS =====
     for (const Model of betModels) {
       const query = { userId: user._id, ...dateFilter };
 
@@ -4231,63 +4229,52 @@ exports.getUserWinHistory = async (req, res, next) => {
       const records = await Model.find(query).lean();
 
       records.forEach((bet) => {
-        // CASE 1: MODELS WITH bets ARRAY
-        if (Array.isArray(bet.bets) && bet.bets.length > 0) {
-          bet.bets.forEach((b) => {
-            if (b.resultStatus !== "WIN") return;
+        if (!Array.isArray(bet.bets)) return;
 
-            allWinRows.push({
-              gameType: bet.gameType ?? "-",
-              mainGame: bet.mainGame ?? "-",
-              gameName: bet.gameName ?? "-",
-              createdAt: bet.createdAt,
-              session: b.session ?? b.mode ?? "-",
+        bet.bets.forEach((b) => {
+          if (b.resultStatus !== "WIN") return;
 
-              // 🔥 FIXED (0 / 00 / 000 SAFE)
-              amount: Number(b.totalPoints ?? b.totalAmount ?? b.amount ?? 0),
-              mainNo: b.mainNo ?? "-",
-              number: b.number ?? "-",
-              openPanna: b.openPanna ?? "-",
-              closePanna: b.closePanna ?? "-",
-              openDigit: b.openDigit ?? "-",
-              closeDigit: b.closeDigit ?? "-",
-              pattern: b.pattern ?? "-",
-              bracketType: b.bracketType ?? "-",
-              type: b.type ?? "-",
+          const digits = [];
 
-              resultStatus: "WIN",
-            });
+          // collect simple number fields only
+          [
+            b.number,
+            b.openDigit,
+            b.closeDigit,
+            b.openPanna,
+            b.closePanna,
+            b.underNo, // single underNo
+          ].forEach((v) => {
+            if (v !== undefined && v !== null && v !== "") {
+              digits.push(v);
+            }
           });
-        }
 
-        // CASE 2: MODELS WITHOUT bets ARRAY
-        else if (bet.resultStatus === "WIN") {
+          const marketMap = {
+            MAIN_GAME: "Main Market",
+            STARLINE: "Starline",
+            JACKPOT: "Jackpot",
+          };
+
           allWinRows.push({
             gameType: bet.gameType ?? "-",
-            mainGame: bet.mainGame ?? "-",
+            mainGame: marketMap[bet.mainGame] || bet.mainGame || "-",
             gameName: bet.gameName ?? "-",
+            session: b.session ?? b.mode ?? "-",
+            mainNo: b.mainNo ?? "-",
+            digits,
+            amount: Number(
+              b.amount ?? b.totalPoints ?? b.totalAmount ?? b.amountPerUnderNo ?? b.perUnderNosPoints ?? 0,
+            ),
+            winAmount: Number(b.winAmount ?? 0), // ✅ ADDED
             createdAt: bet.createdAt,
-            session: bet.session ?? "-",
-
-            // 🔥 FIXED (0 / totalPoints SAFE)
-            amount: Number(bet.amount ?? bet.totalPoints ?? 0),
-            mainNo: bet.mainNo ?? "-",
-            number: bet.number ?? "-",
-            openPanna: bet.openPanna ?? "-",
-            closePanna: bet.closePanna ?? "-",
-            openDigit: bet.openDigit ?? "-",
-            closeDigit: bet.closeDigit ?? "-",
-            pattern: bet.pattern ?? "-",
-            bracketType: bet.bracketType ?? "-",
-            type: bet.type ?? "-",
-
             resultStatus: "WIN",
           });
-        }
+        });
       });
     }
 
-    // SORT BY DATE DESC (UNCHANGED)
+    // ===== SORT (UNCHANGED) =====
     allWinRows.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
     const totalRecords = allWinRows.length;
@@ -4297,7 +4284,6 @@ exports.getUserWinHistory = async (req, res, next) => {
     const paginatedData =
       limit === 9999 ? allWinRows : allWinRows.slice(start, start + limit);
 
-    // RENDER (UNCHANGED)
     res.render("User/userWinHistory", {
       user,
       winHistory: paginatedData,

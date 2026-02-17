@@ -52,91 +52,77 @@
     <!-- TABLE -->
     <div class="bg-gray-100 p-4 mt-2">
       <div class="bg-white rounded-lg shadow p-4 overflow-x-auto">
-        <table class="min-w-[1400px] w-full border text-sm" id="winTable">
-          <thead class="bg-gray-100">
-            <tr>
-              <th class="border px-3 py-2">ID</th>
-              <th class="border px-3 py-2">Game Type</th>
-              <th class="border px-3 py-2">Market</th>
-              <th class="border px-3 py-2">Session</th>
-              <th class="border px-3 py-2">Amount</th>
-              <th class="border px-3 py-2">Main No</th>
-              <th class="border px-3 py-2">Number</th>
-              <th class="border px-3 py-2">Open Panna</th>
-              <th class="border px-3 py-2">Close Panna</th>
-              <th class="border px-3 py-2">Open Digit</th>
-              <th class="border px-3 py-2">Close Digit</th>
-              <th class="border px-3 py-2">Pattern</th>
-              <th class="border px-3 py-2">Bracket Type</th>
-              <th class="border px-3 py-2">Type</th>
-              <th class="border px-3 py-2">Game Name</th>
-              <th class="border px-3 py-2">Game Status</th>
-              <th class="border px-3 py-2">Placed on</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% if(winHistory.length===0){ %>
-              <tr>
-                <td colspan="17" class="text-center py-4 text-gray-500">No Win History Found</td>
-              </tr>
-              <% } %>
+       <table class="min-w-[1100px] w-full border text-sm" id="winTable">
+  <thead class="bg-gray-100">
+    <tr>
+      <th class="border px-3 py-2">ID</th>
+      <th class="border px-3 py-2">Game Type</th>
+      <th class="border px-3 py-2">Market</th>
+      <th class="border px-3 py-2">Game Name</th>
+      <th class="border px-3 py-2">Session</th>
+      <th class="border px-3 py-2">Digits</th>
+      <th class="border px-3 py-2">Bet Amount</th>
+      <th class="border px-3 py-2">Win Amount</th>
+      <th class="border px-3 py-2">Status</th>
+      <th class="border px-3 py-2">Placed On</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% if(winHistory.length===0){ %>
+      <tr>
+        <td colspan="10" class="text-center py-4 text-gray-500">
+          No Win History Found
+        </td>
+      </tr>
+    <% } %>
 
-                <% winHistory.forEach((bet,index)=>{ %>
-                  <tr class="winRow <%= bet.mainGame %>">
-                    <td class="border px-3 py-2">
-                      <%= ((page-1)*limit)+index+1 %>
-                    </td>
-                    <td class="border px-3 py-2">
-                      <%= bet.gameType %>
-                    </td>
-                    <td class="border px-3 py-2">
-                      <%= bet.mainGame %>
-                    </td>
-                    <td class="border px-3 py-2">
-                      <%= bet.session %>
-                    </td>
-                    <td class="border px-3 py-2">₹ <%= bet.amount %>
-                    </td>
-                    <td class="border px-3 py-2">
-                      <%= bet.mainNo %>
-                    </td>
-                    <td class="border px-3 py-2">
-                      <%= bet.number %>
-                    </td>
-                    <td class="border px-3 py-2">
-                      <%= bet.openPanna %>
-                    </td>
-                    <td class="border px-3 py-2">
-                      <%= bet.closePanna %>
-                    </td>
-                    <td class="border px-3 py-2">
-                      <%= bet.openDigit %>
-                    </td>
-                    <td class="border px-3 py-2">
-                      <%= bet.closeDigit %>
-                    </td>
-                    <td class="border px-3 py-2">
-                      <%= bet.pattern %>
-                    </td>
-                    <td class="border px-3 py-2">
-                      <%= bet.bracketType %>
-                    </td>
-                    <td class="border px-3 py-2">
-                      <%= bet.type %>
-                    </td>
-                    <td class="border px-3 py-2">
-                      <%= bet.gameName %>
-                    </td>
-                    <td class="border px-3 py-2"><span
-                        class="bg-green-600 text-white text-xs px-2 py-1 rounded">WIN</span></td>
-                    <td class="border px-3 py-2">
-                      <%= new Date(bet.createdAt).toLocaleString() %>
-                    </td>
-                  </tr>
-                  <% }) %>
-          </tbody>
-        </table>
+    <% winHistory.forEach((bet,index)=>{ %>
+      <tr class="winRow <%= bet.mainGame %>">
+        <td class="border px-3 py-2">
+          <%= ((page-1)*limit)+index+1 %>
+        </td>
 
+        <td class="border px-3 py-2">
+          <%= bet.gameType %>
+        </td>
+
+        <td class="border px-3 py-2">
+          <%= bet.mainGame %>
+        </td>
+
+        <td class="border px-3 py-2">
+          <%= bet.gameName %>
+        </td>
+
+        <td class="border px-3 py-2">
+          <%= bet.session %>
+        </td>
+
+        <td class="border px-3 py-2">
+          <%= Array.isArray(bet.digits) ? bet.digits.join(", ") : "-" %>
+        </td>
+
+        <td class="border px-3 py-2">
+          ₹ <%= bet.amount %>
+        </td>
+
+        <td class="border px-3 py-2 text-green-600 font-semibold">
+          ₹ <%= bet.winAmount %>
+        </td>
+
+        <td class="border px-3 py-2">
+          <span class="bg-green-600 text-white text-xs px-2 py-1 rounded">
+            WIN
+          </span>
+        </td>
+
+        <td class="border px-3 py-2">
+          <%= new Date(bet.createdAt).toLocaleString() %>
+        </td>
+      </tr>
+    <% }) %>
+  </tbody>
+</table>
         <div class="flex justify-between mt-4 text-sm">
           <p>
             <% if(totalRecords>0){ %>
@@ -195,7 +181,7 @@
 
       document.querySelectorAll("#winTable tbody tr").forEach(row => {
         const rowGame = row.cells[2].innerText.trim().toUpperCase(); // ensure uppercase
-        const gameName = row.cells[14].innerText.toLowerCase();
+        const gameName = row.cells[3].innerText.toLowerCase();
 
         const matchesGame = !mappedVal || rowGame === mappedVal;
         const matchesName = !searchVal || gameName.includes(searchVal);
