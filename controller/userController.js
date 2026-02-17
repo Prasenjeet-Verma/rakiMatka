@@ -5,6 +5,7 @@ const User = require("../model/userSchema");
 const WalletTransaction = require("../model/WalletTransaction");
 const UserBankDetails = require("../model/UserBankDetails");
 const GameRate = require("../model/GameRate");
+const GameResult = require("../model/GameResult");
 const SingleDigitBet = require("../model/SingleDigitBet");
 const SingleBulkDigitBet = require("../model/SingleBulkDigitBet");
 const JodiDigitBet = require("../model/JodiDigitBet");
@@ -25,9 +26,11 @@ const starlineSingleDigitBet = require("../model/StarlineSingleDigitBet");
 const StarlineSinglePannaBet = require("../model/StarlineSinglePannaBet");
 const StarlineDoublePannaBet = require("../model/StarlineDoublePannaBet");
 const StarlineTripplePannaBet = require("../model/StarlineTriplePannaBet");
+const StarlineGameResult = require("../model/starlineGameDeclareResult");
 const LeftDigitBet = require("../model/JackpotLeftDigitBet");
 const RightDigitBet = require("../model/JackpotRightDigitBet");
 const JackpotCentreJodiDigitBet = require("../model/JackpotCentreJodiDigitBet");
+const JackpotGameResult = require("../model/jackpotGameDeclareResuult");
 exports.UserHomePage = async (req, res, next) => {
   try {
     // This will be either the user object or undefined
@@ -88,7 +91,20 @@ exports.getUserDashboardPage = async (req, res, next) => {
 
     // Fetch all active games
     const games = await Game.find({ isDeleted: false }).lean();
+    // ===================== 🎯 FETCH TODAY RESULTS =====================
+    const todayDate = now.format("YYYY-MM-DD");
 
+    const todayResults = await GameResult.find({
+      resultDate: todayDate,
+    }).lean();
+    // ===================== 🎯 FETCH TODAY JACKPOT RESULTS =====================
+    const todayJackpotResults = await JackpotGameResult.find({
+      resultDate: todayDate,
+    }).lean();
+    // ===================== 🎯 FETCH TODAY STARLINE RESULTS =====================
+    const todayStarlineResults = await StarlineGameResult.find({
+      resultDate: todayDate,
+    }).lean();
     // ===================== 🎯 PROCESS GAMES =====================
     const processedGames = games
       .filter((game) => {
@@ -105,7 +121,26 @@ exports.getUserDashboardPage = async (req, res, next) => {
 
         // 🔥 SIMPLE & CORRECT LOGIC
         const isRunning = nowMinutes <= closeMinutes;
+        // 🔥 FIND TODAY RESULT FOR THIS GAME
+        const gameResults = todayResults.filter(
+          (r) => r.gameName === game.gameName,
+        );
 
+        const openResult = gameResults.find((r) => r.session === "OPEN");
+        const closeResult = gameResults.find((r) => r.session === "CLOSE");
+        // 🔥 FIND TODAY JACKPOT RESULT FOR THIS GAME
+        const jackpotResult = todayJackpotResults.find(
+          (r) => r.gameName === game.gameName,
+        );
+        // 🔥 FIND TODAY STARLINE RESULT FOR THIS GAME
+        const starlineResults = todayStarlineResults.filter(
+          (r) => r.gameName === game.gameName,
+        );
+
+        const starlineOpen = starlineResults.find((r) => r.session === "OPEN");
+        const starlineClose = starlineResults.find(
+          (r) => r.session === "CLOSE",
+        );
         return {
           _id: game._id,
           gameName: game.gameName,
@@ -115,6 +150,13 @@ exports.getUserDashboardPage = async (req, res, next) => {
           statusText: isRunning ? "Market Running" : "Market Closed",
           isStarline: game.isStarline || false,
           isJackpot: game.isJackpot || false,
+          // ✅ NEW FIELD
+          openResult: openResult || null,
+          closeResult: closeResult || null,
+          // ✅ NEW FOR JACKPOT
+          jackpotResult: jackpotResult || null,
+          starlineOpen: starlineOpen || null,
+          starlineClose: starlineClose || null,
         };
       });
 
@@ -161,7 +203,21 @@ exports.getUserDashboardPage = async (req, res, next) => {
           .format("DD MMM YYYY hh:mm:ss A"),
       };
     });
-
+// ===================== 🎯 FETCH STARLINE GAME RATES =====================
+const starlineRates = await GameRate.find({
+  isStarline: true,
+  isJackpot: false,
+  isActive: true
+})
+  .sort({ gameType: 1 })
+  .lean();
+  const jackpotRates = await GameRate.find({
+  isJackpot: true,
+  isStarline: false,
+  isActive: true
+})
+  .sort({ gameType: 1 })
+  .lean();
     // ===================== 🎯 RENDER DASHBOARD =====================
     res.render("User/userDashboard", {
       user,
@@ -169,6 +225,8 @@ exports.getUserDashboardPage = async (req, res, next) => {
       normalGames,
       starlineGames,
       jackpotGames,
+      starlineRates,   // ✅ NEW
+      jackpotRates,   // ✅ NEW
       transactions: formattedTransactions,
       isLoggedIn: req.session.isLoggedIn,
     });
@@ -1942,7 +2000,8 @@ exports.placeDoublePannaBulkBet = async (req, res) => {
     }
 
     // Multiplier = profit per 1 unit bet
-    const multiplier = doublePannaBulkRate.profitAmount / doublePannaBulkRate.betAmount;
+    const multiplier =
+      doublePannaBulkRate.profitAmount / doublePannaBulkRate.betAmount;
 
     for (const batch of bets) {
       const { mainNo, underNos, amountPerUnderNo, mode } = batch;
@@ -2188,7 +2247,6 @@ exports.placeOddEvenBet = async (req, res) => {
     if (!schedule?.isActive) {
       return res.json({ success: false, message: "Market closed ❌" });
     }
-
 
     // ===== GET ACTIVE GAME RATE =====
     const oddEvenRate = await GameRate.findOne({
@@ -3659,7 +3717,6 @@ exports.placeStarlineDoublePannaBet = async (req, res, next) => {
       }
       b.gameRateWinAmount = b.amount * multiplier; // 🔥 yahi important
       totalAmount += b.amount;
-
     }
 
     /* ================= WALLET ================= */
@@ -3926,8 +3983,7 @@ exports.placeJackpotRightDigitBet = async (req, res) => {
       });
     }
 
-    const multiplier =
-      rightDigitRate.profitAmount / rightDigitRate.betAmount;
+    const multiplier = rightDigitRate.profitAmount / rightDigitRate.betAmount;
     // 🔥 ADD THIS LOOP JUST ABOVE totalAmount reduce
     for (const b of bets) {
       const amount = Number(b.amount) || 0;
@@ -4003,8 +4059,7 @@ exports.placeJackpotLeftDigitBet = async (req, res, next) => {
       });
     }
 
-    const multiplier =
-      leftDigitRate.profitAmount / leftDigitRate.betAmount;
+    const multiplier = leftDigitRate.profitAmount / leftDigitRate.betAmount;
     // 🔥 ADD THIS LOOP JUST ABOVE totalAmount reduce
     for (const b of bets) {
       const amount = Number(b.amount) || 0;
@@ -4094,8 +4149,7 @@ exports.placeJackpotCenterJodiDigitBet = async (req, res, next) => {
       });
     }
 
-    const multiplier =
-      centerJodiRate.profitAmount / centerJodiRate.betAmount;
+    const multiplier = centerJodiRate.profitAmount / centerJodiRate.betAmount;
     // 🔥 ADD THIS LOOP JUST ABOVE totalAmount reduce
     for (const b of bets) {
       const amount = Number(b.amount) || 0;
@@ -4264,7 +4318,12 @@ exports.getUserWinHistory = async (req, res, next) => {
             mainNo: b.mainNo ?? "-",
             digits,
             amount: Number(
-              b.amount ?? b.totalPoints ?? b.totalAmount ?? b.amountPerUnderNo ?? b.perUnderNosPoints ?? 0,
+              b.amount ??
+                b.totalPoints ??
+                b.totalAmount ??
+                b.amountPerUnderNo ??
+                b.perUnderNosPoints ??
+                0,
             ),
             winAmount: Number(b.winAmount ?? 0), // ✅ ADDED
             createdAt: bet.createdAt,
@@ -4394,6 +4453,29 @@ exports.getUserBidHistory = async (req, res, next) => {
     res.render("User/userBidHistory", {
       user,
       winHistory: allRows,
+    });
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+};
+
+// User Game Charts Controller
+exports.getUserGameChartPage = async (req, res, next) => {
+  try {
+    if (!req.session.isLoggedIn || req.session.user.role !== "user") {
+      return res.redirect("/login");
+    }
+
+    const user = await User.findOne({
+      _id: req.session.user._id,
+      userStatus: "active",
+    }).lean();
+
+    if (!user) return res.redirect("/login");
+
+    res.render("User/userGameCharts", {
+      user,
     });
   } catch (err) {
     console.error(err);

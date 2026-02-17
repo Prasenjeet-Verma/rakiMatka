@@ -45,4 +45,6 @@ userRouter.post("/center-jodi-digit/place-bet", userController.placeJackpotCente
 // User Win History Route
 userRouter.get("/user-win-history", userController.getUserWinHistory);
 userRouter.get("/user-bid-history", userController.getUserBidHistory);
+// User Game Chart Route
+userRouter.get("/userGameChart", userController.getUserGameChartPage);
 module.exports = userRouter;
