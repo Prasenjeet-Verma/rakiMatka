@@ -3988,7 +3988,7 @@ exports.placeJackpotRightDigitBet = async (req, res) => {
     // 🔥 ADD THIS LOOP JUST ABOVE totalAmount reduce
     for (const b of bets) {
       const amount = Number(b.amount) || 0;
-      b.winAmount = amount * multiplier; // 🔥 add potential win amount to each bet for later use
+      b.gameRateWinAmount = amount * multiplier; // 🔥 add potential win amount to each bet for later use
     }
 
     const totalAmount = bets.reduce((sum, b) => sum + Number(b.amount || 0), 0);
@@ -4064,7 +4064,7 @@ exports.placeJackpotLeftDigitBet = async (req, res, next) => {
     // 🔥 ADD THIS LOOP JUST ABOVE totalAmount reduce
     for (const b of bets) {
       const amount = Number(b.amount) || 0;
-      b.winAmount = amount * multiplier;
+      b.gameRateWinAmount = amount * multiplier;
     }
     const totalAmount = bets.reduce((sum, b) => sum + Number(b.amount || 0), 0);
     if (user.wallet < totalAmount)
@@ -4154,7 +4154,7 @@ exports.placeJackpotCenterJodiDigitBet = async (req, res, next) => {
     // 🔥 ADD THIS LOOP JUST ABOVE totalAmount reduce
     for (const b of bets) {
       const amount = Number(b.amount) || 0;
-      b.winAmount = amount * multiplier;
+      b.gameRateWinAmount = amount * multiplier;
     }
     const totalAmount = bets.reduce((sum, b) => sum + Number(b.amount || 0), 0);
     if (user.wallet < totalAmount)
