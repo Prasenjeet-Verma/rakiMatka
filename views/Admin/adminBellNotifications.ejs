@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+    <link rel="stylesheet" href="/css/adminDashbord.css">
+
+    <style>
+      /* Custom scrollbar for the table wrapper */
+      .custom-scrollbar::-webkit-scrollbar { height: 6px; }
+      .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+      .custom-scrollbar::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+    </style>
+  </head>
+  <body class="flex min-h-screen">
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar border-r border-gray-200 fixed inset-y-0 left-0 z-50 lg:relative lg:translate-x-0 transform -translate-x-full lg:block">
+      <div class="p-4">
+        <div class="relative mb-4">
+          <input type="text" placeholder="Search" class="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
+          <button class="absolute right-0 top-0 bottom-0 px-3 bg-neutral-800 text-white rounded-r">
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
+      </div>
+      <%- include('../partials/adminNav') %>
+    </aside>
+
+    <!-- Main -->
+    <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <%- include('../partials/adminHeader') %>
+
+      <header class="bg-white h-14 flex items-center justify-between px-4 border-b border-gray-200"></header>
+
+      <!-- Body -->
+      <main class="bg-slate-50 p-3 md:p-8 text-gray-800">
+        <div class="max-w-[1400px] mx-auto bg-white rounded border border-gray-200 shadow-sm flex flex-col">
+
+          <!-- Header -->
+          <div class="p-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white rounded-t">
+            <h2 class="text-xl font-normal text-gray-700">Bell Notifications</h2>
+            <button id="openModal" class="bg-[#1877f2] hover:bg-blue-600 text-white px-4 py-2 rounded font-medium text-sm transition-colors shadow-sm w-full sm:w-auto">Add Notification</button>
+          </div>
+
+          <!-- Table Controls -->
+          <div class="p-4 md:p-6 bg-gray-50 md:bg-white">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 text-sm text-gray-700">
+              <div class="flex items-center gap-2 w-full md:w-auto justify-between md:justify-start">
+                <span>Show</span>
+                <select id="limitSelect" class="border border-gray-300 rounded px-3 py-1.5 outline-none focus:ring-1 focus:ring-blue-500 bg-white">
+                  <option value="10" <% if(limit==10){ %>selected<% } %>>10</option>
+                  <option value="25" <% if(limit==25){ %>selected<% } %>>25</option>
+                  <option value="50" <% if(limit==50){ %>selected<% } %>>50</option>
+                </select>
+                <span>entries</span>
+              </div>
+
+              <div class="flex items-center gap-2 w-full md:w-auto">
+                <label for="searchInput" class="font-medium whitespace-nowrap">Search:</label>
+                <input type="text" id="searchInput" value="<%= search %>" class="border border-gray-300 rounded px-3 py-1.5 outline-none focus:ring-1 focus:ring-blue-500 w-full bg-white">
+              </div>
+            </div>
+
+            <!-- Table -->
+            <table class="w-full text-left border-collapse block md:table">
+              <thead class="hidden md:table-header-group bg-white border-b-2 border-gray-300">
+                <tr class="text-sm font-bold text-gray-800">
+                  <th class="p-3 border-r border-gray-300 w-12 text-center">ID</th>
+                  <th class="p-3 border-r border-gray-300 w-[150px] cursor-pointer hover:bg-gray-50">Title <i class="fa-solid fa-sort text-gray-300 float-right mt-1"></i></th>
+                  <th class="p-3 border-r border-gray-300 cursor-pointer hover:bg-gray-50">Notification <i class="fa-solid fa-sort text-gray-300 float-right mt-1"></i></th>
+                  <th class="p-3 border-r border-gray-300 w-[140px] cursor-pointer hover:bg-gray-50">Created at <i class="fa-solid fa-sort text-gray-300 float-right mt-1"></i></th>
+                  <th class="p-3 w-20 text-center">Action</th>
+                </tr>
+              </thead>
+
+              <tbody class="block md:table-row-group text-sm align-top">
+                <% notifications.forEach((n, index) => { %>
+                  <tr class="block md:table-row bg-white border border-gray-200 md:border-0 md:border-b md:border-gray-300 rounded-lg shadow-sm md:shadow-none mb-4 md:mb-0 hover:bg-gray-50 transition-colors">
+                    <td class="p-3 md:border-r border-b md:border-b-0 border-gray-100 md:border-gray-300 flex justify-between items-center md:table-cell md:text-center">
+                      <span class="font-bold text-gray-400 md:hidden uppercase text-xs">ID</span>
+                      <span class="font-bold"><%= (page-1)*limit + index + 1 %></span>
+                    </td>
+                    <td class="p-3 md:border-r border-b md:border-b-0 border-gray-100 md:border-gray-300 flex justify-between items-center md:table-cell">
+                      <span class="font-bold text-gray-400 md:hidden uppercase text-xs">Title</span>
+                      <span class="font-bold text-gray-800 text-right md:text-left"><%= n.title %></span>
+                    </td>
+                    <td class="p-4 md:p-3 md:border-r border-b md:border-b-0 border-gray-100 md:border-gray-300 flex flex-col md:table-cell gap-2">
+                      <span class="font-bold text-gray-400 md:hidden uppercase text-xs border-b pb-1">Notification</span>
+                      <div class="text-gray-700 leading-relaxed font-medium"><%= n.message %></div>
+                    </td>
+                    <td class="p-3 md:border-r border-b md:border-b-0 border-gray-100 md:border-gray-300 flex justify-between items-center md:table-cell">
+                      <span class="font-bold text-gray-400 md:hidden uppercase text-xs">Created at</span>
+                      <div class="font-medium text-right md:text-left text-gray-600">
+                        <%= n.createdAt.toLocaleDateString('en-GB') %><br class="hidden md:block">
+                        <span class="md:hidden">, </span>
+                        <%= n.createdAt.toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit'}) %>
+                      </div>
+                    </td>
+                    <td class="p-4 md:p-3 flex justify-between items-center md:table-cell bg-gray-50 md:bg-transparent rounded-b-lg md:rounded-none">
+                      <span class="font-bold text-gray-400 md:hidden uppercase text-xs">Action</span>
+                      <form method="POST" action="/admin/delete-notification/<%= n._id %>">
+                        <button class="bg-[#dc3545] hover:bg-red-700 text-white rounded w-9 h-9 md:w-8 md:h-8 flex items-center justify-center md:mx-auto shadow-sm transition-colors">
+                          <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+
+            <!-- Pagination -->
+            <div class="mt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-600">
+              <p>Showing <%= ((page-1)*limit + 1) %> to <%= Math.min(page*limit, total) %> of <%= total %> entries</p>
+              <div class="flex items-center space-x-1">
+                <a href="?page=<%= page-1 %>&limit=<%= limit %>&search=<%= encodeURIComponent(search) %>" class="px-3 py-1.5 text-gray-500 hover:text-gray-700 transition-colors <%= page<=1 ? 'pointer-events-none opacity-50' : '' %>">Previous</a>
+                <% for(let p=1;p<=totalPages;p++){ %>
+                  <a href="?page=<%= p %>&limit=<%= limit %>&search=<%= encodeURIComponent(search) %>" class="px-3 py-1.5 border border-gray-300 bg-white md:bg-gray-100 text-gray-800 font-medium rounded shadow-sm md:shadow-none <%= page===p?'bg-blue-100':'' %>"><%= p %></a>
+                <% } %>
+                <a href="?page=<%= page+1 %>&limit=<%= limit %>&search=<%= encodeURIComponent(search) %>" class="px-3 py-1.5 text-gray-500 hover:text-gray-700 transition-colors <%= page>=totalPages ? 'pointer-events-none opacity-50' : '' %>">Next</a>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </main>
+
+      <!-- Modal -->
+      <div id="notificationModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+          <div class="flex justify-between items-center p-4 border-b">
+            <h3 class="text-xl font-semibold text-gray-800">Add Notifications</h3>
+            <button id="closeIcon" class="text-gray-400 hover:text-gray-600">
+              <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+          </div>
+          <form action="/admin/bell-notifications" method="POST" class="flex flex-col">
+            <div class="p-6 space-y-4">
+              <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">Title</label>
+                <input type="text" name="title" placeholder="Notification title" class="w-full border border-gray-300 rounded-md p-2.5 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" required>
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">Notification</label>
+                <textarea rows="4" name="message" placeholder="Notification content" class="w-full border border-gray-300 rounded-md p-2.5 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none" required></textarea>
+              </div>
+            </div>
+            <div class="flex justify-end gap-2 p-4 bg-gray-50 border-t">
+              <button type="submit" id="submitBtn" class="bg-[#198754] hover:bg-green-700 text-white px-5 py-2 rounded font-medium text-sm transition-all active:scale-95">Submit</button>
+              <button id="closeBtn" class="bg-[#dc3545] hover:bg-red-700 text-white px-5 py-2 rounded font-medium text-sm transition-all active:scale-95">Close</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- JS -->
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // ====== Modal Elements ======
+        const modal = document.getElementById('notificationModal');
+        const openBtn = document.getElementById('openModal');
+        const closeBtn = document.getElementById('closeBtn');
+        const closeIcon = document.getElementById('closeIcon');
+        const form = modal.querySelector('form');
+
+        openBtn.addEventListener('click', () => modal.classList.remove('hidden'));
+        const hideModal = () => modal.classList.add('hidden');
+        closeBtn.addEventListener('click', hideModal);
+        closeIcon.addEventListener('click', hideModal);
+        window.addEventListener('click', (e) => { if(e.target === modal) hideModal(); });
+
+        function showMessage(message, type="success") {
+          const oldMsg = document.getElementById("customMessageBox"); if(oldMsg) oldMsg.remove();
+          const msgBox = document.createElement("div");
+          msgBox.id="customMessageBox";
+          msgBox.innerText=message;
+          msgBox.style.position="fixed";
+          msgBox.style.top="150px";
+          msgBox.style.left="50%";
+          msgBox.style.transform="translateX(-50%)";
+          msgBox.style.padding="12px 20px";
+          msgBox.style.borderRadius="6px";
+          msgBox.style.fontWeight="500";
+          msgBox.style.color="#fff";
+          msgBox.style.zIndex="9999";
+          msgBox.style.boxShadow="0 4px 10px rgba(0,0,0,0.2)";
+          msgBox.style.transition="0.3s ease";
+          msgBox.style.backgroundColor = type==="error" ? "#e74c3c" : "#2ecc71";
+          document.body.appendChild(msgBox);
+          setTimeout(() => { msgBox.style.opacity="0"; setTimeout(()=>msgBox.remove(),300)}, 3000);
+        }
+
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const title=form.querySelector('input[name="title"]').value.trim();
+          const message=form.querySelector('textarea[name="message"]').value.trim();
+          if(!title || !message){ showMessage("Please fill both title and message","error"); return; }
+          try{
+            const res=await fetch(form.action,{ method:form.method, headers:{"Content-Type":"application/json"}, body:JSON.stringify({title,message}) });
+            const data=await res.json();
+            if(data.success){ showMessage("Notification saved successfully ✅"); form.reset(); hideModal(); }
+            else { showMessage(data.message||"Failed to save notification","error"); }
+          }catch(err){ console.error(err); showMessage("Server error","error"); }
+        });
+
+        // ====== Search & Limit ======
+        const searchInput=document.getElementById('searchInput');
+        const limitSelect=document.getElementById('limitSelect');
+
+        searchInput.addEventListener('keyup', function(e){
+          if(e.key==="Enter"){
+            const search=searchInput.value.trim();
+            const limit=limitSelect.value;
+            window.location.href=`?page=1&limit=${limit}&search=${encodeURIComponent(search)}`;
+          }
+        });
+
+        limitSelect.addEventListener('change', function(){
+          const limit=limitSelect.value;
+          const search=searchInput.value.trim();
+          window.location.href=`?page=1&limit=${limit}&search=${encodeURIComponent(search)}`;
+        });
+
+      });
+    </script>
+
+    <script src="/js/sidebar.js"></script>
+  </body>
+</html>

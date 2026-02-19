@@ -10,6 +10,7 @@ const Game = require("../model/Game");
 const GameRate = require("../model/GameRate");
 const GameResult = require("../model/GameResult");
 const { isGameOpenNow } = require("../utils/gameStatus");
+const bellNotification = require("../model/bellNotification");
 const SingleDigitBet = require("../model/SingleDigitBet");
 const SingleBulkDigitBet = require("../model/SingleBulkDigitBet");
 const JodiDigitBet = require("../model/JodiDigitBet");
@@ -5109,5 +5110,158 @@ exports.generateJackpotGameResult = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false });
+  }
+};
+
+// Get Admin Notifications with pagination & search
+exports.getAdminNotifications = async (req, res) => {
+  try {
+    // ================= ADMIN AUTH =================
+    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    });
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    // ================= PAGINATION & SEARCH =================
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 10;
+    let search = req.query.search ? req.query.search.trim() : "";
+
+    // Build query
+    const query = search
+      ? { title: { $regex: search, $options: "i" } } // case-insensitive search
+      : {};
+
+    const total = await bellNotification.countDocuments(query);
+    const totalPages = Math.ceil(total / limit);
+
+    // Ensure page is within bounds
+    if (page > totalPages && totalPages > 0) page = totalPages;
+    if (page < 1) page = 1;
+
+    const notifications = await bellNotification
+      .find(query)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    // Render view
+    res.render("Admin/adminBellNotifications", {
+      pageTitle: "Admin Notifications",
+      admin,
+      isLoggedIn: req.session.isLoggedIn,
+      notifications,
+      page,
+      totalPages,
+      limit,
+      total,
+      search,
+    });
+
+  } catch (error) {
+    console.error("Get Admin Notifications Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+
+exports.postAdminNotifications = async (req, res) => {
+  try {
+    /* ================= ADMIN AUTH ================= */
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    });
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    let { title, message } = req.body;
+
+    if (!title || !message) {
+      return res.status(400).json({
+        success: false,
+        message: "Title and message are required",
+      });
+    }
+
+    // 🔥 Make title uppercase
+    title = title.toUpperCase();
+
+    const notification = new bellNotification({
+      title: title,
+      message: message,
+    });
+
+    await notification.save();
+
+    res.json({ success: true, message: "Notification created successfully" });
+  } catch (error) {
+    console.error("Post Admin Notifications Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+exports.deleteNotification = async (req, res) => {
+  try {
+    // ================= ADMIN AUTH =================
+    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    });
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    // ================= DELETE NOTIFICATION =================
+    const notificationId = req.params.id;
+
+    const notification = await bellNotification.findById(notificationId);
+    if (!notification) {
+      req.flash("error", "Notification not found");
+      return res.redirect("/admin/bell-notifications");
+    }
+
+    await bellNotification.findByIdAndDelete(notificationId);
+    res.redirect("/admin/bell-notifications");
+
+  } catch (error) {
+    console.error("Delete Notification Error:", error);
+    req.flash("error", "Server error, could not delete notification");
+    return res.redirect("/admin/bell-notifications");
   }
 };

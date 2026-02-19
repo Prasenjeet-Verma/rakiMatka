@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shri Ram Matka - Notification</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+        <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+  </head>
+  <body class="bg-gray-100 min-h-screen">
+    <!-- HEADER -->
+    <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
+      <div class="flex items-center gap-3">
+        <a href="/userDashboard"><i class="fa-solid fa-arrow-left text-xl cursor-pointer"></i></a>
+        <h1 class="text-lg font-semibold">Notification</h1>
+      </div>
+    </header>
+
+    <!-- CONTENT -->
+    <div class="p-4 space-y-5">
+      <!-- Notification -->
+      <div class="flex items-center gap-4 bg-white p-4 rounded-xl shadow-md">
+
+<div class="p-4 space-y-5">
+  <% if (notifications && notifications.length > 0) { %>
+    <% notifications.forEach(notification => { %>
+      <!-- Each notification line -->
+      <div class="flex items-center gap-4 bg-white p-4 rounded-xl shadow-md">
+        <div>
+          <p class="font-semibold text-gray-800"><%= notification.title %></p>
+          <p class="text-gray-600"><%= notification.message %></p>
+        </div>
+      </div>
+    <% }) %>
+  <% } else { %>
+    <p class="text-gray-500">No notifications yet.</p>
+  <% } %>
+</div>
+
+
+      </div>
+    </div>
+  </body>
+</html>

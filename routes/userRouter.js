@@ -47,4 +47,6 @@ userRouter.get("/user-win-history", userController.getUserWinHistory);
 userRouter.get("/user-bid-history", userController.getUserBidHistory);
 // User Game Chart Route
 userRouter.get("/userGameChart", userController.getUserGameChartPage);
+// User Notifications Route
+userRouter.get("/bell-notifications", userController.getUserBellNotificationsPage);
 module.exports = userRouter;

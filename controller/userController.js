@@ -6,6 +6,7 @@ const UserBankDetails = require("../model/UserBankDetails");
 const Game = require("../model/Game");
 const GameRate = require("../model/GameRate");
 const GameResult = require("../model/GameResult");
+const bellNotification = require("../model/bellNotification");
 const SingleDigitBet = require("../model/SingleDigitBet");
 const SingleBulkDigitBet = require("../model/SingleBulkDigitBet");
 const JodiDigitBet = require("../model/JodiDigitBet");
@@ -4629,6 +4630,45 @@ exports.getUserGameChartPage = async (req, res, next) => {
       starlineResults,
       starlineGames,
     });
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+};
+
+exports.getUserBellNotificationsPage = async (req, res, next) => {
+  try {
+    // 🔐 User Security Check
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.user ||
+      req.session.user.role !== "user"
+    ) {
+      return res.redirect("/login");
+    }
+
+    const user = await User.findOne({
+      _id: req.session.user._id,
+      role: "user",
+      userStatus: "active",
+    }).select("-password");
+
+    if (!user) {
+      req.session.destroy();
+      return res.redirect("/login");
+    }
+
+    // Fetch notifications
+    const notifications = await bellNotification.find({})
+      .sort({ createdAt: -1 }) // latest first
+      .limit(20); // optional limit
+
+    res.render("User/bellNotifications", {
+      user,
+      isLoggedIn: req.session.isLoggedIn,
+      notifications, // pass notifications to EJS
+    });
+
   } catch (err) {
     console.error(err);
     next(err);
