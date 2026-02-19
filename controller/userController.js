@@ -1,9 +1,9 @@
 const moment = require("moment-timezone");
-const Game = require("../model/Game");
 const bcrypt = require("bcryptjs");
 const User = require("../model/userSchema");
 const WalletTransaction = require("../model/WalletTransaction");
 const UserBankDetails = require("../model/UserBankDetails");
+const Game = require("../model/Game");
 const GameRate = require("../model/GameRate");
 const GameResult = require("../model/GameResult");
 const SingleDigitBet = require("../model/SingleDigitBet");
@@ -203,21 +203,21 @@ exports.getUserDashboardPage = async (req, res, next) => {
           .format("DD MMM YYYY hh:mm:ss A"),
       };
     });
-// ===================== 🎯 FETCH STARLINE GAME RATES =====================
-const starlineRates = await GameRate.find({
-  isStarline: true,
-  isJackpot: false,
-  isActive: true
-})
-  .sort({ gameType: 1 })
-  .lean();
-  const jackpotRates = await GameRate.find({
-  isJackpot: true,
-  isStarline: false,
-  isActive: true
-})
-  .sort({ gameType: 1 })
-  .lean();
+    // ===================== 🎯 FETCH STARLINE GAME RATES =====================
+    const starlineRates = await GameRate.find({
+      isStarline: true,
+      isJackpot: false,
+      isActive: true,
+    })
+      .sort({ gameType: 1 })
+      .lean();
+    const jackpotRates = await GameRate.find({
+      isJackpot: true,
+      isStarline: false,
+      isActive: true,
+    })
+      .sort({ gameType: 1 })
+      .lean();
     // ===================== 🎯 RENDER DASHBOARD =====================
     res.render("User/userDashboard", {
       user,
@@ -225,8 +225,8 @@ const starlineRates = await GameRate.find({
       normalGames,
       starlineGames,
       jackpotGames,
-      starlineRates,   // ✅ NEW
-      jackpotRates,   // ✅ NEW
+      starlineRates, // ✅ NEW
+      jackpotRates, // ✅ NEW
       transactions: formattedTransactions,
       isLoggedIn: req.session.isLoggedIn,
     });
@@ -4474,8 +4474,160 @@ exports.getUserGameChartPage = async (req, res, next) => {
 
     if (!user) return res.redirect("/login");
 
+    const viewType = req.query.type; // matka / starline / jackpot
+
+    // 👇 Normal Games (Matka)
+    const games = await Game.find({
+      isDeleted: false,
+      isStarline: false,
+      isJackpot: false,
+    })
+      .select("gameName")
+      .lean();
+
+    // 👇 Selected Matka Game
+    const selectedGame = req.query.game;
+
+    let groupedResults = null;
+
+    if (selectedGame) {
+      const results = await GameResult.find({
+        gameName: selectedGame,
+      }).lean();
+
+      groupedResults = {};
+
+      results.forEach((result) => {
+        if (!groupedResults[result.resultDate]) {
+          groupedResults[result.resultDate] = {
+            weekday: result.resultWeekday,
+            openDigit: null,
+            closeDigit: null,
+            openPanna: null,
+            closePanna: null,
+          };
+        }
+
+        if (result.session === "OPEN") {
+          groupedResults[result.resultDate].openDigit = result.digit;
+          groupedResults[result.resultDate].openPanna = result.panna;
+        }
+
+        if (result.session === "CLOSE") {
+          groupedResults[result.resultDate].closeDigit = result.digit;
+          groupedResults[result.resultDate].closePanna = result.panna;
+        }
+      });
+    }
+
+    // ===============================
+    // ✅ JACKPOT LOGIC (UPDATED MATCH)
+    // ===============================
+
+    let jackpotResults = null;
+    let jackpotGames = [];
+
+    if (viewType === "jackpot") {
+      // 👇 Sirf Jackpot Games (Game collection se)
+      jackpotGames = await Game.find({
+        isDeleted: false,
+        isJackpot: true,
+      })
+        .select("gameName")
+        .lean();
+
+      const jackpotGameNames = jackpotGames.map((g) => g.gameName);
+
+      // 👇 Sirf unhi results ko lao jinka gameName match karta ho
+      const results = await JackpotGameResult.find({
+        gameName: { $in: jackpotGameNames },
+      })
+        .sort({ resultDate: -1 })
+        .lean();
+
+      jackpotResults = {};
+
+      results.forEach((result) => {
+        if (!jackpotResults[result.resultDate]) {
+          jackpotResults[result.resultDate] = {
+            weekday: result.resultWeekday,
+            games: {},
+          };
+        }
+
+        // 👇 Sirf jodi store kar rahe hain
+        jackpotResults[result.resultDate].games[result.gameName] = result.jodi;
+      });
+    }
+
+    // ===============================
+    // ✅ STARLINE LOGIC (NEW)
+    // ===============================
+
+    let starlineResults = null;
+    let starlineGames = [];
+
+    if (viewType === "starline") {
+      // 👇 Sirf Starline Games (Game collection se)
+      starlineGames = await Game.find({
+        isDeleted: false,
+        isStarline: true,
+      })
+        .select("gameName")
+        .lean();
+
+      const starlineGameNames = starlineGames.map((g) => g.gameName);
+
+      // 👇 Sirf matching starline results lao
+      const results = await StarlineGameResult.find({
+        gameName: { $in: starlineGameNames },
+      })
+        .sort({ resultDate: -1 })
+        .lean();
+
+      starlineResults = {};
+
+      results.forEach((result) => {
+        if (!starlineResults[result.resultDate]) {
+          starlineResults[result.resultDate] = {
+            weekday: result.resultWeekday,
+            games: {},
+          };
+        }
+
+        if (!starlineResults[result.resultDate].games[result.gameName]) {
+          starlineResults[result.resultDate].games[result.gameName] = {
+            open: null,
+            close: null,
+          };
+        }
+
+        if (result.session === "OPEN") {
+          starlineResults[result.resultDate].games[result.gameName].open = {
+            panna: result.panna,
+            digit: result.digit,
+          };
+        }
+
+        if (result.session === "CLOSE") {
+          starlineResults[result.resultDate].games[result.gameName].close = {
+            panna: result.panna,
+            digit: result.digit,
+          };
+        }
+      });
+    }
+
     res.render("User/userGameCharts", {
       user,
+      games,
+      selectedGame,
+      groupedResults,
+      viewType,
+      jackpotResults,
+      jackpotGames, // header dynamic ke liye
+      starlineResults,
+      starlineGames,
     });
   } catch (err) {
     console.error(err);

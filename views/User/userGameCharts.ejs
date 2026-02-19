@@ -1,506 +1,379 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Game Chart</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-    />
-  </head>
-  <body class="bg-gray-100 min-h-screen">
-    <div id="selection-view">
-      <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
-        <div class="flex items-center gap-3">
-          <a href="/userdashboard"
-            ><i class="fa-solid fa-arrow-left text-xl cursor-pointer"></i
-          ></a>
-          <h1 class="text-lg font-semibold flex center">Game Chart</h1>
-        </div>
-      </header>
 
-      <div class="p-4 space-y-4">
-        <div
-          id="open-matka"
-          class="bg-white rounded-2xl shadow flex items-center justify-between p-4 cursor-pointer active:scale-95 transition-transform"
-        >
-          <div class="flex items-center gap-4">
-            <div
-              class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-6 h-6 text-emerald-700"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M4 6v14h16M8 14l2-4 3 3 4-6"
-                />
-              </svg>
-            </div>
-            <div>
-              <p class="text-lg font-semibold">Matka Chart</p>
-              <p class="text-sm text-gray-500">
-                You can view your Panel Chart Result
-              </p>
-            </div>
-          </div>
-          <i class="fa-solid fa-chevron-right text-gray-400 mr-4"></i>
-        </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Game Chart</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+</head>
 
-        <div
-          id="open-starline"
-          class="bg-white rounded-2xl shadow flex items-center justify-between p-4 cursor-pointer active:scale-95 transition-transform"
-        >
-          <div class="flex items-center gap-4">
-            <div
-              class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-6 h-6 text-emerald-700"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M3 3v18h18M7 14l3-3 4 4 5-6"
-                />
-              </svg>
-            </div>
-            <div>
-              <p class="text-lg font-semibold">Starline Chart</p>
-              <p class="text-sm text-gray-500">Starline Chart Date Time Wise</p>
-            </div>
-          </div>
-          <i class="fa-solid fa-chevron-right text-gray-400 mr-4"></i>
-        </div>
+<body class="bg-gray-100 min-h-screen">
+  <div id="selection-view"
+     class="<%= viewType ? 'hidden' : '' %>">
+    <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
+      <div class="flex items-center gap-3">
+        <a href="/userdashboard"><i class="fa-solid fa-arrow-left text-xl cursor-pointer"></i></a>
+        <h1 class="text-lg font-semibold flex center">Game Chart</h1>
+      </div>
+    </header>
 
-        <div
-          id="open-jackpot"
-          class="bg-white rounded-2xl shadow flex items-center justify-between p-4 cursor-pointer active:scale-95 transition-transform"
-        >
-          <div class="flex items-center gap-4">
-            <div
-              class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-6 h-6 text-emerald-700"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M5 12l4-4 4 4 6-6"
-                />
-              </svg>
-            </div>
-            <div>
-              <p class="text-lg font-semibold">Jackport Chart</p>
-              <p class="text-sm text-gray-500">Jackpot Chart Date Time Wise</p>
-            </div>
+    <div id="home-view" class="p-4 space-y-4">
+      <div id="open-matka" onclick="window.location.href='/userGameChart?type=matka'"
+        class="bg-white rounded-2xl shadow flex items-center justify-between p-4 cursor-pointer active:scale-95 transition-transform">
+        <div class="flex items-center gap-4">
+          <div class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-emerald-700" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6v14h16M8 14l2-4 3 3 4-6" />
+            </svg>
           </div>
-          <i class="fa-solid fa-chevron-right text-gray-400 mr-4"></i>
+          <div>
+            <p class="text-lg font-semibold">Matka Chart</p>
+            <p class="text-sm text-gray-500">
+              You can view your Panel Chart Result
+            </p>
+          </div>
         </div>
+        <i class="fa-solid fa-chevron-right text-gray-400 mr-4"></i>
+      </div>
+
+      <div id="open-starline" onclick="window.location.href='/userGameChart?type=starline'"
+        class="bg-white rounded-2xl shadow flex items-center justify-between p-4 cursor-pointer active:scale-95 transition-transform">
+        <div class="flex items-center gap-4">
+          <div class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-emerald-700" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3v18h18M7 14l3-3 4 4 5-6" />
+            </svg>
+          </div>
+          <div>
+            <p class="text-lg font-semibold">Starline Chart</p>
+            <p class="text-sm text-gray-500">Starline Chart Date Time Wise</p>
+          </div>
+        </div>
+        <i class="fa-solid fa-chevron-right text-gray-400 mr-4"></i>
+      </div>
+
+      <div id="open-jackpot" onclick="window.location.href='/userGameChart?type=jackpot'"
+        class="bg-white rounded-2xl shadow flex items-center justify-between p-4 cursor-pointer active:scale-95 transition-transform">
+        <div class="flex items-center gap-4">
+          <div class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-emerald-700" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l4-4 4 4 6-6" />
+            </svg>
+          </div>
+          <div>
+            <p class="text-lg font-semibold">Jackport Chart</p>
+            <p class="text-sm text-gray-500">Jackpot Chart Date Time Wise</p>
+          </div>
+        </div>
+        <i class="fa-solid fa-chevron-right text-gray-400 mr-4"></i>
       </div>
     </div>
+  </div>
 
-    <main id="matka-detail-view" class="bg-gray-100 min-h-screen hidden">
-      <header
-        class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl sticky top-0 z-40"
-      >
-        <div class="flex items-center gap-3">
-          <i
-            class="fa-solid fa-arrow-left back-to-home text-xl cursor-pointer"
-          ></i>
-          <h1 class="text-lg font-semibold mx-auto">Chart List</h1>
-        </div>
-      </header>
-
-      <div class="p-4 space-y-4">
-        <div
-          class="bg-white rounded-xl shadow flex items-center justify-between p-4"
-        >
-          <p class="text-lg font-bold">SITA MORNING</p>
-          <button
-            class="btn-sita-morning bg-emerald-700 text-white px-5 py-2 rounded-full shadow active:scale-95"
-          >
-            Chart
-          </button>
-        </div>
-        <div
-          class="bg-white rounded-xl shadow flex items-center justify-between p-4"
-        >
-          <p class="text-lg font-bold">SRIDEVI MORNING</p>
-          <button
-            class="btn-sita-morning bg-emerald-700 text-white px-5 py-2 rounded-full shadow active:scale-95"
-          >
-            Chart
-          </button>
-        </div>
+<main id="matka-detail-view"
+class="bg-gray-100 min-h-screen <%= viewType === 'matka' && !selectedGame ? '' : 'hidden' %>">
+    <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl sticky top-0 z-40">
+      <div class="flex items-center gap-3">
+       <a href="/userGameChart">
+  <i class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
+</a>
+        <h1 class="text-lg font-semibold mx-auto">Chart List</h1>
       </div>
-    </main>
+    </header>
 
-    <main id="starline-view" class="bg-blue-50 min-h-screen hidden">
-      <header
-        class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl sticky top-0 z-40"
-      >
-        <div class="flex items-center gap-3">
-          <i
-            class="fa-solid fa-arrow-left back-to-home text-xl cursor-pointer"
-          ></i>
-          <h1 class="text-lg font-semibold mx-auto">Starline Table</h1>
-        </div>
-      </header>
+<div class="p-4 space-y-4">
+  <% games.forEach((game) => { %>
+    <div class="bg-white rounded-xl shadow flex items-center justify-between p-4">
+      <p class="text-lg font-bold"><%= game.gameName %></p>
+<a href="/userGameChart?type=matka&game=<%= game.gameName %>">
+  <button class="bg-emerald-700 text-white px-5 py-2 rounded-full shadow active:scale-95">
+    Chart
+  </button>
+</a>
 
-      <div class="text-center my-6">
-        <h2 class="text-2xl font-bold text-gray-800">Matka</h2>
-        <p class="text-xl font-extrabold text-teal-800 mt-2">STARLINE CHART</p>
+    </div>
+  <% }) %>
+</div>
+
+
+  </main>
+
+  <!-- // STARLINE CHART VIEW -->
+  <main id="starline-view"
+class="bg-blue-50 min-h-screen <%= viewType === 'starline' ? '' : 'hidden' %>">
+    <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl sticky top-0 z-40">
+      <div class="flex items-center gap-3">
+       <a href="/userGameChart">
+  <i class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
+</a>
+
+        <h1 class="text-lg font-semibold mx-auto">Starline Table</h1>
+      </div>
+    </header>
+
+    <div class="text-center my-6">
+      <h2 class="text-2xl font-bold text-gray-800">Matka</h2>
+      <p class="text-xl font-extrabold text-teal-800 mt-2">STARLINE CHART</p>
+    </div>
+
+    <div class="px-3 pb-10 overflow-x-auto">
+      <div class="bg-white rounded-xl shadow-md p-2 min-w-[900px]">
+        <table class="w-full border border-gray-300 text-center text-sm">
+          <thead class="bg-gray-200">
+<tr>
+  <th class="border p-2">Date</th>
+
+  <% if(starlineGames && starlineGames.length){ %>
+    <% starlineGames.forEach(game => { %>
+      <th class="border p-2"><%= game.gameName %></th>
+    <% }) %>
+  <% } %>
+</tr>
+
+          </thead>
+        <tbody class="bg-white">
+
+<% if(starlineResults && Object.keys(starlineResults).length){ %>
+
+  <% Object.keys(starlineResults).forEach(date => { 
+     const data = starlineResults[date];
+  %>
+
+  <tr>
+
+    <!-- DATE COLUMN -->
+    <td class="border p-2 font-semibold">
+      <%= date %>
+      <div class="text-xs text-gray-500">
+        <%= data.weekday %>
+      </div>
+    </td>
+
+    <!-- GAME COLUMNS -->
+    <% starlineGames.forEach(game => { 
+         const gameData = data.games[game.gameName];
+    %>
+
+      <td class="border p-2 font-bold text-emerald-700">
+
+        <% if(gameData){ %>
+
+          <% if(gameData.open){ %>
+            O-<%= gameData.open.panna %>-<%= gameData.open.digit %>
+          <% } else { %>
+            O-- 
+          <% } %>
+
+          |
+
+          <% if(gameData.close){ %>
+            C-<%= gameData.close.panna %>-<%= gameData.close.digit %>
+          <% } else { %>
+            C--
+          <% } %>
+
+        <% } else { %>
+          -
+        <% } %>
+
+      </td>
+
+    <% }) %>
+
+  </tr>
+
+  <% }) %>
+
+<% } else { %>
+
+  <tr>
+    <td colspan="<%= (starlineGames?.length || 0) + 1 %>"
+        class="border p-4 text-gray-500">
+      No Starline Results Available
+    </td>
+  </tr>
+
+<% } %>
+
+</tbody>
+
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- JACKPOT CHART VIEW -->
+<main id="jackpot-view"
+class="bg-blue-100 min-h-screen <%= viewType === 'jackpot' ? '' : 'hidden' %>">
+    <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl sticky top-0 z-40">
+      <div class="flex items-center gap-3">
+        <a href="/userGameChart">
+  <i class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
+</a>
+
+        <h1 class="text-lg font-semibold mx-auto">Jackport Chart</h1>
+      </div>
+    </header>
+
+    <div class="text-center my-6">
+      <h2 class="text-3xl font-extrabold">MATKA</h2>
+      <p class="text-2xl font-black mt-2">GALI DISSWAR CHART</p>
+    </div>
+
+<div class="px-2 pb-6">
+  <div class="bg-white rounded-xl shadow-lg p-2 overflow-x-auto">
+
+    <table class="min-w-[900px] w-full border border-gray-300 text-sm text-center">
+
+      <!-- TABLE HEADER -->
+      <thead class="bg-gray-200 font-bold">
+        <tr>
+          <th class="border p-2">Date</th>
+
+          <% if(jackpotGames && jackpotGames.length){ %>
+            <% jackpotGames.forEach(game => { %>
+              <th class="border p-2"><%= game.gameName %></th>
+            <% }) %>
+          <% } %>
+
+        </tr>
+      </thead>
+
+      <!-- TABLE BODY -->
+      <tbody class="bg-white">
+
+      <% if(jackpotResults && Object.keys(jackpotResults).length){ %>
+
+        <% Object.keys(jackpotResults).forEach(date => { 
+           const data = jackpotResults[date];
+        %>
+
+        <tr>
+
+          <!-- DATE COLUMN -->
+          <td class="border p-2 font-semibold">
+            <%= date %>
+            <div class="text-xs text-gray-500">
+              <%= data.weekday %>
+            </div>
+          </td>
+
+          <!-- DYNAMIC GAME COLUMNS -->
+          <% jackpotGames.forEach(game => { %>
+            <td class="border p-2 font-bold text-emerald-700">
+              <%= data.games[game.gameName] || "-" %>
+            </td>
+          <% }) %>
+
+        </tr>
+
+        <% }) %>
+
+      <% } else { %>
+
+        <tr>
+          <td colspan="<%= (jackpotGames?.length || 0) + 1 %>"
+              class="border p-4 text-gray-500">
+            No Jackpot Results Available
+          </td>
+        </tr>
+
+      <% } %>
+
+      </tbody>
+    </table>
+
+  </div>
+</div>
+
+  </main>
+
+
+  <!-- // MAIN MATKA CHART RENDER  -->
+<main id="sita-morning-chart"
+class="bg-gray-100 min-h-screen <%= selectedGame ? '' : 'hidden' %>">
+    <!-- HEADER -->
+    <header class="bg-teal-800 text-white px-4 py-4 rounded-b-[2.5rem] shadow-lg sticky top-0 z-50">
+      <div class="flex items-center justify-between">
+        <i class="fa-solid fa-arrow-left text-xl cursor-pointer back-to-matka" onclick="window.location.href='/userGameChart?type=matka'"></i>
+        <h1 class="text-lg font-semibold">Charts</h1>
+        <div class="w-6"></div>
+      </div>
+    </header>
+
+    <!-- TITLE -->
+    <div class="text-center mt-10 mb-6 px-4">
+      <h2 class="text-2xl font-bold text-gray-800">
+       Matka <%= selectedGame %> Result
+      </h2>
+      <h3 class="text-xl font-bold text-gray-800">Chart</h3>
+    </div>
+
+    <!-- CHART WRAPPER -->
+    <div class="overflow-x-auto px-2 pb-10">
+      <div class="min-w-[700px] grid grid-cols-7 gap-1">
+        <!-- DAY CELL -->
+ <% if(selectedGame && groupedResults){ %>
+
+  <!-- <h2 class="text-xl font-bold mt-6 mb-4 text-center">
+    <%= selectedGame %> Chart
+  </h2> -->
+
+  <% Object.keys(groupedResults).forEach(date => { 
+     const data = groupedResults[date];
+  %>
+
+  <div class="border-2 border-lime-500 text-center p-1 bg-white mb-4">
+    
+    <div class="font-semibold text-sm">
+      <%= data.weekday %>
+    </div>
+    
+    <div class="text-xs border-b-2 border-lime-500 pb-2">
+      (<%= date %>)
+    </div>
+
+    <div class="mt-2 grid grid-cols-3 gap-[2px] h-[88px]">
+
+      <!-- OPEN PANNA -->
+      <div class="flex flex-col justify-between font-bold">
+        <% if(data.openPanna){ %>
+          <div><%= data.openPanna[0] %></div>
+          <div><%= data.openPanna[1] %></div>
+          <div><%= data.openPanna[2] %></div>
+        <% } %>
       </div>
 
-      <div class="px-3 pb-10 overflow-x-auto">
-        <div class="bg-white rounded-xl shadow-md p-2 min-w-[900px]">
-          <table class="w-full border border-gray-300 text-center text-sm">
-            <thead class="bg-gray-200">
-              <tr>
-                <th class="border p-2">Date</th>
-                <th class="border p-2">Starline</th>
-                <th class="border p-2">10:00 AM</th>
-                <th class="border p-2">11:00 AM</th>
-                <th class="border p-2">12:00 PM</th>
-                <th class="border p-2">01:00 PM</th>
-                <th class="border p-2">02:00 PM</th>
-                <th class="border p-2">03:00 PM</th>
-                <th class="border p-2">04:00 PM</th>
-                <th class="border p-2">05:00 PM</th>
-                <th class="border p-2">06:00 PM</th>
-                <th class="border p-2">07:00 PM</th>
-                <th class="border p-2">08:00 PM</th>
-                <th class="border p-2">09:00 PM</th>
-              </tr>
-            </thead>
-            <tbody class="bg-white">
-              <tr>
-                <td class="border p-2 font-semibold">20-10-2025</td>
-                <td class="border p-2 font-bold text-emerald-700">
-                  780<br />5
-                </td>
-                <td class="border p-2">135<br />9</td>
-                <td class="border p-2">346<br />3</td>
-                <td class="border p-2">580<br />3</td>
-                <td class="border p-2">679<br />2</td>
-                <td class="border p-2">900<br />9</td>
-                <td class="border p-2">190<br />0</td>
-                <td class="border p-2">345<br />2</td>
-                <td class="border p-2">390<br />2</td>
-                <td class="border p-2">110<br />2</td>
-                <td class="border p-2">688<br />2</td>
-                <td class="border p-2">789<br />4</td>
-                <td class="border p-2">229<br />3</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </main>
-
-    <main id="jackpot-view" class="bg-blue-100 min-h-screen hidden">
-      <header
-        class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl sticky top-0 z-40"
-      >
-        <div class="flex items-center gap-3">
-          <i
-            class="fa-solid fa-arrow-left back-to-home text-xl cursor-pointer"
-          ></i>
-          <h1 class="text-lg font-semibold mx-auto">Jackport Chart</h1>
-        </div>
-      </header>
-
-      <div class="text-center my-6">
-        <h2 class="text-3xl font-extrabold">MATKA</h2>
-        <p class="text-2xl font-black mt-2">GALI DISSWAR CHART</p>
+      <!-- DIGITS -->
+      <div class="flex items-center justify-center font-bold text-lg border-r-2 border-l-2 border-lime-500">
+        <%= data.openDigit ?? "-" %>
+        -
+        <%= data.closeDigit ?? "-" %>
       </div>
 
-      <div class="px-2 pb-6">
-        <div class="bg-white rounded-xl shadow-lg p-2 overflow-x-auto">
-          <table
-            class="min-w-[900px] w-full border border-gray-300 text-sm text-center"
-          >
-            <thead class="bg-gray-200 font-bold">
-              <tr>
-                <th class="border p-2">Date</th>
-                <th class="border p-2">DESAWAR</th>
-                <th class="border p-2">DELHI BAZAR</th>
-                <th class="border p-2">SREE GANESH</th>
-                <th class="border p-2">FARIDABAD</th>
-                <th class="border p-2">GHAZIABAD</th>
-                <th class="border p-2">GALI</th>
-              </tr>
-            </thead>
-            <tbody class="bg-white">
-              <tr>
-                <td class="border p-1">17-10-2025</td>
-                <td class="border p-1">61</td>
-                <td class="border p-1">04</td>
-                <td class="border p-1">59</td>
-                <td class="border p-1">00</td>
-                <td class="border p-1">85</td>
-                <td class="border p-1">60</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </main>
-
-    <main id="sita-morning-chart" class="bg-gray-100 min-h-screen hidden">
-      <!-- HEADER -->
-      <header
-        class="bg-teal-800 text-white px-4 py-4 rounded-b-[2.5rem] shadow-lg sticky top-0 z-50"
-      >
-        <div class="flex items-center justify-between">
-          <i
-            class="fa-solid fa-arrow-left text-xl cursor-pointer back-to-matka"
-          ></i>
-          <h1 class="text-lg font-semibold">Charts</h1>
-          <div class="w-6"></div>
-        </div>
-      </header>
-
-      <!-- TITLE -->
-      <div class="text-center mt-10 mb-6 px-4">
-        <h2 class="text-2xl font-bold text-gray-800">
-          Matka SITA MORNING Result
-        </h2>
-        <h3 class="text-xl font-bold text-gray-800">Chart</h3>
+      <!-- CLOSE PANNA -->
+      <div class="flex flex-col justify-between font-bold">
+        <% if(data.closePanna){ %>
+          <div><%= data.closePanna[0] %></div>
+          <div><%= data.closePanna[1] %></div>
+          <div><%= data.closePanna[2] %></div>
+        <% } %>
       </div>
 
-      <!-- CHART WRAPPER -->
-      <div class="overflow-x-auto px-2 pb-10">
-        <div class="min-w-[700px] grid grid-cols-7 gap-1">
-          <!-- DAY CELL -->
-          <div class="border-2 border-lime-500 text-center p-1 bg-white">
-            <div class="font-semibold text-sm">Sunday</div>
-            <div class="text-xs border-b-2 border-lime-500 pb-2">(20 Nov 2025)</div>
+    </div>
+  </div>
 
-            <div class="mt-2 grid grid-cols-3 gap-[2px] h-[88px]">
-              <div class="flex flex-col justify-between font-bold">
-                <div>2</div>
-                <div>8</div>
-                <div>0</div>
-              </div>
+  <% }) %>
 
-              <div class="flex items-center justify-center font-bold text-lg border-r-2 border-lime-500 border-l-2 border-lime-500">
-                09
-              </div>
-
-              <div class="flex flex-col justify-between font-bold">
-                <div>4</div>
-                <div>5</div>
-                <div>0</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- DAY CELL -->
-          <div class="border-2 border-lime-500 text-center p-1 bg-white">
-            <div class="font-semibold text-sm">Monday</div>
-            <div class="text-xs border-b-2 border-lime-500 pb-2">(21 Nov 2025)</div>
-
-            <div class="mt-2 grid grid-cols-3 gap-[2px] h-[88px] text-red-600">
-              <div class="flex flex-col justify-between font-bold">
-                <div>2</div>
-                <div>7</div>
-                <div>0</div>
-              </div>
-
-              <div class="flex items-center justify-center font-bold text-lg border-r-2 border-lime-500 border-l-2 border-lime-500">
-                99
-              </div>
-
-              <div class="flex flex-col justify-between font-bold">
-                <div>3</div>
-                <div>6</div>
-                <div>0</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- DAY CELL -->
-          <div class="border-2 border-lime-500 text-center p-1 bg-white">
-            <div class="font-semibold text-sm">Tuesday</div>
-            <div class="text-xs border-b-2 border-lime-500 pb-2">(22 Nov 2025)</div>
-
-            <div class="mt-2 grid grid-cols-3 gap-[2px] h-[88px]">
-              <div class="flex flex-col justify-between font-bold">
-                <div>1</div>
-                <div>8</div>
-                <div>0</div>
-              </div>
-
-              <div class="flex items-center justify-center font-bold text-lg border-r-2 border-lime-500 border-l-2 border-lime-500">
-                96
-              </div>
-
-              <div class="flex flex-col justify-between font-bold">
-                <div>2</div>
-                <div>4</div>
-                <div>0</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- DAY CELL -->
-          <div class="border-2 border-lime-500 text-center p-1 bg-white">
-            <div class="font-semibold text-sm">Wednesday</div>
-            <div class="text-xs border-b-2 border-lime-500 pb-2">(23 Nov 2025)</div>
-
-            <div class="mt-2 grid grid-cols-3 gap-[2px] h-[88px] text-red-600">
-              <div class="flex flex-col justify-between font-bold">
-                <div>3</div>
-                <div>5</div>
-                <div>9</div>
-              </div>
-
-              <div class="flex items-center justify-center font-bold text-lg border-r-2 border-lime-500 border-l-2 border-lime-500">
-                72
-              </div>
-
-              <div class="flex flex-col justify-between font-bold">
-                <div>1</div>
-                <div>0</div>
-                <div>0</div>
-              </div>
-            </div>
-          </div>
-          <!-- DAY CELL -->
-          <div class="border-2 border-lime-500 text-center p-1 bg-white">
-            <div class="font-semibold text-sm">Thirsday</div>
-            <div class="text-xs border-b-2 border-lime-500 pb-2">(24 Nov 2025)</div>
-
-            <div class="mt-2 grid grid-cols-3 gap-[2px] h-[88px] text-red-600">
-              <div class="flex flex-col justify-between font-bold">
-                <div>3</div>
-                <div>5</div>
-                <div>9</div>
-              </div>
-
-              <div class="flex items-center justify-center font-bold text-lg border-r-2 border-lime-500 border-l-2 border-lime-500">
-                72
-              </div>
-
-              <div class="flex flex-col justify-between font-bold">
-                <div>1</div>
-                <div>0</div>
-                <div>0</div>
-              </div>
-            </div>
-          </div>
-          <!-- DAY CELL -->
-          <div class="border-2 border-lime-500 text-center p-1 bg-white">
-            <div class="font-semibold text-sm">Friday</div>
-            <div class="text-xs border-b-2 border-lime-500 pb-2">(25 Nov 2025)</div>
-
-            <div class="mt-2 grid grid-cols-3 gap-[2px] h-[88px] text-red-600">
-              <div class="flex flex-col justify-between font-bold">
-                <div>3</div>
-                <div>5</div>
-                <div>9</div>
-              </div>
-
-              <div class="flex items-center justify-center font-bold text-lg border-r-2 border-lime-500 border-l-2 border-lime-500">
-                72
-              </div>
-
-              <div class="flex flex-col justify-between font-bold">
-                <div>1</div>
-                <div>0</div>
-                <div>0</div>
-              </div>
-            </div>
-          </div>
-          <!-- DAY CELL -->
-          <div class="border-2 border-lime-500 text-center p-1 bg-white">
-            <div class="font-semibold text-sm">Saterday</div>
-            <div class="text-xs border-b-2 border-lime-500 pb-2">(26 Nov 2025)</div>
-
-            <div class="mt-2 grid grid-cols-3 gap-[2px] h-[88px] text-red-600">
-              <div class="flex flex-col justify-between font-bold">
-                <div>3</div>
-                <div>5</div>
-                <div>9</div>
-              </div>
-
-              <div class="flex items-center justify-center font-bold text-lg border-r-2 border-lime-500 border-l-2 border-lime-500">
-                72
-              </div>
-
-              <div class="flex flex-col justify-between font-bold">
-                <div>1</div>
-                <div>0</div>
-                <div>0</div>
-              </div>
-            </div>
-          </div>
-          <!-- COPY MORE CELLS BELOW -->
-        </div>
+<% } %>
       </div>
-    </main>
+    </div>
+  </main>
+</body>
 
-    <script>
-      const views = {
-        selection: document.getElementById("selection-view"),
-        matka: document.getElementById("matka-detail-view"),
-        starline: document.getElementById("starline-view"),
-        jackpot: document.getElementById("jackpot-view"),
-        sitaMorning: document.getElementById("sita-morning-chart"),
-      };
-
-      function showView(viewId) {
-        Object.values(views).forEach((v) => v.classList.add("hidden"));
-        views[viewId].classList.remove("hidden");
-        window.scrollTo(0, 0);
-      }
-
-      // Sidebar Navigation
-      document
-        .getElementById("open-matka")
-        .addEventListener("click", () => showView("matka"));
-      document
-        .getElementById("open-starline")
-        .addEventListener("click", () => showView("starline"));
-      document
-        .getElementById("open-jackpot")
-        .addEventListener("click", () => showView("jackpot"));
-
-      // Open Sita Morning Chart
-      document.querySelectorAll(".btn-sita-morning").forEach((btn) => {
-        btn.addEventListener("click", () => showView("sitaMorning"));
-      });
-
-      // Back to Home
-      document.querySelectorAll(".back-to-home").forEach((btn) => {
-        btn.addEventListener("click", () => showView("selection"));
-      });
-
-      // Back to Matka List
-      document.querySelectorAll(".back-to-matka").forEach((btn) => {
-        btn.addEventListener("click", () => showView("matka"));
-      });
-    </script>
-  </body>
 </html>

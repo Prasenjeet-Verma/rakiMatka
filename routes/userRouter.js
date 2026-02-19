@@ -10,7 +10,7 @@ userRouter.get('/userbankdetails', userController.getUserBankDetailsPage);
 userRouter.post('/userbankdetails', userController.postUserBankDetails);
 userRouter.get('/forgetuserpassword', userController.getUserChangePasswordPage);
 userRouter.get('/usercontactadmin', userController.getUserContactAdminPage);
-userRouter.get('/userGameRates', userController.getUserGameRatesPage);
+userRouter.get('/user-GameRates', userController.getUserGameRatesPage);
 userRouter.get('/userlanguage', userController.getUserLanguagePage);
 userRouter.post('/forgetuserpassword', userController.postForgetUserPassword);
 //Normal Game Data Submit Routes
