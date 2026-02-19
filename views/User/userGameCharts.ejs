@@ -10,8 +10,7 @@
 </head>
 
 <body class="bg-gray-100 min-h-screen">
-  <div id="selection-view"
-     class="<%= viewType ? 'hidden' : '' %>">
+  <div id="selection-view" class="<%= viewType ? 'hidden' : '' %>">
     <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
       <div class="flex items-center gap-3">
         <a href="/userdashboard"><i class="fa-solid fa-arrow-left text-xl cursor-pointer"></i></a>
@@ -75,42 +74,43 @@
     </div>
   </div>
 
-<main id="matka-detail-view"
-class="bg-gray-100 min-h-screen <%= viewType === 'matka' && !selectedGame ? '' : 'hidden' %>">
+  <main id="matka-detail-view"
+    class="bg-gray-100 min-h-screen <%= viewType === 'matka' && !selectedGame ? '' : 'hidden' %>">
     <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl sticky top-0 z-40">
       <div class="flex items-center gap-3">
-       <a href="/userGameChart">
-  <i class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
-</a>
+        <a href="/userGameChart">
+          <i class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
+        </a>
         <h1 class="text-lg font-semibold mx-auto">Chart List</h1>
       </div>
     </header>
 
-<div class="p-4 space-y-4">
-  <% games.forEach((game) => { %>
-    <div class="bg-white rounded-xl shadow flex items-center justify-between p-4">
-      <p class="text-lg font-bold"><%= game.gameName %></p>
-<a href="/userGameChart?type=matka&game=<%= game.gameName %>">
-  <button class="bg-emerald-700 text-white px-5 py-2 rounded-full shadow active:scale-95">
-    Chart
-  </button>
-</a>
+    <div class="p-4 space-y-4">
+      <% games.forEach((game)=> { %>
+        <div class="bg-white rounded-xl shadow flex items-center justify-between p-4">
+          <p class="text-lg font-bold">
+            <%= game.gameName %>
+          </p>
+          <a href="/userGameChart?type=matka&game=<%= game.gameName %>">
+            <button class="bg-emerald-700 text-white px-5 py-2 rounded-full shadow active:scale-95">
+              Chart
+            </button>
+          </a>
 
+        </div>
+        <% }) %>
     </div>
-  <% }) %>
-</div>
 
 
   </main>
 
   <!-- // STARLINE CHART VIEW -->
-  <main id="starline-view"
-class="bg-blue-50 min-h-screen <%= viewType === 'starline' ? '' : 'hidden' %>">
+  <main id="starline-view" class="bg-blue-50 min-h-screen <%= viewType === 'starline' ? '' : 'hidden' %>">
     <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl sticky top-0 z-40">
       <div class="flex items-center gap-3">
-       <a href="/userGameChart">
-  <i class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
-</a>
+        <a href="/userGameChart">
+          <i class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
+        </a>
 
         <h1 class="text-lg font-semibold mx-auto">Starline Table</h1>
       </div>
@@ -125,82 +125,83 @@ class="bg-blue-50 min-h-screen <%= viewType === 'starline' ? '' : 'hidden' %>">
       <div class="bg-white rounded-xl shadow-md p-2 min-w-[900px]">
         <table class="w-full border border-gray-300 text-center text-sm">
           <thead class="bg-gray-200">
-<tr>
-  <th class="border p-2">Date</th>
+            <tr>
+              <th class="border p-2">Date</th>
 
-  <% if(starlineGames && starlineGames.length){ %>
-    <% starlineGames.forEach(game => { %>
-      <th class="border p-2"><%= game.gameName %></th>
-    <% }) %>
-  <% } %>
-</tr>
+              <% if(starlineGames && starlineGames.length){ %>
+                <% starlineGames.forEach(game=> { %>
+                  <th class="border p-2">
+                    <%= game.gameName %>
+                  </th>
+                  <% }) %>
+                    <% } %>
+            </tr>
 
           </thead>
-        <tbody class="bg-white">
+          <tbody class="bg-white">
 
-<% if(starlineResults && Object.keys(starlineResults).length){ %>
+            <% if(starlineResults && Object.keys(starlineResults).length){ %>
 
-  <% Object.keys(starlineResults).forEach(date => { 
-     const data = starlineResults[date];
-  %>
+              <% Object.keys(starlineResults).forEach(date=> {
+                const data = starlineResults[date];
+                %>
 
-  <tr>
+                <tr>
 
-    <!-- DATE COLUMN -->
-    <td class="border p-2 font-semibold">
-      <%= date %>
-      <div class="text-xs text-gray-500">
-        <%= data.weekday %>
-      </div>
-    </td>
+                  <!-- DATE COLUMN -->
+                  <td class="border p-2 font-semibold">
+                    <%= date %>
+                      <div class="text-xs text-gray-500">
+                        <%= data.weekday %>
+                      </div>
+                  </td>
 
-    <!-- GAME COLUMNS -->
-    <% starlineGames.forEach(game => { 
-         const gameData = data.games[game.gameName];
-    %>
+                  <!-- GAME COLUMNS -->
+                  <% starlineGames.forEach(game=> {
+                    const gameData = data.games[game.gameName];
+                    %>
 
-      <td class="border p-2 font-bold text-emerald-700">
+                    <td class="border p-2 font-bold text-emerald-700">
 
-        <% if(gameData){ %>
+                      <% if(gameData){ %>
 
-          <% if(gameData.open){ %>
-            O-<%= gameData.open.panna %>-<%= gameData.open.digit %>
-          <% } else { %>
-            O-- 
-          <% } %>
+                        <% if(gameData.open){ %>
+                          O-<%= gameData.open.panna %>-<%= gameData.open.digit %>
+                              <% } else { %>
+                                O--
+                                <% } %>
 
-          |
+                                  |
 
-          <% if(gameData.close){ %>
-            C-<%= gameData.close.panna %>-<%= gameData.close.digit %>
-          <% } else { %>
-            C--
-          <% } %>
+                                  <% if(gameData.close){ %>
+                                    C-<%= gameData.close.panna %>-<%= gameData.close.digit %>
+                                        <% } else { %>
+                                          C--
+                                          <% } %>
 
-        <% } else { %>
-          -
-        <% } %>
+                                            <% } else { %>
+                                              -
+                                              <% } %>
 
-      </td>
+                    </td>
 
-    <% }) %>
+                    <% }) %>
 
-  </tr>
+                </tr>
 
-  <% }) %>
+                <% }) %>
 
-<% } else { %>
+                  <% } else { %>
 
-  <tr>
-    <td colspan="<%= (starlineGames?.length || 0) + 1 %>"
-        class="border p-4 text-gray-500">
-      No Starline Results Available
-    </td>
-  </tr>
+                    <tr>
+                      <td colspan="<%= (starlineGames?.length || 0) + 1 %>" class="border p-4 text-gray-500">
+                        No Starline Results Available
+                      </td>
+                    </tr>
 
-<% } %>
+                    <% } %>
 
-</tbody>
+          </tbody>
 
         </table>
       </div>
@@ -208,13 +209,12 @@ class="bg-blue-50 min-h-screen <%= viewType === 'starline' ? '' : 'hidden' %>">
   </main>
 
   <!-- JACKPOT CHART VIEW -->
-<main id="jackpot-view"
-class="bg-blue-100 min-h-screen <%= viewType === 'jackpot' ? '' : 'hidden' %>">
+  <main id="jackpot-view" class="bg-blue-100 min-h-screen <%= viewType === 'jackpot' ? '' : 'hidden' %>">
     <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl sticky top-0 z-40">
       <div class="flex items-center gap-3">
         <a href="/userGameChart">
-  <i class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
-</a>
+          <i class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
+        </a>
 
         <h1 class="text-lg font-semibold mx-auto">Jackport Chart</h1>
       </div>
@@ -225,82 +225,83 @@ class="bg-blue-100 min-h-screen <%= viewType === 'jackpot' ? '' : 'hidden' %>">
       <p class="text-2xl font-black mt-2">GALI DISSWAR CHART</p>
     </div>
 
-<div class="px-2 pb-6">
-  <div class="bg-white rounded-xl shadow-lg p-2 overflow-x-auto">
+    <div class="px-2 pb-6">
+      <div class="bg-white rounded-xl shadow-lg p-2 overflow-x-auto">
 
-    <table class="min-w-[900px] w-full border border-gray-300 text-sm text-center">
+        <table class="min-w-[900px] w-full border border-gray-300 text-sm text-center">
 
-      <!-- TABLE HEADER -->
-      <thead class="bg-gray-200 font-bold">
-        <tr>
-          <th class="border p-2">Date</th>
+          <!-- TABLE HEADER -->
+          <thead class="bg-gray-200 font-bold">
+            <tr>
+              <th class="border p-2">Date</th>
 
-          <% if(jackpotGames && jackpotGames.length){ %>
-            <% jackpotGames.forEach(game => { %>
-              <th class="border p-2"><%= game.gameName %></th>
-            <% }) %>
-          <% } %>
+              <% if(jackpotGames && jackpotGames.length){ %>
+                <% jackpotGames.forEach(game=> { %>
+                  <th class="border p-2">
+                    <%= game.gameName %>
+                  </th>
+                  <% }) %>
+                    <% } %>
 
-        </tr>
-      </thead>
+            </tr>
+          </thead>
 
-      <!-- TABLE BODY -->
-      <tbody class="bg-white">
+          <!-- TABLE BODY -->
+          <tbody class="bg-white">
 
-      <% if(jackpotResults && Object.keys(jackpotResults).length){ %>
+            <% if(jackpotResults && Object.keys(jackpotResults).length){ %>
 
-        <% Object.keys(jackpotResults).forEach(date => { 
-           const data = jackpotResults[date];
-        %>
+              <% Object.keys(jackpotResults).forEach(date=> {
+                const data = jackpotResults[date];
+                %>
 
-        <tr>
+                <tr>
 
-          <!-- DATE COLUMN -->
-          <td class="border p-2 font-semibold">
-            <%= date %>
-            <div class="text-xs text-gray-500">
-              <%= data.weekday %>
-            </div>
-          </td>
+                  <!-- DATE COLUMN -->
+                  <td class="border p-2 font-semibold">
+                    <%= date %>
+                      <div class="text-xs text-gray-500">
+                        <%= data.weekday %>
+                      </div>
+                  </td>
 
-          <!-- DYNAMIC GAME COLUMNS -->
-          <% jackpotGames.forEach(game => { %>
-            <td class="border p-2 font-bold text-emerald-700">
-              <%= data.games[game.gameName] || "-" %>
-            </td>
-          <% }) %>
+                  <!-- DYNAMIC GAME COLUMNS -->
+                  <% jackpotGames.forEach(game=> { %>
+                    <td class="border p-2 font-bold text-emerald-700">
+                      <%= data.games[game.gameName] || "-" %>
+                    </td>
+                    <% }) %>
 
-        </tr>
+                </tr>
 
-        <% }) %>
+                <% }) %>
 
-      <% } else { %>
+                  <% } else { %>
 
-        <tr>
-          <td colspan="<%= (jackpotGames?.length || 0) + 1 %>"
-              class="border p-4 text-gray-500">
-            No Jackpot Results Available
-          </td>
-        </tr>
+                    <tr>
+                      <td colspan="<%= (jackpotGames?.length || 0) + 1 %>" class="border p-4 text-gray-500">
+                        No Jackpot Results Available
+                      </td>
+                    </tr>
 
-      <% } %>
+                    <% } %>
 
-      </tbody>
-    </table>
+          </tbody>
+        </table>
 
-  </div>
-</div>
+      </div>
+    </div>
 
   </main>
 
 
   <!-- // MAIN MATKA CHART RENDER  -->
-<main id="sita-morning-chart"
-class="bg-gray-100 min-h-screen <%= selectedGame ? '' : 'hidden' %>">
+  <main id="sita-morning-chart" class="bg-gray-100 min-h-screen <%= selectedGame ? '' : 'hidden' %>">
     <!-- HEADER -->
     <header class="bg-teal-800 text-white px-4 py-4 rounded-b-[2.5rem] shadow-lg sticky top-0 z-50">
       <div class="flex items-center justify-between">
-        <i class="fa-solid fa-arrow-left text-xl cursor-pointer back-to-matka" onclick="window.location.href='/userGameChart?type=matka'"></i>
+        <i class="fa-solid fa-arrow-left text-xl cursor-pointer back-to-matka"
+          onclick="window.location.href='/userGameChart?type=matka'"></i>
         <h1 class="text-lg font-semibold">Charts</h1>
         <div class="w-6"></div>
       </div>
@@ -309,7 +310,7 @@ class="bg-gray-100 min-h-screen <%= selectedGame ? '' : 'hidden' %>">
     <!-- TITLE -->
     <div class="text-center mt-10 mb-6 px-4">
       <h2 class="text-2xl font-bold text-gray-800">
-       Matka <%= selectedGame %> Result
+        Matka <%= selectedGame %> Result
       </h2>
       <h3 class="text-xl font-bold text-gray-800">Chart</h3>
     </div>
@@ -318,59 +319,71 @@ class="bg-gray-100 min-h-screen <%= selectedGame ? '' : 'hidden' %>">
     <div class="overflow-x-auto px-2 pb-10">
       <div class="min-w-[700px] grid grid-cols-7 gap-1">
         <!-- DAY CELL -->
- <% if(selectedGame && groupedResults){ %>
+        <% if(selectedGame && groupedResults){ %>
 
-  <!-- <h2 class="text-xl font-bold mt-6 mb-4 text-center">
+          <!-- <h2 class="text-xl font-bold mt-6 mb-4 text-center">
     <%= selectedGame %> Chart
   </h2> -->
 
-  <% Object.keys(groupedResults).forEach(date => { 
-     const data = groupedResults[date];
-  %>
+          <% Object.keys(groupedResults).forEach(date=> {
+            const data = groupedResults[date];
+            %>
 
-  <div class="border-2 border-lime-500 text-center p-1 bg-white mb-4">
-    
-    <div class="font-semibold text-sm">
-      <%= data.weekday %>
-    </div>
-    
-    <div class="text-xs border-b-2 border-lime-500 pb-2">
-      (<%= date %>)
-    </div>
+            <div class="border-2 border-lime-500 text-center p-1 bg-white mb-4">
 
-    <div class="mt-2 grid grid-cols-3 gap-[2px] h-[88px]">
+              <div class="font-semibold text-sm">
+                <%= data.weekday %>
+              </div>
 
-      <!-- OPEN PANNA -->
-      <div class="flex flex-col justify-between font-bold">
-        <% if(data.openPanna){ %>
-          <div><%= data.openPanna[0] %></div>
-          <div><%= data.openPanna[1] %></div>
-          <div><%= data.openPanna[2] %></div>
-        <% } %>
-      </div>
+              <div class="text-xs border-b-2 border-lime-500 pb-2">
+                (<%= date %>)
+              </div>
 
-      <!-- DIGITS -->
-      <div class="flex items-center justify-center font-bold text-lg border-r-2 border-l-2 border-lime-500">
-        <%= data.openDigit ?? "-" %>
-        -
-        <%= data.closeDigit ?? "-" %>
-      </div>
+              <div class="mt-2 grid grid-cols-3 gap-[2px] h-[88px]">
 
-      <!-- CLOSE PANNA -->
-      <div class="flex flex-col justify-between font-bold">
-        <% if(data.closePanna){ %>
-          <div><%= data.closePanna[0] %></div>
-          <div><%= data.closePanna[1] %></div>
-          <div><%= data.closePanna[2] %></div>
-        <% } %>
-      </div>
+                <!-- OPEN PANNA -->
+                <div class="flex flex-col justify-between font-bold">
+                  <% if(data.openPanna){ %>
+                    <div>
+                      <%= data.openPanna[0] %>
+                    </div>
+                    <div>
+                      <%= data.openPanna[1] %>
+                    </div>
+                    <div>
+                      <%= data.openPanna[2] %>
+                    </div>
+                    <% } %>
+                </div>
 
-    </div>
-  </div>
+                <!-- DIGITS -->
+                <div class="flex items-center justify-center font-bold text-lg border-r-2 border-l-2 border-lime-500">
+                  <%= data.openDigit ?? "-" %>
+                    -
+                    <%= data.closeDigit ?? "-" %>
+                </div>
 
-  <% }) %>
+                <!-- CLOSE PANNA -->
+                <div class="flex flex-col justify-between font-bold">
+                  <% if(data.closePanna){ %>
+                    <div>
+                      <%= data.closePanna[0] %>
+                    </div>
+                    <div>
+                      <%= data.closePanna[1] %>
+                    </div>
+                    <div>
+                      <%= data.closePanna[2] %>
+                    </div>
+                    <% } %>
+                </div>
 
-<% } %>
+              </div>
+            </div>
+
+            <% }) %>
+
+              <% } %>
       </div>
     </div>
   </main>

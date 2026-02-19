@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  <link rel="stylesheet" href="/css/adminDashbord.css">
+
+  <style>
+    /* Custom scrollbar for the table wrapper */
+    .custom-scrollbar::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 10px;
+    }
+  </style>
+
+</head>
+
+<body class="flex min-h-screen">
+  <aside id="sidebar"
+    class="sidebar border-r border-gray-200 fixed inset-y-0 left-0 z-50 lg:relative lg:translate-x-0 transform -translate-x-full lg:block">
+    <div class="p-4">
+      <div class="relative mb-4">
+        <input type="text" placeholder="Search"
+          class="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
+        <button class="absolute right-0 top-0 bottom-0 px-3 bg-neutral-800 text-white rounded-r">
+          <i class="fas fa-search"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- ============================= Nav is here ============================ -->
+    <%- include('../partials/adminNav') %>
+  </aside>
+
+  <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+    <!-- ============================= Header is here ============================ -->
+    <%- include('../partials/adminHeader') %>
+      <header class="bg-white h-14 flex items-center justify-between px-4 border-b border-gray-200">
+      </header> <!-- header overflow done -->
+      <!-- ==================================== Body Start Here ========================================= -->
+
+      <div class="w-[90%] mx-auto bg-white rounded shadow-sm border border-gray-200 overflow-hidden font-sans pb-6">
+        <div class="p-4 border-b border-gray-100 flex items-center justify-between bg-white">
+          <h2 class="text-lg font-medium text-slate-800 flex items-center gap-2">
+            Generate Result
+          </h2>
+        </div>
+
+        <div class="p-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-end">
+
+            <div class="relative">
+              <label for="from-date" class="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">
+                From Date
+              </label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <i class="fa-solid fa-calendar text-gray-400 text-sm"></i>
+                </div>
+                <input type="date" id="from-date"
+                  class="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-md shadow-sm focus:ring-1 focus:ring-yellow-500 focus:border-yellow-500 text-sm transition-all">
+              </div>
+            </div>
+
+            <div class="relative">
+              <label for="to-date" class="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">
+                To Date
+              </label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <i class="fa-solid fa-calendar-check text-gray-400 text-sm"></i>
+                </div>
+                <input type="date" id="to-date"
+                  class="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-md shadow-sm focus:ring-1 focus:ring-yellow-500 focus:border-yellow-500 text-sm transition-all">
+              </div>
+            </div>
+
+          </div>
+
+          <div>
+            <label class="block text-sm font-bold text-slate-700 mb-2">
+              Main Game
+            </label>
+
+            <select name="gameId"
+              class="w-full border border-gray-300 rounded p-2 text-gray-500 outline-none focus:ring-1 focus:ring-yellow-500 transition-all"
+              >
+              <option value="" selected disabled>Select Market</option>
+              <% if (normalGames && normalGames.length> 0) { %>
+                <% normalGames.forEach(game=> { %>
+                  <option value="<%= game._id %>">
+                    <%= game.gameName %>
+                  </option>
+                  <% }) %>
+                    <% } else { %>
+                      <option disabled>No Normal Games Available</option>
+                      <% } %>
+            </select>
+          </div>
+
+
+          <div>
+            <label class="block text-sm font-bold text-slate-700 mb-2">
+              Starline Game
+            </label>
+
+            <select name="starlineGameId"
+              class="w-full border border-gray-300 rounded p-2 text-gray-500 outline-none focus:ring-1 focus:ring-yellow-500 transition-all"
+              >
+              <option value="" selected disabled>Select Market</option>
+
+              <% if (starlineGames && starlineGames.length> 0) { %>
+                <% starlineGames.forEach(game=> { %>
+                  <option value="<%= game._id %>">
+                    <%= game.gameName %>
+                  </option>
+                  <% }) %>
+                    <% } else { %>
+                      <option disabled>No Starline Games Available</option>
+                      <% } %>
+            </select>
+          </div>
+
+
+
+          <div>
+            <label class="block text-sm font-bold text-slate-700 mb-2">
+              Jackpot Game
+            </label>
+
+            <select name="jackpotGameId"
+              class="w-full border border-gray-300 rounded p-2 text-gray-500 outline-none focus:ring-1 focus:ring-yellow-500 transition-all"
+              >
+              <option value="" selected disabled>Select Market</option>
+
+              <% if (jackpotGames && jackpotGames.length> 0) { %>
+                <% jackpotGames.forEach(game=> { %>
+                  <option value="<%= game._id %>">
+                    <%= game.gameName %>
+                  </option>
+                  <% }) %>
+                    <% } else { %>
+                      <option disabled>No Jackpot Games Available</option>
+                      <% } %>
+            </select>
+          </div>
+
+
+        </div>
+
+        <button
+          class="bg-[#eab308] hover:bg-yellow-600 text-white px-6 py-2 rounded font-semibold text-sm shadow-sm transition-colors duration-200 ml-4"
+          id="generateResultBtn">
+          Generate Result
+        </button>
+      </div>
+      </div>
+
+  </main>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+  const generateBtn = document.getElementById("generateResultBtn");
+
+  /* 🔥 Custom Message Function */
+  function showMessage(message, type = "success") {
+
+    // Remove old message if exists
+    const oldMsg = document.getElementById("customMessageBox");
+    if (oldMsg) oldMsg.remove();
+
+    const msgBox = document.createElement("div");
+    msgBox.id = "customMessageBox";
+    msgBox.innerText = message;
+
+    msgBox.style.position = "fixed";
+    msgBox.style.top = "80px";
+    msgBox.style.right = "20px";
+    msgBox.style.left = "50%";
+    msgBox.style.padding = "12px 20px";
+    msgBox.style.borderRadius = "6px";
+    msgBox.style.color = "#fff";
+    msgBox.style.fontWeight = "500";
+    msgBox.style.zIndex = "9999";
+    msgBox.style.boxShadow = "0 4px 10px rgba(0,0,0,0.2)";
+    msgBox.style.transition = "0.3s ease";
+    msgBox.style.transform = "translateX(-50%)";
+
+    if (type === "error") {
+      msgBox.style.backgroundColor = "#e74c3c";
+    } else {
+      msgBox.style.backgroundColor = "#2ecc71";
+    }
+
+    document.body.appendChild(msgBox);
+
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+      msgBox.style.opacity = "0";
+      setTimeout(() => msgBox.remove(), 300);
+    }, 3000);
+  }
+
+  /* 🔥 Common API Handler */
+  async function handleResponse(url, payload) {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    return await res.json();
+  }
+
+  generateBtn.addEventListener("click", async function () {
+
+    const fromDate = document.getElementById("from-date").value;
+    const toDate = document.getElementById("to-date").value;
+
+    const mainGameId = document.querySelector("select[name='gameId']").value;
+    const starlineGameId = document.querySelector("select[name='starlineGameId']").value;
+    const jackpotGameId = document.querySelector("select[name='jackpotGameId']").value;
+
+    if (!fromDate || !toDate) {
+      showMessage("Please select From Date and To Date", "error");
+      return;
+    }
+
+    if (!mainGameId && !starlineGameId && !jackpotGameId) {
+      showMessage("Please select at least one game", "error");
+      return;
+    }
+
+    try {
+
+      let hasError = false;
+      let errorMessage = "";
+
+      if (mainGameId) {
+        const data = await handleResponse("/admin/generate-result", {
+          fromDate, toDate, gameId: mainGameId
+        });
+        if (!data.success) {
+          hasError = true;
+          errorMessage += data.message + "\n";
+        }
+      }
+
+      if (starlineGameId) {
+        const data = await handleResponse("/admin/generate-starline-result", {
+          fromDate, toDate, starlineGameId
+        });
+        if (!data.success) {
+          hasError = true;
+          errorMessage += data.message + "\n";
+        }
+      }
+
+      if (jackpotGameId) {
+        const data = await handleResponse("/admin/generate-jackpot-result", {
+          fromDate, toDate, jackpotGameId
+        });
+        if (!data.success) {
+          hasError = true;
+          errorMessage += data.message + "\n";
+        }
+      }
+
+      if (hasError) {
+        showMessage(errorMessage.trim(), "error");
+      } else {
+        showMessage("Result Generated Successfully ✅");
+      }
+
+    } catch (error) {
+      console.error(error);
+      showMessage("Server Error", "error");
+    }
+
+  });
+
+});
+</script>
+
+  <script src="/js/sidebar.js"></script>
+  <!-- <script src="/js/adminResult.js"></script>
+  <script src="/js/adminResultDOM.js"></script> -->
+</body>
+
+</html>

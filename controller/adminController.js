@@ -1174,7 +1174,7 @@ exports.getAdminGameRatesPage = async (req, res, next) => {
 
     /* ✅ Extract gameTypes dynamically */
     const gameTypes = selectedModels
-      .map(model => model.schema.obj.gameType?.default)
+      .map((model) => model.schema.obj.gameType?.default)
       .filter(Boolean);
 
     const uniqueGameTypes = [...new Set(gameTypes)];
@@ -1200,7 +1200,6 @@ exports.getAdminGameRatesPage = async (req, res, next) => {
       isLoggedIn: req.session.isLoggedIn,
       pageTitle: "Game Rates",
     });
-
   } catch (err) {
     console.error(err);
     return res.redirect("/admin/dashboard");
@@ -1252,7 +1251,6 @@ exports.postGameRates = async (req, res, next) => {
     await newGameRate.save();
 
     return res.redirect(`/admin/GameRates?type=${type}`);
-
   } catch (err) {
     console.error(err);
     return res.redirect("/admin/dashboard");
@@ -1291,7 +1289,6 @@ exports.toggleGameRate = async (req, res) => {
     const type = req.query.type || "main";
 
     return res.redirect(`/admin/GameRates?type=${type}`);
-
   } catch (err) {
     console.error(err);
     return res.redirect("/admin/dashboard");
@@ -1324,7 +1321,6 @@ exports.deleteGameRate = async (req, res) => {
     const type = req.query.type || "main";
 
     return res.redirect(`/admin/GameRates?type=${type}`);
-
   } catch (err) {
     console.error(err);
     return res.redirect("/admin/dashboard");
@@ -1371,14 +1367,11 @@ exports.updateGameRate = async (req, res) => {
     const type = req.query.type || "main";
 
     return res.redirect(`/admin/GameRates?type=${type}`);
-
   } catch (error) {
     console.error(error);
     return res.status(500).send("Server Error");
   }
 };
-
-
 
 exports.gameResult = async (req, res) => {
   try {
@@ -1589,7 +1582,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.underNo === panna) {
             // ✅ OPEN WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
+            item.winAmount = item.gameRateWinAmount; // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ OPEN LOSS
@@ -1603,7 +1596,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.underNo === panna) {
             // ✅ CLOSE WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
+            item.winAmount = item.gameRateWinAmount; // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ CLOSE LOSS
@@ -1646,7 +1639,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.underNo === panna) {
             // ✅ OPEN WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
+            item.winAmount = item.gameRateWinAmount; // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ OPEN LOSS
@@ -1660,7 +1653,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.underNo === panna) {
             // ✅ CLOSE WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
+            item.winAmount = item.gameRateWinAmount; // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ CLOSE LOSS
@@ -1703,7 +1696,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.underNo === panna) {
             // ✅ OPEN WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
+            item.winAmount = item.gameRateWinAmount; // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ OPEN LOSS
@@ -1717,7 +1710,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.underNo === panna) {
             // ✅ CLOSE WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
+            item.winAmount = item.gameRateWinAmount; // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ CLOSE LOSS
@@ -1760,7 +1753,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.number === Number(digit)) {
             // ✅ OPEN WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
+            item.winAmount = item.gameRateWinAmount; // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ OPEN LOSS
@@ -1774,7 +1767,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.number === Number(digit)) {
             // ✅ CLOSE WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
+            item.winAmount = item.gameRateWinAmount; // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ CLOSE LOSS
@@ -1817,7 +1810,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.number === Number(digit)) {
             // ✅ OPEN WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
+            item.winAmount = item.gameRateWinAmount; // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ OPEN LOSS
@@ -1831,7 +1824,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.number === Number(digit)) {
             // ✅ CLOSE WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
+            item.winAmount = item.gameRateWinAmount; // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ CLOSE LOSS
@@ -1874,7 +1867,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.number === panna) {
             // ✅ OPEN WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
+            item.winAmount = item.gameRateWinAmount; // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ OPEN LOSS
@@ -1888,7 +1881,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.number === panna) {
             // ✅ CLOSE WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
+            item.winAmount = item.gameRateWinAmount; // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ CLOSE LOSS
@@ -1943,7 +1936,7 @@ exports.declareGameResult = async (req, res) => {
 
           if (item.openMatched && closeMatched) {
             item.resultStatus = "WIN";
-            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
+            item.winAmount = item.gameRateWinAmount; // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             item.resultStatus = "LOSS";
@@ -1984,7 +1977,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.underNo === panna) {
             // ✅ OPEN WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
+            item.winAmount = item.gameRateWinAmount; // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ OPEN LOSS
@@ -1998,7 +1991,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.underNo === panna) {
             // ✅ CLOSE WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
+            item.winAmount = item.gameRateWinAmount; // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ CLOSE LOSS
@@ -2054,7 +2047,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.openMatched && closeMatched) {
             // ✅ BOTH MATCH → WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
+            item.winAmount = item.gameRateWinAmount; // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ ANY FAIL → LOSS
@@ -2102,7 +2095,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.underNo === String(digit) && patternMatched) {
             // ✅ OPEN WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
+            item.winAmount = item.gameRateWinAmount; // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ OPEN LOSS
@@ -2116,7 +2109,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.underNo === String(digit) && patternMatched) {
             // ✅ CLOSE WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
+            item.winAmount = item.gameRateWinAmount; // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ CLOSE LOSS
@@ -2177,7 +2170,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.openMatched && closeMatched) {
             // ✅ OPEN + CLOSE BOTH MATCH
             item.resultStatus = "WIN";
-            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
+            item.winAmount = item.gameRateWinAmount; // 👈 Direct set
 
             totalWinAmount += item.winAmount;
             isAnyWin = true;
@@ -2220,7 +2213,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.underNo === panna) {
             // ✅ OPEN WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
+            item.winAmount = item.gameRateWinAmount; // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ OPEN LOSS
@@ -2234,7 +2227,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.underNo === panna) {
             // ✅ CLOSE WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
+            item.winAmount = item.gameRateWinAmount; // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ CLOSE LOSS
@@ -2275,7 +2268,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.underNo === panna) {
             // ✅ OPEN WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
+            item.winAmount = item.gameRateWinAmount; // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ OPEN LOSS
@@ -2289,7 +2282,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.underNo === panna) {
             // ✅ CLOSE WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
+            item.winAmount = item.gameRateWinAmount; // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ CLOSE LOSS
@@ -2333,7 +2326,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.underNo === panna) {
             // ✅ OPEN WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
+            item.winAmount = item.gameRateWinAmount; // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ OPEN LOSS
@@ -2347,7 +2340,7 @@ exports.declareGameResult = async (req, res) => {
           if (item.underNo === panna) {
             // ✅ CLOSE WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
+            item.winAmount = item.gameRateWinAmount; // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ CLOSE LOSS
@@ -2396,7 +2389,7 @@ exports.declareGameResult = async (req, res) => {
         if (session === "CLOSE") {
           if (item.openMatched === true && item.closePanna === panna) {
             item.resultStatus = "WIN";
-            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
+            item.winAmount = item.gameRateWinAmount; // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             item.resultStatus = "LOSS";
@@ -2445,7 +2438,7 @@ exports.declareGameResult = async (req, res) => {
             item.resultStatus = "WIN";
 
             // ✅ ADD THIS
-            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
+            item.winAmount = item.gameRateWinAmount; // 👈 Direct set
 
             totalWinAmount += item.winAmount;
           } else {
@@ -2670,7 +2663,7 @@ exports.declareJackpotGameResult = async (req, res) => {
         bet.bets.forEach((item) => {
           if (item.openDigit === String(left)) {
             item.resultStatus = "WIN";
-            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
+            item.winAmount = item.gameRateWinAmount; // 👈 Direct set
             winAmount += item.winAmount;
           } else {
             item.resultStatus = "LOSS";
@@ -2703,7 +2696,7 @@ exports.declareJackpotGameResult = async (req, res) => {
         bet.bets.forEach((item) => {
           if (item.openDigit === String(right)) {
             item.resultStatus = "WIN";
-            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
+            item.winAmount = item.gameRateWinAmount; // 👈 Direct set
             winAmount += item.winAmount;
           } else {
             item.resultStatus = "LOSS";
@@ -2736,7 +2729,7 @@ exports.declareJackpotGameResult = async (req, res) => {
         bet.bets.forEach((item) => {
           if (item.openDigit === jodi) {
             item.resultStatus = "WIN";
-            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
+            item.winAmount = item.gameRateWinAmount; // 👈 Direct set
             winAmount += item.winAmount;
           } else {
             item.resultStatus = "LOSS";
@@ -2978,7 +2971,7 @@ exports.declareStarlineGameResult = async (req, res) => {
           if (item.number === Number(digit)) {
             // ✅ OPEN WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
+            item.winAmount = item.gameRateWinAmount; // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ OPEN LOSS
@@ -2992,7 +2985,7 @@ exports.declareStarlineGameResult = async (req, res) => {
           if (item.number === Number(digit)) {
             // ✅ CLOSE WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
+            item.winAmount = item.gameRateWinAmount; // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ CLOSE LOSS
@@ -3035,7 +3028,7 @@ exports.declareStarlineGameResult = async (req, res) => {
           if (item.underNo === panna) {
             // ✅ OPEN WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
+            item.winAmount = item.gameRateWinAmount; // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ OPEN LOSS
@@ -3049,7 +3042,7 @@ exports.declareStarlineGameResult = async (req, res) => {
           if (item.underNo === panna) {
             // ✅ CLOSE WIN
             item.resultStatus = "WIN";
-           item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
+            item.winAmount = item.gameRateWinAmount; // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ CLOSE LOSS
@@ -3091,7 +3084,7 @@ exports.declareStarlineGameResult = async (req, res) => {
           if (item.underNo === panna) {
             // ✅ OPEN WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
+            item.winAmount = item.gameRateWinAmount; // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ OPEN LOSS
@@ -3105,7 +3098,7 @@ exports.declareStarlineGameResult = async (req, res) => {
           if (item.underNo === panna) {
             // ✅ CLOSE WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
+            item.winAmount = item.gameRateWinAmount; // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ CLOSE LOSS
@@ -3148,7 +3141,7 @@ exports.declareStarlineGameResult = async (req, res) => {
           if (item.number === panna) {
             // ✅ OPEN WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
+            item.winAmount = item.gameRateWinAmount; // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ OPEN LOSS
@@ -3162,7 +3155,7 @@ exports.declareStarlineGameResult = async (req, res) => {
           if (item.number === panna) {
             // ✅ CLOSE WIN
             item.resultStatus = "WIN";
-            item.winAmount = item.gameRateWinAmount;  // 👈 Direct set
+            item.winAmount = item.gameRateWinAmount; // 👈 Direct set
             totalWinAmount += item.winAmount;
           } else {
             // ❌ CLOSE LOSS
@@ -3426,7 +3419,7 @@ exports.changeBidNumberAmount = async (req, res) => {
       !req.session.admin ||
       req.session.admin.role !== "admin"
     ) {
-      return res.status(401).json({ success: false, message: "Unauthorized" });
+      return res.redirect("/admin/login");
     }
 
     const admin = await User.findOne({
@@ -3437,9 +3430,7 @@ exports.changeBidNumberAmount = async (req, res) => {
 
     if (!admin) {
       req.session.destroy();
-      return res
-        .status(401)
-        .json({ success: false, message: "Session expired" });
+      return res.redirect("/admin/login");
     }
 
     /* ================= REQUEST DATA ================= */
@@ -3615,7 +3606,7 @@ exports.viewThisGameAllPendingResult = async (req, res) => {
       !req.session.admin ||
       req.session.admin.role !== "admin"
     ) {
-      return res.status(401).json({ success: false, message: "Unauthorized" });
+      return res.redirect("/admin/login");
     }
 
     const admin = await User.findOne({
@@ -3626,9 +3617,7 @@ exports.viewThisGameAllPendingResult = async (req, res) => {
 
     if (!admin) {
       req.session.destroy();
-      return res
-        .status(401)
-        .json({ success: false, message: "Session expired" });
+      return res.redirect("/admin/login");
     }
 
     const { betId } = req.query;
@@ -3955,7 +3944,7 @@ exports.starlineChangeBidNumberAndAmount = async (req, res) => {
       !req.session.admin ||
       req.session.admin.role !== "admin"
     ) {
-      return res.status(401).json({ success: false, message: "Unauthorized" });
+      return res.redirect("/admin/login");
     }
 
     const admin = await User.findOne({
@@ -3966,9 +3955,7 @@ exports.starlineChangeBidNumberAndAmount = async (req, res) => {
 
     if (!admin) {
       req.session.destroy();
-      return res
-        .status(401)
-        .json({ success: false, message: "Session expired" });
+      return res.redirect("/admin/login");
     }
 
     /* ================= REQUEST DATA ================= */
@@ -4098,7 +4085,7 @@ exports.viewStarlineThisGameAllPendingResult = async (req, res) => {
       !req.session.admin ||
       req.session.admin.role !== "admin"
     ) {
-      return res.status(401).json({ success: false, message: "Unauthorized" });
+      return res.redirect("/admin/login");
     }
 
     const admin = await User.findOne({
@@ -4109,9 +4096,7 @@ exports.viewStarlineThisGameAllPendingResult = async (req, res) => {
 
     if (!admin) {
       req.session.destroy();
-      return res
-        .status(401)
-        .json({ success: false, message: "Session expired" });
+      return res.redirect("/admin/login");
     }
 
     const { betId } = req.query;
@@ -4295,10 +4280,7 @@ exports.jackpotPreviewWinnerList = async (req, res) => {
       !req.session.admin ||
       req.session.admin.role !== "admin"
     ) {
-      return res.status(401).json({
-        success: false,
-        message: "Unauthorized",
-      });
+      return res.redirect("/admin/login");
     }
 
     const admin = await User.findOne({
@@ -4309,10 +4291,7 @@ exports.jackpotPreviewWinnerList = async (req, res) => {
 
     if (!admin) {
       req.session.destroy();
-      return res.status(401).json({
-        success: false,
-        message: "Session expired",
-      });
+      return res.redirect("/admin/login");
     }
 
     const { gameName, left, right, resultDate } = req.body;
@@ -4409,7 +4388,7 @@ exports.jackpotChangeBidNumberAndAmount = async (req, res) => {
       !req.session.admin ||
       req.session.admin.role !== "admin"
     ) {
-      return res.status(401).json({ success: false, message: "Unauthorized" });
+      return res.redirect("/admin/login");
     }
 
     const admin = await User.findOne({
@@ -4420,11 +4399,8 @@ exports.jackpotChangeBidNumberAndAmount = async (req, res) => {
 
     if (!admin) {
       req.session.destroy();
-      return res
-        .status(401)
-        .json({ success: false, message: "Session expired" });
+      return res.redirect("/admin/login");
     }
-
     /* ================= REQUEST DATA ================= */
     const { betId, openDigit, amount } = req.body;
 
@@ -4547,7 +4523,7 @@ exports.viewJackpotThisGameAllPendingResult = async (req, res) => {
       !req.session.admin ||
       req.session.admin.role !== "admin"
     ) {
-      return res.status(401).json({ success: false, message: "Unauthorized" });
+      return res.redirect("/admin/login");
     }
 
     const admin = await User.findOne({
@@ -4558,9 +4534,7 @@ exports.viewJackpotThisGameAllPendingResult = async (req, res) => {
 
     if (!admin) {
       req.session.destroy();
-      return res
-        .status(401)
-        .json({ success: false, message: "Session expired" });
+      return res.redirect("/admin/login");
     }
 
     const { betId } = req.query;
@@ -4728,3 +4702,412 @@ exports.viewJackpotThisGameAllPendingResult = async (req, res) => {
   }
 };
 
+// Admin Generate fake result in bulk
+exports.getAdminGenerateResultPage = async (req, res) => {
+  try {
+    /* ================= ADMIN AUTH ================= */
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    });
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    // ✅ Only Normal Games (No Starline, No Jackpot)
+    const normalGames = await Game.find({
+      isDeleted: false,
+      isStarline: false,
+      isJackpot: false,
+    }).sort({ gameName: 1 });
+
+    // ✅ Only Starline Games
+    const starlineGames = await Game.find({
+      isDeleted: false,
+      isStarline: true,
+      isJackpot: false,
+    }).sort({ gameName: 1 });
+
+    const jackpotGames = await Game.find({
+      isDeleted: false,
+      isStarline: false,
+      isJackpot: true,
+    }).sort({ gameName: 1 });
+
+    res.render("Admin/adminGenerateResult", {
+      pageTitle: "Admin Generate Result",
+      admin,
+      normalGames,
+      starlineGames,
+      jackpotGames,
+      isLoggedIn: req.session.isLoggedIn,
+    });
+  } catch (err) {
+    console.error("Admin Generate Result Page Error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+const panaToDigit = require("../utils/panaToDigit");
+exports.generateNormalGameResult = async (req, res) => {
+  try {
+    /* ================= ADMIN AUTH ================= */
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    });
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    const { fromDate, toDate, gameId } = req.body;
+
+    if (!fromDate || !toDate || !gameId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "All fields required" });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(gameId)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid Game ID" });
+    }
+
+    const game = await Game.findOne({
+      _id: gameId,
+      isDeleted: false,
+      isStarline: false,
+      isJackpot: false,
+    });
+
+    if (!game) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Game not found" });
+    }
+
+    let start = new Date(fromDate);
+    let end = new Date(toDate);
+
+    const pannaKeys = Object.keys(panaToDigit);
+    const results = [];
+
+    while (start <= end) {
+      const formattedDate = start.toLocaleDateString("en-CA", {
+        timeZone: "Asia/Kolkata",
+      });
+      const weekday = start.toLocaleString("en-US", {
+        weekday: "long",
+        timeZone: "Asia/Kolkata",
+      });
+
+      /* 🔥 DUPLICATE CHECK */
+      const alreadyDeclared = await GameResult.findOne({
+        gameName: game.gameName,
+        resultDate: formattedDate,
+      });
+
+      if (alreadyDeclared) {
+        start.setDate(start.getDate() + 1);
+        continue; // Skip this date
+      }
+
+      const openPanna = pannaKeys[Math.floor(Math.random() * pannaKeys.length)];
+
+      let closePanna;
+      do {
+        closePanna = pannaKeys[Math.floor(Math.random() * pannaKeys.length)];
+      } while (closePanna === openPanna);
+
+      results.push({
+        gameName: game.gameName,
+        session: "OPEN",
+        panna: openPanna,
+        digit: panaToDigit[openPanna],
+        resultDate: formattedDate,
+        resultWeekday: weekday,
+        resultTime: game.schedule?.[weekday.toLowerCase()]?.openTime || "",
+      });
+
+      results.push({
+        gameName: game.gameName,
+        session: "CLOSE",
+        panna: closePanna,
+        digit: panaToDigit[closePanna],
+        resultDate: formattedDate,
+        resultWeekday: weekday,
+        resultTime: game.schedule?.[weekday.toLowerCase()]?.closeTime || "",
+      });
+
+      start.setDate(start.getDate() + 1);
+    }
+
+    if (results.length === 0) {
+      return res.json({
+        success: false,
+        message: "All selected dates already declared",
+      });
+    }
+
+    await GameResult.insertMany(results);
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false });
+  }
+};
+
+exports.generateStarlineGameResult = async (req, res) => {
+  try {
+    /* ================= ADMIN AUTH ================= */
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    });
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+    const { fromDate, toDate, starlineGameId } = req.body;
+
+    if (!fromDate || !toDate || !starlineGameId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "All fields required" });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(starlineGameId)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid Game ID" });
+    }
+
+    const game = await Game.findOne({
+      _id: starlineGameId,
+      isDeleted: false,
+      isStarline: true,
+      isJackpot: false,
+    });
+
+    if (!game) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Game not found" });
+    }
+
+    let start = new Date(fromDate);
+    let end = new Date(toDate);
+
+    const pannaKeys = Object.keys(panaToDigit);
+    const results = [];
+
+    while (start <= end) {
+      const formattedDate = start.toLocaleDateString("en-CA", {
+        timeZone: "Asia/Kolkata",
+      });
+      const weekday = start.toLocaleString("en-US", {
+        weekday: "long",
+        timeZone: "Asia/Kolkata",
+      });
+
+      /* 🔥 DUPLICATE CHECK */
+      const alreadyDeclared = await starlineGameDeclareResult.findOne({
+        gameName: game.gameName,
+        resultDate: formattedDate,
+      });
+
+      if (alreadyDeclared) {
+        start.setDate(start.getDate() + 1);
+        continue;
+      }
+
+      const openPanna = pannaKeys[Math.floor(Math.random() * pannaKeys.length)];
+
+      let closePanna;
+      do {
+        closePanna = pannaKeys[Math.floor(Math.random() * pannaKeys.length)];
+      } while (closePanna === openPanna);
+
+      results.push({
+        gameName: game.gameName,
+        session: "OPEN",
+        panna: openPanna,
+        digit: panaToDigit[openPanna],
+        resultDate: formattedDate,
+        resultWeekday: weekday,
+        resultTime: game.schedule?.[weekday.toLowerCase()]?.openTime || "",
+      });
+
+      results.push({
+        gameName: game.gameName,
+        session: "CLOSE",
+        panna: closePanna,
+        digit: panaToDigit[closePanna],
+        resultDate: formattedDate,
+        resultWeekday: weekday,
+        resultTime: game.schedule?.[weekday.toLowerCase()]?.closeTime || "",
+      });
+
+      start.setDate(start.getDate() + 1);
+    }
+
+    if (results.length === 0) {
+      return res.json({
+        success: false,
+        message: "All selected dates already declared",
+      });
+    }
+
+    await starlineGameDeclareResult.insertMany(results);
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false });
+  }
+};
+
+exports.generateJackpotGameResult = async (req, res) => {
+  try {
+    /* ================= ADMIN AUTH ================= */
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    });
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+    const { fromDate, toDate, jackpotGameId } = req.body;
+
+    if (!fromDate || !toDate || !jackpotGameId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "All fields required" });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(jackpotGameId)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid Game ID" });
+    }
+
+    const game = await Game.findOne({
+      _id: jackpotGameId,
+      isDeleted: false,
+      isJackpot: true,
+    });
+
+    if (!game) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Game not found" });
+    }
+
+    let start = new Date(fromDate);
+    let end = new Date(toDate);
+
+    const results = [];
+
+    while (start <= end) {
+      const formattedDate = start.toLocaleDateString("en-CA", {
+        timeZone: "Asia/Kolkata",
+      });
+      const weekday = start.toLocaleString("en-US", {
+        weekday: "long",
+        timeZone: "Asia/Kolkata",
+      });
+
+      /* 🔥 DUPLICATE CHECK */
+      const alreadyDeclared = await JackpotGameResult.findOne({
+        gameName: game.gameName,
+        resultDate: formattedDate,
+      });
+
+      if (alreadyDeclared) {
+        start.setDate(start.getDate() + 1);
+        continue;
+      }
+
+      /* 🎯 Random Digits */
+      const leftDigit = Math.floor(Math.random() * 10);
+      const rightDigit = Math.floor(Math.random() * 10);
+
+      /* 🎯 Jodi */
+      const jodi = Number(`${leftDigit}${rightDigit}`);
+
+      results.push({
+        gameName: game.gameName,
+        left: leftDigit.toString(),
+        right: rightDigit,
+        jodi: jodi,
+        resultDate: formattedDate,
+        resultWeekday: weekday,
+        resultTime: game.schedule?.[weekday.toLowerCase()]?.time || "",
+      });
+
+      start.setDate(start.getDate() + 1);
+    }
+
+    if (results.length === 0) {
+      return res.json({
+        success: false,
+        message: "All selected dates already declared",
+      });
+    }
+
+    await JackpotGameResult.insertMany(results);
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false });
+  }
+};
