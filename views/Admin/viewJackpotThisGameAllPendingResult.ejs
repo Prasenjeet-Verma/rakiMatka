@@ -315,8 +315,8 @@
           },
           body: JSON.stringify({
             betId,
-            underNo,
-            amountPerUnderNo
+            openDigit:underNo,
+            amount:amountPerUnderNo
           })
         });
 
@@ -357,8 +357,8 @@
           },
           body: JSON.stringify({
             betId: betId,
-            underNo: newNumber,
-            amountPerUnderNo: newAmount
+             openDigit: newNumber,
+            amount: newAmount
           })
         });
 
