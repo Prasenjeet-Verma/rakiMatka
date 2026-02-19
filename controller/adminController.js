@@ -4906,6 +4906,7 @@ exports.generateStarlineGameResult = async (req, res) => {
       req.session.destroy();
       return res.redirect("/admin/login");
     }
+
     const { fromDate, toDate, starlineGameId } = req.body;
 
     if (!fromDate || !toDate || !starlineGameId) {
@@ -4961,11 +4962,7 @@ exports.generateStarlineGameResult = async (req, res) => {
 
       const openPanna = pannaKeys[Math.floor(Math.random() * pannaKeys.length)];
 
-      let closePanna;
-      do {
-        closePanna = pannaKeys[Math.floor(Math.random() * pannaKeys.length)];
-      } while (closePanna === openPanna);
-
+      /* 👈 ONLY OPEN SESSION */
       results.push({
         gameName: game.gameName,
         session: "OPEN",
@@ -4974,16 +4971,6 @@ exports.generateStarlineGameResult = async (req, res) => {
         resultDate: formattedDate,
         resultWeekday: weekday,
         resultTime: game.schedule?.[weekday.toLowerCase()]?.openTime || "",
-      });
-
-      results.push({
-        gameName: game.gameName,
-        session: "CLOSE",
-        panna: closePanna,
-        digit: panaToDigit[closePanna],
-        resultDate: formattedDate,
-        resultWeekday: weekday,
-        resultTime: game.schedule?.[weekday.toLowerCase()]?.closeTime || "",
       });
 
       start.setDate(start.getDate() + 1);
@@ -5004,6 +4991,7 @@ exports.generateStarlineGameResult = async (req, res) => {
     res.status(500).json({ success: false });
   }
 };
+
 
 exports.generateJackpotGameResult = async (req, res) => {
   try {

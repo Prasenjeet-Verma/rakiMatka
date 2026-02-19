@@ -105,108 +105,72 @@
   </main>
 
   <!-- // STARLINE CHART VIEW -->
-  <main id="starline-view" class="bg-blue-50 min-h-screen <%= viewType === 'starline' ? '' : 'hidden' %>">
-    <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl sticky top-0 z-40">
-      <div class="flex items-center gap-3">
-        <a href="/userGameChart">
-          <i class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
-        </a>
+<main id="starline-view" class="bg-blue-50 min-h-screen <%= viewType === 'starline' ? '' : 'hidden' %>">
+  <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl sticky top-0 z-40">
+    <div class="flex items-center gap-3">
+      <a href="/userGameChart">
+        <i class="fa-solid fa-arrow-left text-xl cursor-pointer"></i>
+      </a>
 
-        <h1 class="text-lg font-semibold mx-auto">Starline Table</h1>
-      </div>
-    </header>
-
-    <div class="text-center my-6">
-      <h2 class="text-2xl font-bold text-gray-800">Matka</h2>
-      <p class="text-xl font-extrabold text-teal-800 mt-2">STARLINE CHART</p>
+      <h1 class="text-lg font-semibold mx-auto">Starline Table</h1>
     </div>
+  </header>
 
-    <div class="px-3 pb-10 overflow-x-auto">
-      <div class="bg-white rounded-xl shadow-md p-2 min-w-[900px]">
-        <table class="w-full border border-gray-300 text-center text-sm">
-          <thead class="bg-gray-200">
-            <tr>
-              <th class="border p-2">Date</th>
+  <div class="text-center my-6">
+    <h2 class="text-2xl font-bold text-gray-800">Matka</h2>
+    <p class="text-xl font-extrabold text-teal-800 mt-2">STARLINE CHART</p>
+  </div>
 
-              <% if(starlineGames && starlineGames.length){ %>
-                <% starlineGames.forEach(game=> { %>
-                  <th class="border p-2">
-                    <%= game.gameName %>
-                  </th>
-                  <% }) %>
+  <div class="px-3 pb-10 overflow-x-auto">
+    <div class="bg-white rounded-xl shadow-md p-2 min-w-[900px]">
+      <table class="w-full border border-gray-300 text-center text-sm">
+        <thead class="bg-gray-200">
+          <tr>
+            <th class="border p-2">Date</th>
+            <% if(starlineGames && starlineGames.length){ %>
+              <% starlineGames.forEach(game=> { %>
+                <th class="border p-2"><%= game.gameName %></th>
+              <% }) %>
+            <% } %>
+          </tr>
+        </thead>
+        <tbody class="bg-white">
+          <% if(starlineResults && Object.keys(starlineResults).length){ %>
+            <% Object.keys(starlineResults).forEach(date => {
+              const data = starlineResults[date]; %>
+              <tr>
+                <!-- DATE COLUMN -->
+                <td class="border p-2 font-semibold">
+                  <%= date %>
+                  <div class="text-xs text-gray-500"><%= data.weekday %></div>
+                </td>
+
+                <!-- GAME COLUMNS -->
+                <% starlineGames.forEach(game => {
+                  const gameData = data.games[game.gameName]; %>
+                  <td class="border p-2 font-bold text-emerald-700">
+                    <% if(gameData && gameData.open){ %>
+                      <%= gameData.open.panna %>-<%= gameData.open.digit %>
+                    <% } else { %>
+                      -
                     <% } %>
-            </tr>
-
-          </thead>
-          <tbody class="bg-white">
-
-            <% if(starlineResults && Object.keys(starlineResults).length){ %>
-
-              <% Object.keys(starlineResults).forEach(date=> {
-                const data = starlineResults[date];
-                %>
-
-                <tr>
-
-                  <!-- DATE COLUMN -->
-                  <td class="border p-2 font-semibold">
-                    <%= date %>
-                      <div class="text-xs text-gray-500">
-                        <%= data.weekday %>
-                      </div>
                   </td>
-
-                  <!-- GAME COLUMNS -->
-                  <% starlineGames.forEach(game=> {
-                    const gameData = data.games[game.gameName];
-                    %>
-
-                    <td class="border p-2 font-bold text-emerald-700">
-
-                      <% if(gameData){ %>
-
-                        <% if(gameData.open){ %>
-                          O-<%= gameData.open.panna %>-<%= gameData.open.digit %>
-                              <% } else { %>
-                                O--
-                                <% } %>
-
-                                  |
-
-                                  <% if(gameData.close){ %>
-                                    C-<%= gameData.close.panna %>-<%= gameData.close.digit %>
-                                        <% } else { %>
-                                          C--
-                                          <% } %>
-
-                                            <% } else { %>
-                                              -
-                                              <% } %>
-
-                    </td>
-
-                    <% }) %>
-
-                </tr>
-
                 <% }) %>
-
-                  <% } else { %>
-
-                    <tr>
-                      <td colspan="<%= (starlineGames?.length || 0) + 1 %>" class="border p-4 text-gray-500">
-                        No Starline Results Available
-                      </td>
-                    </tr>
-
-                    <% } %>
-
-          </tbody>
-
-        </table>
-      </div>
+              </tr>
+            <% }) %>
+          <% } else { %>
+            <tr>
+              <td colspan="<%= (starlineGames?.length || 0) + 1 %>" class="border p-4 text-gray-500">
+                No Starline Results Available
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
     </div>
-  </main>
+  </div>
+</main>
+
 
   <!-- JACKPOT CHART VIEW -->
   <main id="jackpot-view" class="bg-blue-100 min-h-screen <%= viewType === 'jackpot' ? '' : 'hidden' %>">

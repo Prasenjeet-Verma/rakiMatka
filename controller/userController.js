@@ -4562,62 +4562,51 @@ exports.getUserGameChartPage = async (req, res, next) => {
     }
 
     // ===============================
-    // ✅ STARLINE LOGIC (NEW)
-    // ===============================
+// ✅ STARLINE LOGIC (ONLY OPEN RESULTS)
+// ===============================
+let starlineResults = null;
+let starlineGames = [];
 
-    let starlineResults = null;
-    let starlineGames = [];
+if (viewType === "starline") {
+  starlineGames = await Game.find({
+    isDeleted: false,
+    isStarline: true,
+  })
+    .select("gameName")
+    .lean();
 
-    if (viewType === "starline") {
-      // 👇 Sirf Starline Games (Game collection se)
-      starlineGames = await Game.find({
-        isDeleted: false,
-        isStarline: true,
-      })
-        .select("gameName")
-        .lean();
+  const starlineGameNames = starlineGames.map((g) => g.gameName);
 
-      const starlineGameNames = starlineGames.map((g) => g.gameName);
+  // 👇 fetch only OPEN results
+  const results = await StarlineGameResult.find({
+    gameName: { $in: starlineGameNames },
+    session: "OPEN" // only open
+  })
+    .sort({ resultDate: -1 })
+    .lean();
 
-      // 👇 Sirf matching starline results lao
-      const results = await StarlineGameResult.find({
-        gameName: { $in: starlineGameNames },
-      })
-        .sort({ resultDate: -1 })
-        .lean();
+  starlineResults = {};
 
-      starlineResults = {};
-
-      results.forEach((result) => {
-        if (!starlineResults[result.resultDate]) {
-          starlineResults[result.resultDate] = {
-            weekday: result.resultWeekday,
-            games: {},
-          };
-        }
-
-        if (!starlineResults[result.resultDate].games[result.gameName]) {
-          starlineResults[result.resultDate].games[result.gameName] = {
-            open: null,
-            close: null,
-          };
-        }
-
-        if (result.session === "OPEN") {
-          starlineResults[result.resultDate].games[result.gameName].open = {
-            panna: result.panna,
-            digit: result.digit,
-          };
-        }
-
-        if (result.session === "CLOSE") {
-          starlineResults[result.resultDate].games[result.gameName].close = {
-            panna: result.panna,
-            digit: result.digit,
-          };
-        }
-      });
+  results.forEach((result) => {
+    if (!starlineResults[result.resultDate]) {
+      starlineResults[result.resultDate] = {
+        weekday: result.resultWeekday,
+        games: {},
+      };
     }
+
+    if (!starlineResults[result.resultDate].games[result.gameName]) {
+      starlineResults[result.resultDate].games[result.gameName] = {};
+    }
+
+    // only OPEN data
+    starlineResults[result.resultDate].games[result.gameName].open = {
+      panna: result.panna,
+      digit: result.digit,
+    };
+  });
+}
+
 
     res.render("User/userGameCharts", {
       user,
