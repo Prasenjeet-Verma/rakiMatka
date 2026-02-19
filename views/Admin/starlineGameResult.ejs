@@ -124,90 +124,67 @@
 
           <div class="bg-gray-50 p-4 md:p-8 space-y-10">
 
-            <div class="max-w-7xl mx-auto bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-              <div class="p-4 border-b border-gray-100">
-                <h2 class="text-lg font-medium text-gray-700">Today Results</h2>
-              </div>
-              <div class="overflow-x-auto custom-scrollbar">
-                <table class="min-w-full text-left border-collapse">
-                  <thead class="bg-gray-50 border-y border-gray-300">
-                    <tr class="text-gray-800 text-sm font-bold uppercase tracking-tight">
-                      <th class="p-3 border-r border-gray-300 w-12 text-center">#</th>
-                      <th class="p-3 border-r border-gray-300">Game Name</th>
-                      <th class="p-3 border-r border-gray-300">Result Date</th>
-                      <th class="p-3 border-r border-gray-300">Open Pana</th>
-                      <th class="p-3">Close Pana</th>
-                    </tr>
-                  </thead>
-                  <tbody class="text-sm">
-                    <% if (todayResults && todayResults.length> 0) { %>
-                      <% todayResults.forEach((row, index)=> { %>
-                        <tr class="border-b border-gray-200 <%= index === 0 ? 'bg-blue-50/30' : '' %>">
+<div class="max-w-7xl mx-auto bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+  <div class="p-4 border-b border-gray-100">
+    <h2 class="text-lg font-medium text-gray-700">Today Results</h2>
+  </div>
+  <div class="overflow-x-auto custom-scrollbar">
+    <table class="min-w-full text-left border-collapse">
+      <thead class="bg-gray-50 border-y border-gray-300">
+        <tr class="text-gray-800 text-sm font-bold uppercase tracking-tight">
+          <th class="p-3 border-r border-gray-300 w-12 text-center">#</th>
+          <th class="p-3 border-r border-gray-300">Game Name</th>
+          <th class="p-3 border-r border-gray-300">Result Date</th>
+          <th class="p-3">Open Pana</th>
+        </tr>
+      </thead>
+      <tbody class="text-sm">
+        <% if (todayResults && todayResults.length > 0) { %>
+          <% todayResults.forEach((row, index)=> { %>
+            <tr class="border-b border-gray-200 <%= index === 0 ? 'bg-blue-50/30' : '' %>">
 
-                          <td class="p-3 border-r border-gray-300 font-bold text-center">
-                            <%= index + 1 %>
-                          </td>
+              <td class="p-3 border-r border-gray-300 font-bold text-center">
+                <%= index + 1 %>
+              </td>
 
-                          <td class="p-3 border-r border-gray-300 font-extrabold uppercase">
-                            <%= row.gameName %>
-                          </td>
+              <td class="p-3 border-r border-gray-300 font-extrabold uppercase">
+                <%= row.gameName %>
+              </td>
 
-                          <td class="p-3 border-r border-gray-300 font-semibold">
-                            <%= row.resultDate %>
-                          </td>
+              <td class="p-3 border-r border-gray-300 font-semibold">
+                <%= row.resultDate %>
+              </td>
 
-                          <!-- OPEN -->
-                          <td class="p-3 border-r border-gray-300">
-                            <% if (row.open) { %>
-                              <div class="font-bold mb-2 text-base">
-                                <%= row.open.panna %>-<%= row.open.digit %>
-                              </div>
-                              <div class="flex flex-wrap gap-1">
-                                <button class="bg-yellow-500 text-white text-[10px] px-2 py-1 rounded font-bold">Show
-                                  Winners</button>
-                                <button class="bg-yellow-500 text-white text-[10px] px-2 py-1 rounded font-bold">Delete
-                                  Result</button>
-                                <button class="bg-yellow-500 text-white text-[10px] px-2 py-1 rounded font-bold">Bid
-                                  Revert</button>
-                              </div>
-                              <% } else { %>
-                                —
-                                <% } %>
-                          </td>
+              <!-- OPEN ONLY -->
+              <td class="p-3 border-r border-gray-300">
+                <% if (row.open) { %>
+                  <div class="font-bold mb-2 text-base">
+                    <%= row.open.panna %>-<%= row.open.digit %>
+                  </div>
+                  <div class="flex flex-wrap gap-1">
+                    <button class="bg-yellow-500 text-white text-[10px] px-2 py-1 rounded font-bold">Show Winners</button>
+                    <button class="bg-yellow-500 text-white text-[10px] px-2 py-1 rounded font-bold">Delete Result</button>
+                    <button class="bg-yellow-500 text-white text-[10px] px-2 py-1 rounded font-bold">Bid Revert</button>
+                  </div>
+                <% } else { %>
+                  —
+                <% } %>
+              </td>
 
-                          <!-- CLOSE -->
-                          <td class="p-3">
-                            <% if (row.close) { %>
-                              <div class="font-bold mb-2 text-base">
-                                <%= row.close.digit %>-<%= row.close.panna %>
-                              </div>
-                              <div class="flex flex-wrap gap-1">
-                                <button class="bg-yellow-500 text-white text-[10px] px-2 py-1 rounded font-bold">Show
-                                  Winners</button>
-                                <button class="bg-yellow-500 text-white text-[10px] px-2 py-1 rounded font-bold">Delete
-                                  Result</button>
-                                <button class="bg-yellow-500 text-white text-[10px] px-2 py-1 rounded font-bold">Bid
-                                  Revert</button>
-                              </div>
-                              <% } else { %>
-                                —
-                                <% } %>
-                          </td>
+            </tr>
+          <% }) %>
+        <% } else { %>
+          <tr>
+            <td colspan="4" class="p-6 text-center text-gray-500 font-semibold">
+              No results declared today
+            </td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
 
-                        </tr>
-                        <% }) %>
-                          <% } else { %>
-                            <tr>
-                              <td colspan="5" class="p-6 text-center text-gray-500 font-semibold">
-                                No results declared today
-                              </td>
-                            </tr>
-                            <% } %>
-                  </tbody>
-
-                </table>
-              </div>
-            </div>
 
           </div>
           <!-- =============================================== Modal is here ===================================== -->

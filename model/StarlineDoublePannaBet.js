@@ -24,7 +24,7 @@ const starlineDoublePannaItemSchema = new mongoose.Schema({
   /* 🔥 IMPORTANT (OPEN / CLOSE per panna) */
   mode: {
     type: String,
-    enum: ["OPEN", "CLOSE"],
+    enum: ["OPEN"],
     required: true,
   },
 

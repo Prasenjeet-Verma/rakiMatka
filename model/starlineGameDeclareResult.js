@@ -8,7 +8,7 @@ const starlineGameResultSchema = new mongoose.Schema({
 
   session: {
     type: String,
-    enum: ["OPEN", "CLOSE"],
+    enum: ["OPEN"],
     required: true
   },
 

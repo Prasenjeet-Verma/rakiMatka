@@ -32,7 +32,7 @@ const starlineSinglePannaItemSchema = new mongoose.Schema({
   // 🔥 MODE PER PANNA
   mode: {
     type: String,
-    enum: ["OPEN", "CLOSE"],
+    enum: ["OPEN"],
     required: true,
   },
   /* ================= RESULT ================= */

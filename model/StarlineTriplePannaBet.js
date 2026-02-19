@@ -22,7 +22,7 @@ const starlineTriplePannaItemSchema = new mongoose.Schema({
   },
   mode: {
     type: String,
-    enum: ["OPEN", "CLOSE"],
+    enum: ["OPEN"],
     required: true
   },
   resultStatus: {

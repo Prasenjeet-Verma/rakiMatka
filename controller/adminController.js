@@ -1376,11 +1376,7 @@ exports.updateGameRate = async (req, res) => {
 
 exports.gameResult = async (req, res) => {
   try {
-    if (
-      !req.session.isLoggedIn ||
-      !req.session.admin ||
-      req.session.admin.role !== "admin"
-    ) {
+    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
       return res.redirect("/admin/login");
     }
 
@@ -1395,11 +1391,8 @@ exports.gameResult = async (req, res) => {
       return res.redirect("/admin/login");
     }
 
-    // 🇮🇳 Today date (India)
-    const now = new Date().toLocaleString("en-US", {
-      timeZone: "Asia/Kolkata",
-    });
-    const todayDate = new Date(now).toISOString().split("T")[0];
+    // ✅ Today date in IST
+    const todayDate = DateTime.now().setZone("Asia/Kolkata").toFormat("yyyy-MM-dd");
 
     // fetch today's results
     const results = await GameResult.find({
@@ -1419,13 +1412,8 @@ exports.gameResult = async (req, res) => {
         };
       }
 
-      if (r.session === "OPEN") {
-        groupedResults[r.gameName].open = r;
-      }
-
-      if (r.session === "CLOSE") {
-        groupedResults[r.gameName].close = r;
-      }
+      if (r.session === "OPEN") groupedResults[r.gameName].open = r;
+      if (r.session === "CLOSE") groupedResults[r.gameName].close = r;
     });
 
     res.render("Admin/adminGameResult", {
@@ -2476,11 +2464,7 @@ exports.declareGameResult = async (req, res) => {
 //Jackpot result declaration
 exports.jackpotGameResult = async (req, res) => {
   try {
-    if (
-      !req.session.isLoggedIn ||
-      !req.session.admin ||
-      req.session.admin.role !== "admin"
-    ) {
+    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
       return res.redirect("/admin/login");
     }
 
@@ -2495,27 +2479,22 @@ exports.jackpotGameResult = async (req, res) => {
       return res.redirect("/admin/login");
     }
 
-    // 🇮🇳 Today date (India)
-    const now = new Date().toLocaleString("en-US", {
-      timeZone: "Asia/Kolkata",
-    });
-    const todayDate = new Date(now).toISOString().split("T")[0];
+    // ✅ TODAY DATE IN IST (exact same format as declared result)
+    const todayDate = DateTime.now().setZone("Asia/Kolkata").toFormat("yyyy-MM-dd");
 
     // fetch today's results
     const results = await JackpotGameResult.find({
       resultDate: todayDate,
     }).sort({ createdAt: 1 });
 
-    // 🔥 GROUP BY gameName
     // 🔥 GROUP BY gameName WITH RESULTS
     const groupedResults = {};
-
     results.forEach((r) => {
       if (!groupedResults[r.gameName]) {
         groupedResults[r.gameName] = {
           gameName: r.gameName,
           resultDate: r.resultDate,
-          results: [], // 👈 line by line store here
+          results: [],
         };
       }
 
@@ -2763,13 +2742,10 @@ exports.declareJackpotGameResult = async (req, res) => {
 };
 
 // Starline game result declaration and display
-exports.starlineGameResult = async (req, res) => {
+
+exports.starlineGameResult = async (req, res) => { 
   try {
-    if (
-      !req.session.isLoggedIn ||
-      !req.session.admin ||
-      req.session.admin.role !== "admin"
-    ) {
+    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
       return res.redirect("/admin/login");
     }
 
@@ -2784,52 +2760,36 @@ exports.starlineGameResult = async (req, res) => {
       return res.redirect("/admin/login");
     }
 
-    // 🇮🇳 Today date (India)
-    const now = new Date().toLocaleString("en-US", {
-      timeZone: "Asia/Kolkata",
-    });
-    const todayDate = new Date(now).toISOString().split("T")[0];
+    // ✅ TODAY DATE IN IST (Exact same format as declare function)
+    const todayDate = DateTime.now().setZone("Asia/Kolkata").toFormat("yyyy-MM-dd");
 
-    // fetch today's results
+    // ✅ Fetch only OPEN session results
     const results = await starlineGameDeclareResult
-      .find({
-        resultDate: todayDate,
-      })
+      .find({ resultDate: todayDate, session: "OPEN" })
       .sort({ createdAt: 1 });
 
-    // 🔥 GROUP BY gameName
+    // Group by gameName
     const groupedResults = {};
-
     results.forEach((r) => {
       if (!groupedResults[r.gameName]) {
-        groupedResults[r.gameName] = {
-          gameName: r.gameName,
-          resultDate: r.resultDate,
-          open: null,
-          close: null,
-        };
+        groupedResults[r.gameName] = { gameName: r.gameName, resultDate: r.resultDate, open: null };
       }
-
-      if (r.session === "OPEN") {
-        groupedResults[r.gameName].open = r;
-      }
-
-      if (r.session === "CLOSE") {
-        groupedResults[r.gameName].close = r;
-      }
+      groupedResults[r.gameName].open = r;
     });
 
     res.render("Admin/starlineGameResult", {
       pageTitle: "Admin Starline Game Result",
       admin,
       isLoggedIn: req.session.isLoggedIn,
-      todayResults: Object.values(groupedResults),
+      todayResults: Object.values(groupedResults)
     });
+
   } catch (err) {
     console.error("Admin Starline Game Result Error:", err);
     res.redirect("/admin/login");
   }
 };
+
 
 exports.getStarlinePendingGames = async (req, res) => {
   try {
@@ -5069,18 +5029,19 @@ exports.generateJackpotGameResult = async (req, res) => {
       const leftDigit = Math.floor(Math.random() * 10);
       const rightDigit = Math.floor(Math.random() * 10);
 
-      /* 🎯 Jodi */
-      const jodi = Number(`${leftDigit}${rightDigit}`);
+      /* 🎯 Jodi as 2-digit string */
+      const jodi = `${leftDigit}${rightDigit}`; // Always 2 digits
 
       results.push({
         gameName: game.gameName,
         left: leftDigit.toString(),
-        right: rightDigit,
+        right: rightDigit.toString(),
         jodi: jodi,
         resultDate: formattedDate,
         resultWeekday: weekday,
         resultTime: game.schedule?.[weekday.toLowerCase()]?.time || "",
       });
+
 
       start.setDate(start.getDate() + 1);
     }
