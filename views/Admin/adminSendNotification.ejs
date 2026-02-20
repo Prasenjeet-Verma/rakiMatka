@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  <link rel="stylesheet" href="/css/adminDashbord.css">
+
+  <style>
+    /* Custom scrollbar for the table wrapper */
+    .custom-scrollbar::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 10px;
+    }
+  </style>
+
+</head>
+
+<body class="flex min-h-screen">
+  <aside id="sidebar"
+    class="sidebar border-r border-gray-200 fixed inset-y-0 left-0 z-50 lg:relative lg:translate-x-0 transform -translate-x-full lg:block">
+    <div class="p-4">
+      <div class="relative mb-4">
+        <input type="text" placeholder="Search"
+          class="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
+        <button class="absolute right-0 top-0 bottom-0 px-3 bg-neutral-800 text-white rounded-r">
+          <i class="fas fa-search"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- ============================= Nav is here ============================ -->
+
+    <%- include('../partials/adminNav') %>
+  </aside>
+
+  <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+    <!-- ============================= Header is here ============================ -->
+    <%- include('../partials/adminHeader') %>
+
+      <header class="bg-white h-14 flex items-center justify-between px-4 border-b border-gray-200">
+      </header> <!-- header overflow done -->
+
+      <!-- ==================================== Body Start Here ========================================= -->
+      <main class="bg-gray-100 p-4 md:p-10 flex justify-center font-sans">
+
+        <div class="w-full max-w-4xl bg-white border border-gray-300 rounded shadow-sm overflow-hidden">
+
+          <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-xl font-medium text-gray-700">Send Notification</h2>
+          </div>
+
+          <form class="p-6 space-y-6" method="POST" action="/admin/send-notification">
+
+            <div>
+              <label class="block text-sm font-bold text-gray-800 mb-2">Notification Title:</label>
+              <input type="text" name="title" placeholder="Enter title..."
+                class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-400">
+            </div>
+
+            <div>
+              <label class="block text-sm font-bold text-gray-800 mb-2">Notification Description:</label>
+              <textarea rows="4" name="message" placeholder="Enter description..."
+                class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-400 resize-y"></textarea>
+            </div>
+
+            <!-- Hidden input for userId -->
+            <input type="hidden" name="userId" id="selected-user-id">
+
+            <div class="relative" id="search-container">
+              <label class="block text-sm font-bold text-gray-800 mb-2">Select User</label>
+
+              <div class="relative">
+                <input type="text" id="user-search" placeholder="Search User by Username"
+                  class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-400 pr-10">
+
+                <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-400">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                  </svg>
+                </div>
+              </div>
+
+              <ul id="results-list"
+                class="absolute z-10 w-full bg-white border border-gray-300 rounded mt-1 hidden max-h-48 overflow-y-auto shadow-lg">
+
+                <% user.forEach(u=> { %>
+                  <li data-id="<%= u._id %>" class="px-4 py-2 hover:bg-blue-50 cursor-pointer text-gray-700">
+                    <%= u.username %>
+                  </li>
+                  <% }) %>
+
+              </ul>
+            </div>
+
+            <div class="pt-2">
+              <button type="submit"
+                class="bg-[#EAB308] hover:bg-[#d4a007] text-white font-medium py-2 px-8 rounded transition-all shadow-sm">
+                Send Notification
+              </button>
+            </div>
+
+          </form>
+        </div>
+
+        <script>
+          const searchInput = document.getElementById('user-search');
+          const resultsList = document.getElementById('results-list');
+          const listItems = resultsList.querySelectorAll('li');
+          const hiddenUserId = document.getElementById('selected-user-id');
+
+          searchInput.addEventListener('focus', () => {
+            resultsList.classList.remove('hidden');
+          });
+
+          searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            hiddenUserId.value = ""; // clear id if typing manually
+
+            listItems.forEach(item => {
+              const text = item.textContent.toLowerCase();
+              item.style.display = text.includes(term) ? 'block' : 'none';
+            });
+          });
+
+          listItems.forEach(item => {
+            item.addEventListener('click', () => {
+              searchInput.value = item.textContent;
+              hiddenUserId.value = item.dataset.id;
+              resultsList.classList.add('hidden');
+            });
+          });
+
+          document.addEventListener('click', (e) => {
+            if (!document.getElementById('search-container').contains(e.target)) {
+              resultsList.classList.add('hidden');
+            }
+          });
+        </script>
+
+      </main>
+      <!-- ==================================== Body End Here ========================================= -->
+  </main>
+  <script src="/js/sidebar.js"></script>
+  <script src="/js/adminResult.js"></script>
+  <script src="/js/adminResultDOM.js"></script>
+</body>
+
+</html>

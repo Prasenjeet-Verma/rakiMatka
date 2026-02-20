@@ -148,9 +148,21 @@ adminRouter.post(
   "/admin/generate-jackpot-result",
   adminController.generateJackpotGameResult,
 );
-module.exports = adminRouter;
 
 // Notification routes
-adminRouter.get("/admin/bell-notifications", adminController.getAdminNotifications);
-adminRouter.post("/admin/bell-notifications", adminController.postAdminNotifications);
-adminRouter.post("/admin/delete-notification/:id", adminController.deleteNotification);
+adminRouter.get(
+  "/admin/bell-notifications",
+  adminController.getAdminNotifications,
+);
+adminRouter.post(
+  "/admin/bell-notifications",
+  adminController.postAdminNotifications,
+);
+adminRouter.post(
+  "/admin/delete-notification/:id",
+  adminController.deleteNotification,
+);
+
+adminRouter.get("/admin/send-notification", adminController.getSendNotificationPage);
+
+module.exports = adminRouter;

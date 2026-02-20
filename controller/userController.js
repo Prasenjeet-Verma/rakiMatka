@@ -6,7 +6,7 @@ const UserBankDetails = require("../model/UserBankDetails");
 const Game = require("../model/Game");
 const GameRate = require("../model/GameRate");
 const GameResult = require("../model/GameResult");
-const bellNotification = require("../model/bellNotification");
+const Notification = require("../model/bellNotification");
 const SingleDigitBet = require("../model/SingleDigitBet");
 const SingleBulkDigitBet = require("../model/SingleBulkDigitBet");
 const JodiDigitBet = require("../model/JodiDigitBet");
@@ -4627,7 +4627,7 @@ if (viewType === "starline") {
 
 exports.getUserBellNotificationsPage = async (req, res, next) => {
   try {
-    // 🔐 User Security Check
+
     if (
       !req.session.isLoggedIn ||
       !req.session.user ||
@@ -4647,19 +4647,45 @@ exports.getUserBellNotificationsPage = async (req, res, next) => {
       return res.redirect("/login");
     }
 
-    // Fetch notifications
-    const notifications = await bellNotification.find({})
-      .sort({ createdAt: -1 }) // latest first
-      .limit(20); // optional limit
+    // ✅ FIXED LINE
+    const notifications = await Notification.find({
+      user: req.session.user._id
+    })
+    .sort({ createdAt: -1 })
+    .limit(20);
 
     res.render("User/bellNotifications", {
       user,
       isLoggedIn: req.session.isLoggedIn,
-      notifications, // pass notifications to EJS
+      notifications,
     });
 
   } catch (err) {
     console.error(err);
     next(err);
+  }
+};
+
+exports.saveFcmToken = async (req, res) => {
+  try {
+    if (!req.session.user) {
+      return res.status(401).json({ success: false });
+    }
+
+    const { token } = req.body;
+
+    if (!token) {
+      return res.status(400).json({ success: false });
+    }
+
+    await User.findByIdAndUpdate(req.session.user._id, {
+      fcmToken: token
+    });
+
+    res.json({ success: true });
+
+  } catch (error) {
+    console.error("FCM Token Save Error:", error);
+    res.status(500).json({ success: false });
   }
 };

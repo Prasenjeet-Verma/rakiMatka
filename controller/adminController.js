@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const { check, validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const User = require("../model/userSchema");
+const admin = require("../config/firebase");
 const WalletTransaction = require("../model/WalletTransaction");
 const UserBankDetails = require("../model/UserBankDetails");
 const moment = require("moment-timezone");
@@ -10,7 +11,7 @@ const Game = require("../model/Game");
 const GameRate = require("../model/GameRate");
 const GameResult = require("../model/GameResult");
 const { isGameOpenNow } = require("../utils/gameStatus");
-const bellNotification = require("../model/bellNotification");
+const Notification = require("../model/bellNotification");
 const SingleDigitBet = require("../model/SingleDigitBet");
 const SingleBulkDigitBet = require("../model/SingleBulkDigitBet");
 const JodiDigitBet = require("../model/JodiDigitBet");
@@ -5091,14 +5092,14 @@ exports.getAdminNotifications = async (req, res) => {
       ? { title: { $regex: search, $options: "i" } } // case-insensitive search
       : {};
 
-    const total = await bellNotification.countDocuments(query);
+    const total = await Notification.countDocuments(query);
     const totalPages = Math.ceil(total / limit);
 
     // Ensure page is within bounds
     if (page > totalPages && totalPages > 0) page = totalPages;
     if (page < 1) page = 1;
 
-    const notifications = await bellNotification
+    const notifications = await Notification
       .find(query)
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
@@ -5161,7 +5162,7 @@ exports.postAdminNotifications = async (req, res) => {
     // 🔥 Make title uppercase
     title = title.toUpperCase();
 
-    const notification = new bellNotification({
+    const notification = new Notification({
       title: title,
       message: message,
     });
@@ -5199,18 +5200,119 @@ exports.deleteNotification = async (req, res) => {
     // ================= DELETE NOTIFICATION =================
     const notificationId = req.params.id;
 
-    const notification = await bellNotification.findById(notificationId);
+    const notification = await Notification.findById(notificationId);
     if (!notification) {
       req.flash("error", "Notification not found");
       return res.redirect("/admin/bell-notifications");
     }
 
-    await bellNotification.findByIdAndDelete(notificationId);
+    await Notification.findByIdAndDelete(notificationId);
     res.redirect("/admin/bell-notifications");
 
   } catch (error) {
     console.error("Delete Notification Error:", error);
     req.flash("error", "Server error, could not delete notification");
     return res.redirect("/admin/bell-notifications");
+  }
+};
+
+exports.getSendNotificationPage = async (req, res) => {
+  try {
+    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    });
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    const user = await User.find({
+      role: "user",
+      userStatus: "active",
+    });
+
+    res.render("Admin/adminSendNotification", {
+      pageTitle: "Send Notification",
+      admin,
+      user,
+      isLoggedIn: req.session.isLoggedIn,
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server Error");
+  }
+};
+
+exports.sendNotification = async (req, res) => {
+  try {
+    const { title, message, userId } = req.body;
+
+    if (!title || !message) {
+      return res.redirect("/admin/send-notification");
+    }
+
+    // 🎯 Specific user
+    if (userId) {
+      const user = await User.findById(userId);
+
+      if (user?.fcmToken) {
+        await admin.messaging().send({
+          token: user.fcmToken,
+          notification: {
+            title: title,
+            body: message,
+          },
+        });
+      }
+
+      await Notification.create({
+        title,
+        message,
+        user: userId
+      });
+
+      return res.redirect("/admin/send-notification");
+    }
+
+    // 🌍 Send to all users
+    const users = await User.find({
+      role: "user",
+      userStatus: "active",
+      fcmToken: { $ne: null }
+    });
+
+    const tokens = users.map(u => u.fcmToken);
+
+    if (tokens.length > 0) {
+      await admin.messaging().sendEachForMulticast({
+        tokens: tokens,
+        notification: {
+          title: title,
+          body: message,
+        },
+      });
+    }
+
+    const notifications = users.map(u => ({
+      title,
+      message,
+      user: u._id
+    }));
+
+    await Notification.insertMany(notifications);
+
+    res.redirect("/admin/send-notification");
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server Error");
   }
 };

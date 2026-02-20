@@ -49,4 +49,7 @@ userRouter.get("/user-bid-history", userController.getUserBidHistory);
 userRouter.get("/userGameChart", userController.getUserGameChartPage);
 // User Notifications Route
 userRouter.get("/bell-notifications", userController.getUserBellNotificationsPage);
+userRouter.post('/save-fcm-token', userController.saveFcmToken);
+
+
 module.exports = userRouter;

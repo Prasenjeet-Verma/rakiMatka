@@ -30,7 +30,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: "default.png", // optional
   },
-  wallet: { type: Number, default: 0 }
+  wallet: { type: Number, default: 0 },
+  fcmToken: {
+  type: String
+}
 }, { timestamps: true });
 
 module.exports = mongoose.model("User", userSchema);
