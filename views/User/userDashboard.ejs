@@ -850,36 +850,47 @@
     storageBucket: "matka-7f973.firebasestorage.app",
     messagingSenderId: "428729119315",
     appId: "1:428729119315:web:fe6823a4fab66107f5cca6",
-    measurementId: "G-6RPXYF685X"
   };
 
   firebase.initializeApp(firebaseConfig);
   const messaging = firebase.messaging();
 
-  // Register Service Worker
-  navigator.serviceWorker.register("/firebase-messaging-sw.js")
-    .then(() => console.log("Service Worker Registered"));
+  async function initFCM() {
+    try {
+      const registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
 
-  // Ask permission
-  async function requestPermission() {
-    const permission = await Notification.requestPermission();
+      const permission = await Notification.requestPermission();
 
-    if (permission === "granted") {
+      if (permission !== "granted") {
+        console.log("❌ Notification permission denied");
+        return;
+      }
+
       const token = await messaging.getToken({
-        vapidKey: "BNW7SrgQ2oEbKZlcYcy0g_DgkJzITRQKL8PMlvgXjDaOxAtG72zHWQMN0BA2JGkVJi1uox4lzm6_UFCmsBqR1iU"
+        vapidKey: "BNW7SrgQ2oEbKZlcYcy0g_DgkJzITRQKL8PMlvgXjDaOxAtG72zHWQMN0BA2JGkVJi1uox4lzm6_UFCmsBqR1iU",
+        serviceWorkerRegistration: registration
       });
 
-      console.log("FCM Token:", token);
+      if (token) {
+        console.log("✅ FCM Token:", token);
 
-      await fetch("/user/save-fcm-token", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token })
-      });
+        await fetch("/user/save-fcm-token", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token })
+        });
+
+        console.log("✅ Token sent to backend");
+      } else {
+        console.log("❌ No token generated");
+      }
+
+    } catch (error) {
+      console.error("🔥 FCM Init Error:", error);
     }
   }
 
-  requestPermission();
+  initFCM();
 </script>
   <script src="/js/user.js"></script>
 </body>

@@ -2744,7 +2744,7 @@ exports.declareJackpotGameResult = async (req, res) => {
 
 // Starline game result declaration and display
 
-exports.starlineGameResult = async (req, res) => { 
+exports.starlineGameResult = async (req, res) => {
   try {
     if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
       return res.redirect("/admin/login");
@@ -5253,24 +5253,44 @@ exports.getSendNotificationPage = async (req, res) => {
 
 exports.sendNotification = async (req, res) => {
   try {
+        console.log("🔥 sendNotification route hit");
+    console.log("📦 BODY:", req.body);
     const { title, message, userId } = req.body;
 
     if (!title || !message) {
+      console.log("❌ Title or message missing");
       return res.redirect("/admin/send-notification");
     }
 
-    // 🎯 Specific user
+    // 🎯 ===============================
+    // 🎯 SEND TO SPECIFIC USER
+    // 🎯 ===============================
     if (userId) {
+
       const user = await User.findById(userId);
 
-      if (user?.fcmToken) {
-        await admin.messaging().send({
-          token: user.fcmToken,
-          notification: {
-            title: title,
-            body: message,
-          },
-        });
+      if (!user) {
+        console.log("❌ User not found");
+        return res.redirect("/admin/send-notification");
+      }
+
+      if (user.fcmToken) {
+        try {
+          const response = await admin.messaging().send({
+            token: user.fcmToken,
+            notification: {
+              title: title,
+              body: message,
+            },
+          });
+
+          console.log("✅ FCM Response (Single User):", response);
+
+        } catch (fcmError) {
+          console.error("🔥 FCM Error (Single User):", fcmError.message);
+        }
+      } else {
+        console.log("❌ User has no FCM token");
       }
 
       await Notification.create({
@@ -5282,37 +5302,67 @@ exports.sendNotification = async (req, res) => {
       return res.redirect("/admin/send-notification");
     }
 
-    // 🌍 Send to all users
+    // 🌍 ===============================
+    // 🌍 SEND TO ALL USERS
+    // 🌍 ===============================
+
     const users = await User.find({
       role: "user",
       userStatus: "active",
-      fcmToken: { $ne: null }
+      fcmToken: { $exists: true, $ne: null }
     });
 
     const tokens = users.map(u => u.fcmToken);
 
+    console.log("📦 Total Active Users with Token:", tokens.length);
+
     if (tokens.length > 0) {
-      await admin.messaging().sendEachForMulticast({
-        tokens: tokens,
-        notification: {
-          title: title,
-          body: message,
-        },
-      });
+      try {
+        const response = await admin.messaging().sendEachForMulticast({
+          tokens: tokens,
+          notification: {
+            title,
+            body: message,
+          },
+        });
+
+        console.log("✅ FCM Multicast Response:");
+        console.log("✔ Success:", response.successCount);
+        console.log("❌ Failure:", response.failureCount);
+
+        if (response.failureCount > 0) {
+          response.responses.forEach((resp, idx) => {
+            if (!resp.success) {
+              console.error(
+                `❌ Failed Token: ${tokens[idx]} →`,
+                resp.error.message
+              );
+            }
+          });
+        }
+
+      } catch (fcmError) {
+        console.error("🔥 FCM Multicast Error:", fcmError.message);
+      }
+    } else {
+      console.log("❌ No users with valid FCM tokens found");
     }
 
+    // Save notification in DB
     const notifications = users.map(u => ({
       title,
       message,
       user: u._id
     }));
 
-    await Notification.insertMany(notifications);
+    if (notifications.length > 0) {
+      await Notification.insertMany(notifications);
+    }
 
-    res.redirect("/admin/send-notification");
+    return res.redirect("/admin/send-notification");
 
   } catch (error) {
-    console.error(error);
+    console.error("🚨 Server Error:", error);
     res.status(500).send("Server Error");
   }
 };

@@ -4683,7 +4683,8 @@ exports.saveFcmToken = async (req, res) => {
     });
 
     res.json({ success: true });
-
+console.log("Saving token for user:", req.session.user._id);
+console.log("Token:", token);
   } catch (error) {
     console.error("FCM Token Save Error:", error);
     res.status(500).json({ success: false });

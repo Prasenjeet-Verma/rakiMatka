@@ -31,8 +31,9 @@ const userSchema = new mongoose.Schema({
     default: "default.png", // optional
   },
   wallet: { type: Number, default: 0 },
-  fcmToken: {
-  type: String
+fcmToken: {
+  type: String,
+  default: null
 }
 }, { timestamps: true });
 
