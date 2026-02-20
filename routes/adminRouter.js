@@ -164,5 +164,6 @@ adminRouter.post(
 );
 
 adminRouter.get("/admin/send-notification", adminController.getSendNotificationPage);
+adminRouter.post("/admin/send-notification", adminController.sendNotification);
 
 module.exports = adminRouter;
