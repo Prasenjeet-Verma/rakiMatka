@@ -2882,14 +2882,16 @@ exports.getStarlinePendingGames = async (req, res) => {
       resultMap[r.gameName].add(r.session);
     });
 
-    // --------- FILTER PENDING GAMES ----------
-    const pendingGames = allGameNames.filter((gameName) => {
-      const sessionsDone = resultMap[gameName];
-      // no result at all
-      if (!sessionsDone) return true;
-      // missing OPEN or CLOSE
-      return !(sessionsDone.has("OPEN") && sessionsDone.has("CLOSE"));
-    });
+// --------- FILTER PENDING GAMES (OPEN ONLY) ----------
+const pendingGames = allGameNames.filter((gameName) => {
+  const sessionsDone = resultMap[gameName];
+
+  // agar koi result hi nahi declared → show karo
+  if (!sessionsDone) return true;
+
+  // agar OPEN already declared hai → hide karo
+  return !sessionsDone.has("OPEN");
+});
 
     return res.json({ success: true, games: pendingGames });
   } catch (err) {
