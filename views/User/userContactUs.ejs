@@ -1,81 +1,99 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Contact Us</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-        <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-    />
-  </head>
-  <body class="bg-gray-100 min-h-screen">
-    <!-- HEADER -->
-    <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
-      <div class="flex items-center gap-3">
-        <a href="/userdashboard"><i class="fa-solid fa-arrow-left text-xl cursor-pointer"></i></a>
-        <h1 class="text-lg font-semibold">Contact Us</h1>
-      </div>
-    </header>
 
-    <!-- CONTENT -->
-    <div class="p-4 space-y-5">
-      <!-- WhatsApp -->
-      <div class="flex items-center gap-4 bg-white p-4 rounded-xl shadow-md">
-        <div
-          class="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center"
-        >
-          <img
-            src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
-            class="w-8 h-8"
-            alt="WhatsApp"
-          />
-        </div>
-        <div>
-          <p class="font-semibold text-gray-800">Chat Us:</p>
-          <p class="text-gray-600">6375533409</p>
-        </div>
-      </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact Us</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+</head>
 
-      <!-- Email -->
-      <div class="flex items-center gap-4 bg-white p-4 rounded-xl shadow-md">
-        <div
-          class="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center"
-        >
-          <img
-            src="https://upload.wikimedia.org/wikipedia/commons/4/4e/Gmail_Icon.png"
-            class="w-8 h-8"
-            alt="Email"
-          />
-        </div>
-        <div>
-          <p class="font-semibold text-gray-800">Email Us:</p>
-          <p class="text-gray-600">tirupatimatkaa@gmail.com</p>
-        </div>
-      </div>
+<body class="bg-gray-100 min-h-screen">
+  <!-- HEADER -->
+  <header class="bg-teal-800 text-white px-4 py-5 rounded-b-3xl">
+    <div class="flex items-center gap-3">
+      <a href="/userdashboard"><i class="fa-solid fa-arrow-left text-xl cursor-pointer"></i></a>
+      <h1 class="text-lg font-semibold">Contact Us</h1>
+    </div>
+  </header>
 
-      <!-- Call -->
-      <div class="flex items-center gap-4 bg-white p-4 rounded-xl shadow-md">
-        <div
-          class="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="w-7 h-7 text-emerald-700"
-            fill="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 011 1v3.5a1 1 0 01-1 1C10.07 21 3 13.93 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.46.57 3.59a1 1 0 01-.24 1.01l-2.2 2.19z"
-            />
-          </svg>
-        </div>
-        <div>
-          <p class="font-semibold text-gray-800">Call Us:</p>
-          <p class="text-gray-600">6375533409</p>
-        </div>
+  <!-- CONTENT -->
+  <div class="p-4 space-y-5">
+
+     <!-- WhatsApp Chat -->
+  <a href="https://wa.me/<%= contactDetails?.whatsappNumber || '' %>"
+     target="_blank"
+     class="block">
+    <div class="flex items-center gap-4 bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition">
+      <div class="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
+             class="w-8 h-8" alt="WhatsApp" />
+      </div>
+      <div>
+        <p class="font-semibold text-gray-800">Chat Us:</p>
+        <p class="text-gray-600">
+          <%= contactDetails?.whatsappNumber || "Not Available" %>
+        </p>
       </div>
     </div>
-  </body>
+  </a>
+
+  <!-- Call -->
+  <a href="tel:<%= contactDetails?.callNumber || '' %>"
+     class="block">
+     
+    <div class="flex items-center gap-4 bg-white p-4 rounded-xl shadow-md hover:shadow-lg transition mb-6">
+      <div class="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg"
+             class="w-7 h-7 text-emerald-700"
+             fill="currentColor"
+             viewBox="0 0 24 24">
+          <path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 011 1v3.5a1 1 0 01-1 1C10.07 21 3 13.93 3 5a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.46.57 3.59a1 1 0 01-.24 1.01l-2.2 2.19z"/>
+        </svg>
+      </div>
+      <div>
+        <p class="font-semibold text-gray-800">Call Us:</p>
+        <p class="text-gray-600">
+          <%= contactDetails?.callNumber || "Not Available" %>
+        </p>
+      </div>
+    </div>
+  </a>
+
+    <!-- Telegram Group -->
+    <a href="<%= contactDetails?.telegramGroupLink || '#' %>" target="_blank" class="text-blue-600 break-all">
+      <div class="flex items-center gap-4 bg-white p-4 rounded-xl shadow-md mb-6">
+        <div class="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" class="w-8 h-8"
+            alt="Telegram" />
+        </div>
+        <div>
+          <p class="font-semibold text-gray-800">Telegram Group:</p>
+
+          <%= contactDetails?.telegramGroupLink || "Not Available" %>
+        </div>
+      </div>
+    </a>
+
+    <!-- WhatsApp Group -->
+    <a href="<%= contactDetails?.whatsappGroupLink || '#' %>" target="_blank" class="text-green-600 break-all">
+      <div class="flex items-center gap-4 bg-white p-4 rounded-xl shadow-md">
+        <div class="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" class="w-8 h-8"
+            alt="WhatsApp Group" />
+        </div>
+        <div>
+          <p class="font-semibold text-gray-800">WhatsApp Group:</p>
+
+          <%= contactDetails?.whatsappGroupLink || "Not Available" %>
+        </div>
+      </div>
+    </a>
+
+
+  </div>
+
+</body>
+
 </html>

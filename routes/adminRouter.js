@@ -177,4 +177,44 @@ adminRouter.post(
 
 adminRouter.get("/admin/WinningHistory", adminController.getWinningHistoryPage);
 adminRouter.get("/admin/BidHistory", adminController.getBidHistoryPage);
+
+adminRouter.get("/admin/contact-admin", adminController.getContactUsDetailsPage);
+adminRouter.post("/admin/contact-admin", adminController.updateContactUsDetails);
+
+
+
+// Manual deposit methods routes
+const multer = require("multer");
+const path = require("path");
+
+const upload = multer({
+  dest: "temp/",
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png/;
+    const ext = allowedTypes.test(
+      path.extname(file.originalname).toLowerCase()
+    );
+    const mime = allowedTypes.test(file.mimetype);
+
+    if (ext && mime) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only JPG, JPEG, PNG allowed"));
+    }
+  },
+});
+
+adminRouter.get("/admin/manual-deposit-methods", adminController.getManualDepositMethodsPage);
+
+adminRouter.post(
+  "/admin/manual-deposit-methods",
+  upload.single("qrImage"),
+  adminController.postManualDepositMethods
+);
+
+adminRouter.post(
+  "/admin/delete-manual-deposit/:id",
+  adminController.deleteManualDeposit
+);
+
 module.exports = adminRouter;

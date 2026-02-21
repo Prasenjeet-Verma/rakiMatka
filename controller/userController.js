@@ -7,6 +7,7 @@ const Game = require("../model/Game");
 const GameRate = require("../model/GameRate");
 const GameResult = require("../model/GameResult");
 const bellNotification = require("../model/normalNotification");
+const ContactAdmin = require("../model/contactAdmin");
 const SingleDigitBet = require("../model/SingleDigitBet");
 const SingleBulkDigitBet = require("../model/SingleBulkDigitBet");
 const JodiDigitBet = require("../model/JodiDigitBet");
@@ -719,7 +720,6 @@ exports.postForgetUserPassword = async (req, res, next) => {
 
 exports.getUserContactAdminPage = async (req, res, next) => {
   try {
-    // 🔐 User Security Check
     if (
       !req.session.isLoggedIn ||
       !req.session.user ||
@@ -739,16 +739,20 @@ exports.getUserContactAdminPage = async (req, res, next) => {
       return res.redirect("/login");
     }
 
-    // Optional: admin info (for header/support)
     const admin = await User.findOne({ role: "admin" }).select(
-      "username phoneNo profilePhoto",
+      "username phoneNo profilePhoto"
     );
+
+    // 🔥 GET CONTACT DETAILS FROM DB
+    const contactDetails = await ContactAdmin.findOne().lean();
 
     res.render("User/userContactUs", {
       user,
       admin,
+      contactDetails,
       isLoggedIn: req.session.isLoggedIn,
     });
+
   } catch (err) {
     console.error("userContactAdmin Error:", err);
     next(err);

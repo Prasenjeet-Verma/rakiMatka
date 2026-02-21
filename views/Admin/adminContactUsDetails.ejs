@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  <link rel="stylesheet" href="/css/adminDashbord.css">
+
+  <style>
+    /* Custom scrollbar for the table wrapper */
+    .custom-scrollbar::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 10px;
+    }
+  </style>
+
+</head>
+
+<body class="flex min-h-screen">
+  <aside id="sidebar"
+    class="sidebar border-r border-gray-200 fixed inset-y-0 left-0 z-50 lg:relative lg:translate-x-0 transform -translate-x-full lg:block">
+    <div class="p-4">
+      <div class="relative mb-4">
+        <input type="text" placeholder="Search"
+          class="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
+        <button class="absolute right-0 top-0 bottom-0 px-3 bg-neutral-800 text-white rounded-r">
+          <i class="fas fa-search"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- ============================= Nav is here ============================ -->
+
+    <%- include('../partials/adminNav') %>
+  </aside>
+
+  <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+    <!-- ============================= Header is here ============================ -->
+    <%- include('../partials/adminHeader') %>
+
+      <header class="bg-white h-14 flex items-center justify-between px-4 border-b border-gray-200">
+      </header> <!-- header overflow done -->
+
+      <!-- ==================================== Body Start Here ========================================= -->
+
+      <main class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+        <div class="w-full max-w-4xl bg-white rounded-md border border-gray-300 shadow-sm overflow-hidden">
+
+          <div class="px-6 py-4 border-b border-gray-200">
+            <h1 class="text-lg font-semibold text-gray-700">Contact Us</h1>
+          </div>
+
+<form action="/admin/contact-admin" method="POST" class="p-6 space-y-5">
+
+  <!-- Success Message -->
+  <% if (successMessage) { %>
+    <div id="successMsg" class="bg-green-100 text-green-700 px-4 py-2 rounded text-sm">
+      <%= successMessage %>
+    </div>
+  <% } %>
+
+  <div>
+    <label class="block text-sm font-bold text-gray-800 mb-2">Whatsapp</label>
+    <input type="text" name="whatsappNumber"
+      value="<%= contactDetails?.whatsappNumber || '' %>"
+      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-gray-600">
+  </div>
+
+  <div>
+    <label class="block text-sm font-bold text-gray-800 mb-2">Call number</label>
+    <input type="text" name="callNumber"
+      value="<%= contactDetails?.callNumber || '' %>"
+      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-gray-600">
+  </div>
+
+  <div>
+    <label class="block text-sm font-bold text-gray-800 mb-2">Telegram group</label>
+    <input type="text" name="telegramGroupLink"
+      value="<%= contactDetails?.telegramGroupLink || '' %>"
+      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-gray-600">
+  </div>
+
+  <div>
+    <label class="block text-sm font-bold text-gray-800 mb-2">Whatsapp group</label>
+    <input type="text" name="whatsappGroupLink"
+      value="<%= contactDetails?.whatsappGroupLink || '' %>"
+      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-gray-600">
+  </div>
+
+  <div class="pt-2">
+    <button type="submit"
+      class="bg-[#edb931] hover:bg-[#d4a52a] text-white font-medium py-2 px-6 rounded shadow-sm transition-colors duration-200">
+      Update
+    </button>
+  </div>
+
+</form>
+        </div>
+
+      </main>
+      <!-- ==================================== Body End Here ========================================= -->
+  </main>
+  <script>
+  // auto hide success message after 3 seconds
+  const msg = document.getElementById("successMsg");
+  if (msg) {
+    setTimeout(() => {
+      msg.style.display = "none";
+    }, 3000);
+  }
+</script>
+  <script src="js/sidebar.js"></script>
+  <!-- <script src="js/adminResult.js"></script>
+  <script src="js/adminResultDOM.js"></script> -->
+</body>
+
+</html>

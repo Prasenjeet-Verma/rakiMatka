@@ -11,7 +11,6 @@ const Game = require("../model/Game");
 const GameRate = require("../model/GameRate");
 const GameResult = require("../model/GameResult");
 const { isGameOpenNow } = require("../utils/gameStatus");
-// const Notification = require("../model/bellNotification");
 const bellNotification = require("../model/normalNotification");
 const SingleDigitBet = require("../model/SingleDigitBet");
 const SingleBulkDigitBet = require("../model/SingleBulkDigitBet");
@@ -2882,16 +2881,16 @@ exports.getStarlinePendingGames = async (req, res) => {
       resultMap[r.gameName].add(r.session);
     });
 
-// --------- FILTER PENDING GAMES (OPEN ONLY) ----------
-const pendingGames = allGameNames.filter((gameName) => {
-  const sessionsDone = resultMap[gameName];
+    // --------- FILTER PENDING GAMES (OPEN ONLY) ----------
+    const pendingGames = allGameNames.filter((gameName) => {
+      const sessionsDone = resultMap[gameName];
 
-  // agar koi result hi nahi declared → show karo
-  if (!sessionsDone) return true;
+      // agar koi result hi nahi declared → show karo
+      if (!sessionsDone) return true;
 
-  // agar OPEN already declared hai → hide karo
-  return !sessionsDone.has("OPEN");
-});
+      // agar OPEN already declared hai → hide karo
+      return !sessionsDone.has("OPEN");
+    });
 
     return res.json({ success: true, games: pendingGames });
   } catch (err) {
@@ -6127,5 +6126,209 @@ exports.getBidHistoryPage = async (req, res, next) => {
   } catch (err) {
     console.error("ADMIN BID HISTORY ERROR:", err);
     next(err);
+  }
+};
+
+const ContactAdmin = require("../model/contactAdmin");
+exports.getContactUsDetailsPage = async (req, res) => {
+  try {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    }).lean();
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    const contactDetails = await ContactAdmin.findOne().lean();
+
+    res.render("Admin/adminContactUsDetails", {
+      pageTitle: "Contact Us Details",
+      admin,
+      contactDetails,
+      successMessage: req.session.successMessage || null,
+      isLoggedIn: req.session.isLoggedIn,
+    });
+
+    req.session.successMessage = null;
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server Error");
+  }
+};
+
+exports.updateContactUsDetails = async (req, res) => {
+  try {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    }).lean();
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    const { whatsappNumber, callNumber, telegramGroupLink, whatsappGroupLink } =
+      req.body;
+
+    let existing = await ContactAdmin.findOne();
+
+    if (existing) {
+      existing.whatsappNumber = whatsappNumber;
+      existing.callNumber = callNumber;
+      existing.telegramGroupLink = telegramGroupLink;
+      existing.whatsappGroupLink = whatsappGroupLink;
+      await existing.save();
+    } else {
+      await ContactAdmin.create({
+        whatsappNumber,
+        callNumber,
+        telegramGroupLink,
+        whatsappGroupLink,
+      });
+    }
+
+    req.session.successMessage = "Contact details saved successfully!";
+    return res.redirect("/admin/contact-admin");
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server Error");
+  }
+};
+
+const ManualDeposit = require("../model/ManualDeposit");
+const uploadToPhpServer = require("../utils/uploadToPhpServer");
+const fs = require("fs");
+
+exports.getManualDepositMethodsPage = async (req, res) => {
+  try {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    }).lean();
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    // 🔥 Fetch All Deposit Methods
+    const depositMethods = await ManualDeposit.find()
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.render("Admin/adminManualDepositMethods", {
+      pageTitle: "Manual Deposit Methods",
+      admin,
+      depositMethods, // 👈 send to view
+      isLoggedIn: req.session.isLoggedIn,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server Error");
+  }
+};
+
+
+exports.postManualDepositMethods = async (req, res) => {
+  try {
+        if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    }).lean();
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+    const { upiId, bankDetails } = req.body;
+
+    let qrImageUrl = "";
+
+    if (req.file) {
+      // upload to PHP server
+      qrImageUrl = await uploadToPhpServer(req.file.path);
+
+      // delete temp file from node server
+      fs.unlinkSync(req.file.path);
+    }
+
+    // Save in DB
+    await ManualDeposit.create({
+      qrImage: qrImageUrl,
+      upiId,
+      bankDetails,
+    });
+
+    res.redirect("/admin/manual-deposit-methods");
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Upload failed");
+  }
+};
+
+exports.deleteManualDeposit = async (req, res) => {
+  try {
+        if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    }).lean();
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+    await ManualDeposit.findByIdAndDelete(req.params.id);
+    res.redirect("/admin/manual-deposit-methods");
+  } catch (error) {
+    console.error(error);
+    res.redirect("/admin/manual-deposit-methods");
   }
 };
