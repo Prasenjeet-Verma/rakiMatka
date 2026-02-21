@@ -215,9 +215,9 @@
                   <% } }); %>
 
                     Search:
-                    <input type="text" name="tableSearch" value="<%= filters?.tableSearch || '' %>" 
-  oninput="this.form.submit()" placeholder="Username & Game"
-  class="border p-1 rounded outline-none focus:ring-1 focus:ring-blue-400">
+                    <input type="text" name="tableSearch" value="<%= filters?.tableSearch || '' %>"
+                      oninput="this.form.submit()" placeholder="Username & Game"
+                      class="border p-1 rounded outline-none focus:ring-1 focus:ring-blue-400">
               </form>
             </div>
           </div>
@@ -240,64 +240,86 @@
                   <th class="p-2 border">Action</th>
                 </tr>
               </thead>
-           <tbody class="divide-y divide-gray-200">
-  <% if (bids.length === 0) { %>
-    <tr>
-      <td colspan="12" class="text-center p-4">No Data Found</td>
-    </tr>
-  <% } %>
+              <tbody class="divide-y divide-gray-200">
+                <% if (bids.length===0) { %>
+                  <tr>
+                    <td colspan="12" class="text-center p-4">No Data Found</td>
+                  </tr>
+                  <% } %>
 
-  <% bids.forEach(b => { 
-     const amount =
-       b.amount ??
-       b.totalPoints ??
-       b.totalAmount ??
-       b.amountPerUnderNo ??
-       b.perUnderNosPoints ??
-       0;
-  %>
-  <tr class="hover:bg-gray-50">
-    <td class="p-2 border"><%= b.playedDate %></td>
-    <td class="p-2 border"><%= b.gameType %></td>
-    <td class="p-2 border font-bold"><%= b.mainGame || '-' %></td>
-    <td class="p-2 border"><%= b.session || '-' %></td>
-    <td class="p-2 border"><%= b.gameName || '-' %></td>
-    <td class="p-2 border font-mono"><%= b.number || '-' %></td>
-    <td class="p-2 border"><%= amount %></td>
-    <td class="p-2 border"><%= b.status || 'Pending' %></td>
-    <td class="p-2 border"><%= b.userId?.username %></td>
-    <td class="p-2 border"><%= b.userId?.phoneNo || '-' %></td>
-    <td class="p-2 border"><%= new Date(b.createdAt).toLocaleString() %></td>
-    <td class="p-2 border text-center">
-<button 
-  onclick="openModal('<%= b._id %>','<%= b.mainGame %>','<%= b.number %>','<%= amount %>')"
-  class="bg-[#f39c12] hover:bg-[#e67e22] text-white px-3 py-1 rounded text-xs">
-  Edit
-</button>
-    </td>
-  </tr>
-  <% }) %>
-</tbody>
+                    <% bids.forEach(b=> {
+                      const amount =
+                      b.amount ??
+                      b.totalPoints ??
+                      b.totalAmount ??
+                      b.amountPerUnderNo ??
+                      b.perUnderNosPoints ??
+                      0;
+                      %>
+                      <tr class="hover:bg-gray-50">
+                        <td class="p-2 border">
+                          <%= b.playedDate %>
+                        </td>
+                        <td class="p-2 border">
+                          <%= b.gameType %>
+                        </td>
+                        <td class="p-2 border font-bold">
+                          <%= b.mainGame || '-' %>
+                        </td>
+                        <td class="p-2 border">
+                          <%= b.session || '-' %>
+                        </td>
+                        <td class="p-2 border">
+                          <%= b.gameName || '-' %>
+                        </td>
+                        <td class="p-2 border font-mono">
+                          <%= b.number || '-' %>
+                        </td>
+                        <td class="p-2 border">
+                          <%= amount %>
+                        </td>
+                        <td class="p-2 border">
+                          <%= b.status || 'Pending' %>
+                        </td>
+                        <td class="p-2 border">
+                          <%= b.userId?.username %>
+                        </td>
+                        <td class="p-2 border">
+                          <%= b.userId?.phoneNo || '-' %>
+                        </td>
+                        <td class="p-2 border">
+                          <%= new Date(b.createdAt).toLocaleString() %>
+                        </td>
+                        <td class="p-2 border text-center">
+                          <button
+                            onclick="openModal('<%= b._id %>','<%= b.mainGame %>','<%= b.number %>','<%= amount %>')"
+                            class="bg-[#f39c12] hover:bg-[#e67e22] text-white px-3 py-1 rounded text-xs">
+                            Edit
+                          </button>
+                        </td>
+                      </tr>
+                      <% }) %>
+              </tbody>
             </table>
             <div class="p-3 flex justify-between items-center text-sm border-t">
 
-  <div>
-    Showing page <%= currentPage %> of <%= totalPages %>
-  </div>
+              <div>
+                Showing page <%= currentPage %> of <%= totalPages %>
+              </div>
 
-  <div class="flex gap-2">
-    <% if (currentPage > 1) { %>
-      <a href="?<%= new URLSearchParams({...filters, page: currentPage-1}).toString() %>"
-        class="px-3 py-1 border rounded">Previous</a>
-    <% } %>
+              <div class="flex gap-2">
+                <% if (currentPage> 1) { %>
+                  <a href="?<%= new URLSearchParams({...filters, page: currentPage-1}).toString() %>"
+                    class="px-3 py-1 border rounded">Previous</a>
+                  <% } %>
 
-    <% if (currentPage < totalPages) { %>
-      <a href="?<%= new URLSearchParams({...filters, page: currentPage+1}).toString() %>"
-        class="px-3 py-1 border rounded">Next</a>
-    <% } %>
-  </div>
+                    <% if (currentPage < totalPages) { %>
+                      <a href="?<%= new URLSearchParams({...filters, page: currentPage+1}).toString() %>"
+                        class="px-3 py-1 border rounded">Next</a>
+                      <% } %>
+              </div>
 
-</div>
+            </div>
           </div>
 
 
@@ -321,9 +343,9 @@
                 <input id="modalNumber" type="text"
                   class="w-full border border-gray-300 rounded px-3 py-2 outline-none focus:border-blue-400 transition-colors">
               </div>
-                  <!-- 👇 ADD HIDDEN FIELDS RIGHT HERE -->
-    <input type="hidden" id="modalBetId">
-    <input type="hidden" id="modalMarket">
+              <!-- 👇 ADD HIDDEN FIELDS RIGHT HERE -->
+              <input type="hidden" id="modalBetId">
+              <input type="hidden" id="modalMarket">
               <div>
                 <label class="block text-sm font-bold text-gray-800 mb-2">Amount:</label>
                 <input id="modalAmount" type="text"
@@ -331,99 +353,99 @@
               </div>
 
               <div class="pt-2">
-<button onclick="updateBet()"
-  class="bg-[#eeb44a] hover:bg-[#e6a32e] text-white font-medium py-2 px-6 rounded shadow-sm transition-colors">
-  Update Bet
-</button>
+                <button onclick="updateBet()"
+                  class="bg-[#eeb44a] hover:bg-[#e6a32e] text-white font-medium py-2 px-6 rounded shadow-sm transition-colors">
+                  Update Bet
+                </button>
               </div>
             </div>
           </div>
         </div>
 
-       <script>
-  const modal = document.getElementById('editModal');
-  const numInput = document.getElementById('modalNumber');
-  const amtInput = document.getElementById('modalAmount');
-  const betIdInput = document.getElementById('modalBetId');
-  const marketInput = document.getElementById('modalMarket');
+        <script>
+          const modal = document.getElementById('editModal');
+          const numInput = document.getElementById('modalNumber');
+          const amtInput = document.getElementById('modalAmount');
+          const betIdInput = document.getElementById('modalBetId');
+          const marketInput = document.getElementById('modalMarket');
 
-  function openModal(betId, market, number, amount) {
-    betIdInput.value = betId;
-    marketInput.value = market;
-    numInput.value = number;
-    amtInput.value = amount;
-    modal.classList.remove('hidden');
-  }
+          function openModal(betId, market, number, amount) {
+            betIdInput.value = betId;
+            marketInput.value = market;
+            numInput.value = number;
+            amtInput.value = amount;
+            modal.classList.remove('hidden');
+          }
 
-  function closeModal() {
-    modal.classList.add('hidden');
-  }
+          function closeModal() {
+            modal.classList.add('hidden');
+          }
 
-  async function updateBet() {
-    const betId = betIdInput.value;
-    const market = marketInput.value;
-    const number = numInput.value;
-    const amount = amtInput.value;
+          async function updateBet() {
+            const betId = betIdInput.value;
+            const market = marketInput.value;
+            const number = numInput.value;
+            const amount = amtInput.value;
 
-    let url = "";
-    let bodyData = {};
+            let url = "";
+            let bodyData = {};
 
-    /* ===== CHECK MARKET ===== */
-    if (market === "Starline") {
-      url = "/admin/starline-change-bid-number-amount";
-      bodyData = {
-        betId,
-        underNo: number,
-        amountPerUnderNo: amount
-      };
-    } 
-    else if (market === "Jackpot") {
-      url = "/admin/jackpot-change-bid-number-amount";
-      bodyData = {
-        betId,
-        openDigit: number,
-        amount: amount
-      };
-    } 
-    else {
-      // MAIN MARKET
-      url = "/admin/change-bid-number-amount";
-      bodyData = {
-        betId,
-        underNo: number,
-        amountPerUnderNo: amount
-      };
-    }
+            /* ===== CHECK MARKET ===== */
+            if (market === "Starline") {
+              url = "/admin/starline-change-bid-number-amount";
+              bodyData = {
+                betId,
+                underNo: number,
+                amountPerUnderNo: amount
+              };
+            }
+            else if (market === "Jackpot") {
+              url = "/admin/jackpot-change-bid-number-amount";
+              bodyData = {
+                betId,
+                openDigit: number,
+                amount: amount
+              };
+            }
+            else {
+              // MAIN MARKET
+              url = "/admin/change-bid-number-amount";
+              bodyData = {
+                betId,
+                underNo: number,
+                amountPerUnderNo: amount
+              };
+            }
 
-    try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(bodyData)
-      });
+            try {
+              const res = await fetch(url, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json"
+                },
+                body: JSON.stringify(bodyData)
+              });
 
-      const data = await res.json();
+              const data = await res.json();
 
-      if (data.success) {
-        alert("Bet Updated Successfully");
-        location.reload();
-      } else {
-        alert(data.message || "Update Failed");
-      }
+              if (data.success) {
+                alert("Bet Updated Successfully");
+                location.reload();
+              } else {
+                alert(data.message || "Update Failed");
+              }
 
-    } catch (err) {
-      console.error("Update error:", err);
-      alert("Something went wrong");
-    }
-  }
+            } catch (err) {
+              console.error("Update error:", err);
+              alert("Something went wrong");
+            }
+          }
 
-  // ESC close
-  window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeModal();
-  });
-</script>
+          // ESC close
+          window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+          });
+        </script>
       </main>
 
   </main>

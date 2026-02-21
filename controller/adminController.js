@@ -1546,6 +1546,20 @@ exports.declareGameResult = async (req, res) => {
       ist.millisecond,
     );
 
+    /* ================= DUPLICATE RESULT CHECK ================= */
+    const existingResult = await GameResult.findOne({
+      gameName,
+      session,
+      resultDate: formattedDate,
+    });
+
+    if (existingResult) {
+      return res.status(400).json({
+        success: false,
+        message: "Result already declared for this game/session/date",
+      });
+    }
+
     // --------- SAVE RESULT ----------
     await GameResult.create({
       gameName,
@@ -2631,6 +2645,19 @@ exports.declareJackpotGameResult = async (req, res) => {
     const formattedTime = ist.toFormat("HH:mm");
     const weekday = ist.toFormat("cccc");
 
+    /* ================= DUPLICATE RESULT CHECK ================= */
+    const existingResult = await JackpotGameResult.findOne({
+      gameName,
+      resultDate: formattedDate,
+    });
+
+    if (existingResult) {
+      return res.status(400).json({
+        success: false,
+        message: "Result already declared for this game and date",
+      });
+    }
+
     /* ================= SAVE RESULT ================= */
     await JackpotGameResult.create({
       gameName,
@@ -2920,6 +2947,20 @@ exports.declareStarlineGameResult = async (req, res) => {
       ist.second,
       ist.millisecond,
     );
+
+    /* ================= DUPLICATE RESULT CHECK ================= */
+    const existingResult = await starlineGameDeclareResult.findOne({
+      gameName,
+      session,
+      resultDate: formattedDate,
+    });
+
+    if (existingResult) {
+      return res.status(400).json({
+        success: false,
+        message: "Result already declared for this game/session/date",
+      });
+    }
 
     // --------- SAVE RESULT ----------
     await starlineGameDeclareResult.create({
@@ -5992,12 +6033,12 @@ exports.getBidHistoryPage = async (req, res, next) => {
             const numberValue =
               b.mainNo !== undefined && b.underNo
                 ? `${b.mainNo}-${b.underNo}`
-                : b.number ??
+                : (b.number ??
                   b.openDigit ??
                   b.closeDigit ??
                   b.openPanna ??
                   b.closePanna ??
-                  "";
+                  "");
 
             const text = `
               ${bet.userId?.username || ""}
@@ -6031,7 +6072,7 @@ exports.getBidHistoryPage = async (req, res, next) => {
           }
 
           allBids.push({
-             _id: b._id,   // ADD THIS
+            _id: b._id, // ADD THIS
             playedDate: bet.playedDate || "-",
             gameType: bet.gameType || "-",
 
@@ -6064,15 +6105,15 @@ exports.getBidHistoryPage = async (req, res, next) => {
 
     const paginatedBids = allBids.slice(
       (currentPage - 1) * perPage,
-      currentPage * perPage
+      currentPage * perPage,
     );
 
     /* ================= RENDER (OLD STRUCTURE SAFE) ================= */
     res.render("Admin/adminBidHistory", {
       pageTitle: "Bid History",
       admin,
-      games,              // NOT REMOVED
-      gameTypes,          // NOT REMOVED
+      games, // NOT REMOVED
+      gameTypes, // NOT REMOVED
       bids: paginatedBids,
       totalRecords,
       totalPages,
@@ -6081,7 +6122,6 @@ exports.getBidHistoryPage = async (req, res, next) => {
       filters: req.query,
       isLoggedIn: req.session.isLoggedIn,
     });
-
   } catch (err) {
     console.error("ADMIN BID HISTORY ERROR:", err);
     next(err);
