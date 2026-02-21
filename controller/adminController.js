@@ -11,7 +11,7 @@ const Game = require("../model/Game");
 const GameRate = require("../model/GameRate");
 const GameResult = require("../model/GameResult");
 const { isGameOpenNow } = require("../utils/gameStatus");
-const Notification = require("../model/bellNotification");
+// const Notification = require("../model/bellNotification");
 const bellNotification = require("../model/normalNotification");
 const SingleDigitBet = require("../model/SingleDigitBet");
 const SingleBulkDigitBet = require("../model/SingleBulkDigitBet");
@@ -1378,7 +1378,11 @@ exports.updateGameRate = async (req, res) => {
 
 exports.gameResult = async (req, res) => {
   try {
-    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
       return res.redirect("/admin/login");
     }
 
@@ -1394,7 +1398,9 @@ exports.gameResult = async (req, res) => {
     }
 
     // ✅ Today date in IST
-    const todayDate = DateTime.now().setZone("Asia/Kolkata").toFormat("yyyy-MM-dd");
+    const todayDate = DateTime.now()
+      .setZone("Asia/Kolkata")
+      .toFormat("yyyy-MM-dd");
 
     // fetch today's results
     const results = await GameResult.find({
@@ -2466,7 +2472,11 @@ exports.declareGameResult = async (req, res) => {
 //Jackpot result declaration
 exports.jackpotGameResult = async (req, res) => {
   try {
-    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
       return res.redirect("/admin/login");
     }
 
@@ -2482,7 +2492,9 @@ exports.jackpotGameResult = async (req, res) => {
     }
 
     // ✅ TODAY DATE IN IST (exact same format as declared result)
-    const todayDate = DateTime.now().setZone("Asia/Kolkata").toFormat("yyyy-MM-dd");
+    const todayDate = DateTime.now()
+      .setZone("Asia/Kolkata")
+      .toFormat("yyyy-MM-dd");
 
     // fetch today's results
     const results = await JackpotGameResult.find({
@@ -2747,7 +2759,11 @@ exports.declareJackpotGameResult = async (req, res) => {
 
 exports.starlineGameResult = async (req, res) => {
   try {
-    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
       return res.redirect("/admin/login");
     }
 
@@ -2763,7 +2779,9 @@ exports.starlineGameResult = async (req, res) => {
     }
 
     // ✅ TODAY DATE IN IST (Exact same format as declare function)
-    const todayDate = DateTime.now().setZone("Asia/Kolkata").toFormat("yyyy-MM-dd");
+    const todayDate = DateTime.now()
+      .setZone("Asia/Kolkata")
+      .toFormat("yyyy-MM-dd");
 
     // ✅ Fetch only OPEN session results
     const results = await starlineGameDeclareResult
@@ -2774,7 +2792,11 @@ exports.starlineGameResult = async (req, res) => {
     const groupedResults = {};
     results.forEach((r) => {
       if (!groupedResults[r.gameName]) {
-        groupedResults[r.gameName] = { gameName: r.gameName, resultDate: r.resultDate, open: null };
+        groupedResults[r.gameName] = {
+          gameName: r.gameName,
+          resultDate: r.resultDate,
+          open: null,
+        };
       }
       groupedResults[r.gameName].open = r;
     });
@@ -2783,15 +2805,13 @@ exports.starlineGameResult = async (req, res) => {
       pageTitle: "Admin Starline Game Result",
       admin,
       isLoggedIn: req.session.isLoggedIn,
-      todayResults: Object.values(groupedResults)
+      todayResults: Object.values(groupedResults),
     });
-
   } catch (err) {
     console.error("Admin Starline Game Result Error:", err);
     res.redirect("/admin/login");
   }
 };
-
 
 exports.getStarlinePendingGames = async (req, res) => {
   try {
@@ -4954,7 +4974,6 @@ exports.generateStarlineGameResult = async (req, res) => {
   }
 };
 
-
 exports.generateJackpotGameResult = async (req, res) => {
   try {
     /* ================= ADMIN AUTH ================= */
@@ -5044,7 +5063,6 @@ exports.generateJackpotGameResult = async (req, res) => {
         resultTime: game.schedule?.[weekday.toLowerCase()]?.time || "",
       });
 
-
       start.setDate(start.getDate() + 1);
     }
 
@@ -5068,7 +5086,11 @@ exports.generateJackpotGameResult = async (req, res) => {
 exports.getAdminNotifications = async (req, res) => {
   try {
     // ================= ADMIN AUTH =================
-    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
       return res.redirect("/admin/login");
     }
 
@@ -5118,7 +5140,6 @@ exports.getAdminNotifications = async (req, res) => {
       total,
       search,
     });
-
   } catch (error) {
     console.error("Get Admin Notifications Error:", error);
     return res.status(500).json({
@@ -5127,7 +5148,6 @@ exports.getAdminNotifications = async (req, res) => {
     });
   }
 };
-
 
 exports.postAdminNotifications = async (req, res) => {
   try {
@@ -5183,7 +5203,11 @@ exports.postAdminNotifications = async (req, res) => {
 exports.deleteNotification = async (req, res) => {
   try {
     // ================= ADMIN AUTH =================
-    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
       return res.redirect("/admin/login");
     }
 
@@ -5209,7 +5233,6 @@ exports.deleteNotification = async (req, res) => {
 
     await bellNotification.findByIdAndDelete(notificationId);
     res.redirect("/admin/bell-notifications");
-
   } catch (error) {
     console.error("Delete Notification Error:", error);
     req.flash("error", "Server error, could not delete notification");
@@ -5219,7 +5242,11 @@ exports.deleteNotification = async (req, res) => {
 
 exports.getSendNotificationPage = async (req, res) => {
   try {
-    if (!req.session.isLoggedIn || !req.session.admin || req.session.admin.role !== "admin") {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
       return res.redirect("/admin/login");
     }
 
@@ -5245,7 +5272,6 @@ exports.getSendNotificationPage = async (req, res) => {
       user,
       isLoggedIn: req.session.isLoggedIn,
     });
-
   } catch (error) {
     console.error(error);
     res.status(500).send("Server Error");
@@ -5375,7 +5401,6 @@ exports.getSendNotificationPage = async (req, res) => {
 
 //     const { title, message, userId } = req.body;
 
-
 //     if (!title || !message) {
 //       console.log("❌ Title or message missing");
 //       return res.redirect("/admin/send-notification");
@@ -5459,6 +5484,24 @@ exports.getSendNotificationPage = async (req, res) => {
 
 exports.sendNotification = async (req, res) => {
   try {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    });
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
     console.log("🔥 sendNotification route hit");
     console.log("📦 BODY:", req.body);
 
@@ -5506,10 +5549,10 @@ exports.sendNotification = async (req, res) => {
     const users = await User.find({
       role: "user",
       userStatus: "active",
-      fcmToken: { $exists: true, $ne: null }
+      fcmToken: { $exists: true, $ne: null },
     });
 
-    const tokens = users.map(u => u.fcmToken);
+    const tokens = users.map((u) => u.fcmToken);
     console.log("📦 Total Active Users with Token:", tokens.length);
 
     if (tokens.length > 0) {
@@ -5529,7 +5572,10 @@ exports.sendNotification = async (req, res) => {
         if (response.failureCount > 0) {
           response.responses.forEach((resp, idx) => {
             if (!resp.success) {
-              console.error(`❌ Failed Token: ${tokens[idx]} →`, resp.error.message);
+              console.error(
+                `❌ Failed Token: ${tokens[idx]} →`,
+                resp.error.message,
+              );
             }
           });
         }
@@ -5541,9 +5587,503 @@ exports.sendNotification = async (req, res) => {
     }
 
     return res.redirect("/admin/send-notification");
-
   } catch (error) {
     console.error("🚨 Server Error:", error);
     res.status(500).send("Server Error");
+  }
+};
+
+exports.getChangePasswordPage = async (req, res) => {
+  try {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    });
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    res.render("Admin/adminChangePassword", {
+      pageTitle: "Change Password",
+      admin,
+      isLoggedIn: req.session.isLoggedIn,
+    });
+  } catch (error) {
+    console.error("Get Change Password Page Error:", error);
+    res.status(500).send("Server Error");
+  }
+};
+
+// POST Change Password (returns JSON for AJAX)
+exports.postChangePassword = async (req, res) => {
+  try {
+    // 1️⃣ Session validation
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    });
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    const { oldPassword, newPassword, confirmPassword } = req.body;
+
+    // 3️⃣ Check that all fields are provided
+    if (!oldPassword || !newPassword || !confirmPassword) {
+      return res.json({ error: "All fields are required" });
+    }
+
+    // 4️⃣ Verify old password
+    const isMatch = await bcrypt.compare(oldPassword, admin.password);
+    if (!isMatch) return res.json({ error: "Old password is incorrect" });
+
+    // 5️⃣ Check new password match
+    if (newPassword !== confirmPassword) {
+      return res.json({
+        error: "New password and confirm password do not match",
+      });
+    }
+
+    // 6️⃣ Hash and save new password
+    const salt = await bcrypt.genSalt(10);
+    admin.password = await bcrypt.hash(newPassword, salt);
+    await admin.save();
+
+    res.json({ success: "Password updated successfully" });
+  } catch (error) {
+    console.error("Post Change Password Error:", error);
+    res.status(500).json({ error: "Server error. Try again later." });
+  }
+};
+
+const betModelsofall = [
+  require("../model/SingleDigitBet"),
+  require("../model/SingleBulkDigitBet"),
+  require("../model/JodiDigitBet"),
+  require("../model/JodiDigitBulkBet"),
+  require("../model/SinglePannaBet"),
+  require("../model/SinglePannaBulkBet"),
+  require("../model/DoublePannaBet"),
+  require("../model/DoublePannaBulkBet"),
+  require("../model/TriplePannaBet"),
+  require("../model/OddEvenBet"),
+  require("../model/HalfSangamBet"),
+  require("../model/FullSangamBet"),
+  require("../model/SPMotorBet"),
+  require("../model/DPMotorBet"),
+  require("../model/spdptpBet"),
+  require("../model/RedBracketBet"),
+  require("../model/StarlineSingleDigitBet"),
+  require("../model/StarlineSinglePannaBet"),
+  require("../model/StarlineDoublePannaBet"),
+  require("../model/StarlineTriplePannaBet"),
+  require("../model/JackpotLeftDigitBet"),
+  require("../model/JackpotRightDigitBet"),
+  require("../model/JackpotCentreJodiDigitBet"),
+];
+
+exports.getWinningHistoryPage = async (req, res, next) => {
+  try {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    }).lean();
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    const { source, userName, mainGame, gameName, startDate, endDate } =
+      req.query;
+
+    let fromDate = null;
+    let toDate = null;
+    const now = new Date();
+
+    // SOURCE FILTER
+    if (startDate && endDate) {
+      fromDate = new Date(startDate);
+      toDate = new Date(endDate);
+      toDate.setHours(23, 59, 59, 999);
+    } else if (source) {
+      switch (source) {
+        case "source1":
+          fromDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+          toDate = now;
+          break;
+        case "source3":
+          fromDate = new Date();
+          fromDate.setMonth(fromDate.getMonth() - 3);
+          toDate = now;
+          break;
+        case "source2":
+          fromDate = new Date();
+          fromDate.setMonth(fromDate.getMonth() - 6);
+          toDate = now;
+          break;
+      }
+    }
+
+    const dateFilter =
+      fromDate && toDate ? { createdAt: { $gte: fromDate, $lte: toDate } } : {};
+
+    let allWinRows = [];
+
+    const mainGameMap = {
+      "Main Market": "MAIN_GAME",
+      Jackpot: "JACKPOT",
+      Starline: "STARLINE",
+    };
+
+    const mainGameValue = mainGame ? mainGameMap[mainGame] : null;
+
+    for (const Model of betModelsofall) {
+      const query = { ...dateFilter };
+
+      if (mainGameValue) query.mainGame = mainGameValue;
+      if (gameName) query.gameName = { $regex: gameName, $options: "i" };
+
+      const records = await Model.find(query)
+        .populate("userId", "username phoneNo")
+        .lean();
+
+      records.forEach((bet) => {
+        if (!Array.isArray(bet.bets)) return;
+
+        bet.bets.forEach((b) => {
+          if (b.resultStatus !== "WIN") return;
+
+          if (userName && bet.userId?.username) {
+            const dbName = bet.userId.username.toString().trim().toLowerCase();
+            const searchName = userName.toString().trim().toLowerCase();
+
+            if (!dbName.includes(searchName)) return;
+          }
+
+          const digits = [];
+
+          [
+            b.number,
+            b.openDigit,
+            b.closeDigit,
+            b.openPanna,
+            b.closePanna,
+            b.underNo,
+          ].forEach((v) => {
+            if (v !== undefined && v !== null && v !== "") {
+              digits.push(v);
+            }
+          });
+
+          const marketMap = {
+            MAIN_GAME: "Main Market",
+            STARLINE: "Starline",
+            JACKPOT: "Jackpot",
+          };
+
+          allWinRows.push({
+            username: bet.userId?.username || "-",
+            phoneNo: bet.userId?.phoneNo || "-",
+            gameType: bet.gameType ?? "-",
+            mainGame: marketMap[bet.mainGame] || "-",
+            gameName: bet.gameName ?? "-",
+            session: b.session ?? b.mode ?? "-",
+            digits,
+            amount: Number(
+              b.amount ??
+                b.totalPoints ??
+                b.totalAmount ??
+                b.amountPerUnderNo ??
+                b.perUnderNosPoints ??
+                0,
+            ),
+            winAmount: Number(b.winAmount ?? 0),
+            createdAt: bet.createdAt,
+          });
+        });
+      });
+    }
+
+    allWinRows.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    const totalRecords = allWinRows.length;
+    const totalPages = Math.ceil(totalRecords / limit);
+    const startIndex = (page - 1) * limit;
+
+    const paginatedData = allWinRows.slice(startIndex, startIndex + limit);
+
+    res.render("Admin/adminWinningHistory", {
+      admin,
+      winHistory: paginatedData,
+      page,
+      limit,
+      totalPages,
+      totalRecords,
+      source: source || "",
+      userName: userName || "",
+      mainGame: mainGame || "",
+      gameName: gameName || "",
+      startDate: startDate || "",
+      endDate: endDate || "",
+    });
+  } catch (err) {
+    console.error("ADMIN WIN HISTORY ERROR:", err);
+    next(err);
+  }
+};
+
+exports.getBidHistoryPage = async (req, res, next) => {
+  try {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    }).lean();
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    /* ================= AJAX USER SEARCH ================= */
+    if (req.query.ajax === "userSearch") {
+      const q = req.query.q?.trim();
+      if (!q) return res.json([]);
+
+      const users = await User.find({
+        username: { $regex: q, $options: "i" },
+        role: "user",
+        userStatus: "active",
+      })
+        .select("username")
+        .limit(10)
+        .lean();
+
+      return res.json(users);
+    }
+
+    /* ================= OLD GAME + GAMETYPE (UNCHANGED) ================= */
+    const games = await Game.find({ isDeleted: false })
+      .sort({ gameName: 1 })
+      .lean();
+
+    const gameTypes = betModelsofall
+      .map((Model) => Model.schema.path("gameType")?.defaultValue)
+      .filter(Boolean)
+      .sort();
+
+    /* ================= FILTERS (UNCHANGED STRUCTURE) ================= */
+    const {
+      fromDate,
+      toDate,
+      gameName,
+      gameType,
+      minAmount,
+      username,
+      page = 1,
+      limit = 10,
+      tableSearch,
+    } = req.query;
+
+    const currentPage = parseInt(page);
+    const perPage = parseInt(limit);
+
+    let userFilterId = null;
+
+    if (username) {
+      const user = await User.findOne({
+        username: { $regex: username, $options: "i" },
+        role: "user",
+      }).select("_id");
+
+      if (user) userFilterId = user._id;
+      else userFilterId = "NO_MATCH";
+    }
+
+    let allBids = [];
+
+    /* ================= MAIN LOOP ================= */
+    for (const Model of betModelsofall) {
+      const query = {};
+
+      if (fromDate || toDate) {
+        query.createdAt = {};
+        if (fromDate) query.createdAt.$gte = new Date(fromDate);
+        if (toDate) {
+          const end = new Date(toDate);
+          end.setHours(23, 59, 59, 999);
+          query.createdAt.$lte = end;
+        }
+      }
+
+      if (gameName) query.gameName = gameName;
+      if (gameType) query.gameType = gameType;
+
+      if (userFilterId) {
+        if (userFilterId === "NO_MATCH") continue;
+        query.userId = userFilterId;
+      }
+
+      const records = await Model.find(query)
+        .populate("userId", "username phoneNo")
+        .lean();
+
+      records.forEach((bet) => {
+        if (!Array.isArray(bet.bets)) return;
+
+        bet.bets.forEach((b) => {
+          const amount =
+            b.amount ??
+            b.totalPoints ??
+            b.totalAmount ??
+            b.amountPerUnderNo ??
+            b.perUnderNosPoints ??
+            0;
+
+          if (minAmount && amount < Number(minAmount)) return;
+
+          /* ===== TABLE SEARCH ===== */
+          if (tableSearch) {
+            const search = tableSearch.toLowerCase();
+
+            const numberValue =
+              b.mainNo !== undefined && b.underNo
+                ? `${b.mainNo}-${b.underNo}`
+                : b.number ??
+                  b.openDigit ??
+                  b.closeDigit ??
+                  b.openPanna ??
+                  b.closePanna ??
+                  "";
+
+            const text = `
+              ${bet.userId?.username || ""}
+              ${bet.gameName || ""}
+              ${numberValue}
+            `.toLowerCase();
+
+            if (!text.includes(search)) return;
+          }
+
+          /* ===== MARKET MAP ===== */
+          const marketMap = {
+            MAIN_GAME: "Main Market",
+            STARLINE: "Starline",
+            JACKPOT: "Jackpot",
+          };
+
+          /* ===== NUMBER FIX ===== */
+          let number = "-";
+
+          if (b.mainNo !== undefined && b.underNo) {
+            number = `${b.mainNo}-${b.underNo}`;
+          } else {
+            number =
+              b.number ??
+              b.openDigit ??
+              b.closeDigit ??
+              b.openPanna ??
+              b.closePanna ??
+              "-";
+          }
+
+          allBids.push({
+             _id: b._id,   // ADD THIS
+            playedDate: bet.playedDate || "-",
+            gameType: bet.gameType || "-",
+
+            /* MARKET COLUMN */
+            mainGame: marketMap[bet.mainGame] || bet.mainGame || "-",
+
+            /* SESSION */
+            session: b.session ?? b.mode ?? "-",
+
+            /* GAME COLUMN */
+            gameName: bet.gameName || "-",
+
+            number,
+            amount,
+            status: b.resultStatus || "PENDING",
+
+            userId: bet.userId,
+            createdAt: bet.createdAt,
+          });
+        });
+      });
+    }
+
+    /* ================= SORT ================= */
+    allBids.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    /* ================= PAGINATION ================= */
+    const totalRecords = allBids.length;
+    const totalPages = Math.ceil(totalRecords / perPage);
+
+    const paginatedBids = allBids.slice(
+      (currentPage - 1) * perPage,
+      currentPage * perPage
+    );
+
+    /* ================= RENDER (OLD STRUCTURE SAFE) ================= */
+    res.render("Admin/adminBidHistory", {
+      pageTitle: "Bid History",
+      admin,
+      games,              // NOT REMOVED
+      gameTypes,          // NOT REMOVED
+      bids: paginatedBids,
+      totalRecords,
+      totalPages,
+      currentPage,
+      perPage,
+      filters: req.query,
+      isLoggedIn: req.session.isLoggedIn,
+    });
+
+  } catch (err) {
+    console.error("ADMIN BID HISTORY ERROR:", err);
+    next(err);
   }
 };

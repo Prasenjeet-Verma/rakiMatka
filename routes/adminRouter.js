@@ -163,7 +163,18 @@ adminRouter.post(
   adminController.deleteNotification,
 );
 
-adminRouter.get("/admin/send-notification", adminController.getSendNotificationPage);
+adminRouter.get(
+  "/admin/send-notification",
+  adminController.getSendNotificationPage,
+);
 adminRouter.post("/admin/send-notification", adminController.sendNotification);
 
+adminRouter.get("/admin/Change-Password", adminController.getChangePasswordPage);
+adminRouter.post(
+  "/admin/Change-Password",
+  adminController.postChangePassword,
+);
+
+adminRouter.get("/admin/WinningHistory", adminController.getWinningHistoryPage);
+adminRouter.get("/admin/BidHistory", adminController.getBidHistoryPage);
 module.exports = adminRouter;

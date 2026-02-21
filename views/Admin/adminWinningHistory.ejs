@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  <link rel="stylesheet" href="/css/dateTimemodal.css">
+  <link rel="stylesheet" href="/css/adminDashbord.css">
+
+  <style>
+    /* Custom scrollbar for the table wrapper */
+    .custom-scrollbar::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 10px;
+    }
+  </style>
+
+</head>
+
+<body class="flex min-h-screen">
+  <aside id="sidebar"
+    class="sidebar border-r border-gray-200 fixed inset-y-0 left-0 z-50 lg:relative lg:translate-x-0 transform -translate-x-full lg:block">
+    <div class="p-4">
+      <div class="relative mb-4">
+        <input type="text" placeholder="Search"
+          class="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
+        <button class="absolute right-0 top-0 bottom-0 px-3 bg-neutral-800 text-white rounded-r">
+          <i class="fas fa-search"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- ============================= Nav is here ============================ -->
+
+    <%- include('../partials/adminNav') %>
+  </aside>
+
+  <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+    <!-- ============================= Header is here ============================ -->
+    <%- include('../partials/adminHeader') %>
+
+      <header class="bg-white h-14 flex items-center justify-between px-4 border-b border-gray-200">
+      </header> <!-- header overflow done -->
+
+      <!-- ==================================== Body Start Here ========================================= -->
+
+      <main class="bg-gray-100 p-4 md:p-8 font-sans text-sm text-gray-700">
+        <div class="form-container relative top-1 flex flex-wrap gap-2">
+          <!-- Data Source -->
+          <select class="custom-input text-gray-600" id="sourceSelect">
+            <option value="" disabled>Select Data Source</option>
+            <option value="manual" <%=source==="manual" ?"selected":"" %>>Manual</option>
+            <option value="source1" <%=source==="source1" ?"selected":"" %>>Live (24h)</option>
+            <option value="source3" <%=source==="source3" ?"selected":"" %>>Old (3 months)</option>
+            <option value="source2" <%=source==="source2" ?"selected":"" %>>Backup (6 months)</option>
+          </select>
+
+          <!-- Manual Dates -->
+          <input type="date" id="startDate" class="custom-input" value="<%= startDate %>">
+          <input type="date" id="endDate" class="custom-input" value="<%= endDate %>">
+
+          <!-- Main Game Filter -->
+          <select id="mainGameFilter" class="custom-input">
+            <option value="">All Games</option>
+            <option value="Main Market" <%=mainGame==="Main Market" ?"selected":"" %>>Main Market</option>
+            <option value="Starline" <%=mainGame==="Starline" ?"selected":"" %>>Starline</option>
+            <option value="Jackpot" <%=mainGame==="Jackpot" ?"selected":"" %>>Jackpot</option>
+          </select>
+
+          <!-- Game Name Search -->
+          <input type="text" id="searchGameName" class="custom-input" placeholder="Search Game Name"
+            value="<%= gameName %>">
+          <button class="btn-history" onclick="getHistory()">Get History</button>
+        </div>
+
+        <div class="max-w-7xl mx-auto bg-white shadow-sm border border-gray-200 rounded">
+
+          <div class="p-4 border-b border-gray-200 space-y-4">
+            <!-- <div class="flex flex-wrap items-center gap-2">
+                <label class="font-bold text-xs uppercase">Winning History</label>
+                <select class="border border-gray-300 rounded px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500">
+                    <option>All</option>
+                    <option>Main Game</option>
+                    <option>Starline Game</option>
+                    <option>Jackpot Game</option>
+                </select>
+            </div> -->
+
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div class="flex items-center gap-2">
+                <span>Show</span>
+                <select id="limitSelect" onchange="getHistory(1)"
+                  class="border border-gray-300 rounded px-2 py-1 focus:outline-none">
+                  <option value="10" <%=limit==10 ? "selected" : "" %>>10</option>
+                  <option value="25" <%=limit==25 ? "selected" : "" %>>25</option>
+                  <option value="50" <%=limit==50 ? "selected" : "" %>>50</option>
+                </select>
+
+              </div>
+
+              <div class="flex items-center gap-2">
+                <label>Search:</label>
+                <input type="text" id="searchUserName" placeholder="UserName" value="<%= userName %>"
+                  onkeyup="getHistory(1)"
+                  class="border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-400">
+              </div>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-white border-b border-gray-300">
+                  <th class="p-2 border-r border-gray-200 whitespace-nowrap">ID <i
+                      class="fas fa-sort text-gray-300 text-xs"></i></th>
+                  <th class="p-2 border-r border-gray-200 whitespace-nowrap">Mobile Number <i
+                      class="fas fa-sort text-gray-300 text-xs"></i></th>
+                  <th class="p-2 border-r border-gray-200 whitespace-nowrap">User Name <i
+                      class="fas fa-sort text-gray-300 text-xs"></i></th>
+                  <th class="p-2 border-r border-gray-200 whitespace-nowrap">Game Type <i
+                      class="fas fa-sort text-gray-300 text-xs"></i></th>
+                  <th class="p-2 border-r border-gray-200 whitespace-nowrap">Market <i
+                      class="fas fa-sort text-gray-300 text-xs"></i></th>
+                  <th class="p-2 border-r border-gray-200 whitespace-nowrap">Session <i
+                      class="fas fa-sort text-gray-300 text-xs"></i></th>
+                  <th class="p-2 border-r border-gray-200 whitespace-nowrap">Digits <i
+                      class="fas fa-sort text-gray-300 text-xs"></i></th>
+                  <th class="p-2 border-r border-gray-200 whitespace-nowrap">Amount <i
+                      class="fas fa-sort text-gray-300 text-xs"></i></th>
+                  <th class="p-2 border-r border-gray-200 whitespace-nowrap">Winning Amount <i
+                      class="fas fa-sort text-gray-300 text-xs"></i></th>
+                  <th class="p-2 border-r border-gray-200 whitespace-nowrap">Game Name <i
+                      class="fas fa-sort text-gray-300 text-xs"></i></th>
+                  <th class="p-2 whitespace-nowrap">Placed on <i class="fas fa-sort text-gray-300 text-xs"></i></th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200">
+                <% if (winHistory.length> 0) { %>
+                  <% winHistory.forEach((row, index)=> { %>
+                    <tr class="hover:bg-gray-50">
+                      <td class="p-2 border-r">
+                        <%= (page-1)*limit + index + 1 %>
+                      </td>
+                      <td class="p-2 border-r text-blue-600">
+                        <%= row.phoneNo %>
+                      </td>
+                      <td class="p-2 border-r font-medium">
+                        <%= row.username %>
+                      </td>
+                      <td class="p-2 border-r">
+                        <%= row.gameType %>
+                      </td>
+                      <td class="p-2 border-r font-bold uppercase text-xs">
+                        <%= row.mainGame %>
+                      </td>
+                      <td class="p-2 border-r">
+                        <%= row.session %>
+                      </td>
+                      <td class="p-2 border-r">
+                        <%= row.digits.join(", ") %></td>
+      <td class=" p-2 border-r">
+                          <%= row.amount.toFixed(2) %>
+                      </td>
+                      <td class="p-2 border-r font-semibold">
+                        <%= row.winAmount.toFixed(2) %>
+                      </td>
+                      <td class="p-2 border-r">
+                        <%= row.gameName %>
+                      </td>
+                      <td class="p-2 text-xs">
+                        <%= new Date(row.createdAt).toLocaleString() %>
+                      </td>
+                    </tr>
+                    <% }) %>
+                      <% } else { %>
+                        <tr>
+                          <td colspan="11" class="text-center p-4">No winning records found</td>
+                        </tr>
+                        <% } %>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="p-4 flex flex-col md:flex-row justify-between items-center gap-4 border-t border-gray-200">
+            <p class="text-xs text-gray-500">
+              Showing <%= (page-1)*limit + 1 %>
+                to <%= Math.min(page*limit, totalRecords) %>
+                  of <%= totalRecords %> entries
+            </p>
+
+
+            <div class="flex items-center">
+              <% if(page> 1){ %>
+                <a href="javascript:getHistory(<%= page-1 %>)" class="px-3 py-1 border rounded-l">Previous</a>
+                <% } %>
+
+                  <span class="px-3 py-1 bg-blue-500 text-white">
+                    <%= page %>
+                  </span>
+
+                  <% if(page < totalPages){ %>
+                    <a href="javascript:getHistory(<%= page+1 %>)" class="px-3 py-1 border rounded-r">Next</a>
+                    <% } %>
+            </div>
+          </div>
+        </div>
+
+      </main>
+
+      <!-- ==================================== Body End Here ========================================= -->
+  </main>
+  <script>
+    function getHistory(page = 1) {
+      const source = document.getElementById("sourceSelect").value;
+      const startDate = document.getElementById("startDate").value;
+      const endDate = document.getElementById("endDate").value;
+      const mainGame = document.getElementById("mainGameFilter").value;
+      const gameName = document.getElementById("searchGameName").value;
+      const userName = document.getElementById("searchUserName").value;
+      const limit = document.getElementById("limitSelect").value;
+
+      const params = new URLSearchParams({
+        page,
+        limit,
+        source,
+        startDate,
+        endDate,
+        mainGame,
+        gameName,
+        userName
+      });
+
+      window.location.href = "/admin/WinningHistory?" + params.toString();
+    }
+  </script>
+  <script src="/js/sidebar.js"></script>
+</body>
+
+</html>

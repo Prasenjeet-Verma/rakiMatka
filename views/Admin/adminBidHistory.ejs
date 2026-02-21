@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  <link rel="stylesheet" href="/css/adminDashbord.css">
+
+  <style>
+    /* Custom scrollbar for the table wrapper */
+    .custom-scrollbar::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 10px;
+    }
+  </style>
+  <style>
+    /* This CSS hides the default date icon but keeps the calendar functional */
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      background: transparent;
+      bottom: 0;
+      color: transparent;
+      cursor: pointer;
+      height: auto;
+      left: 0;
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: auto;
+    }
+  </style>
+
+</head>
+
+<body class="flex min-h-screen">
+  <aside id="sidebar"
+    class="sidebar border-r border-gray-200 fixed inset-y-0 left-0 z-50 lg:relative lg:translate-x-0 transform -translate-x-full lg:block">
+    <div class="p-4">
+      <div class="relative mb-4">
+        <input type="text" placeholder="Search"
+          class="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
+        <button class="absolute right-0 top-0 bottom-0 px-3 bg-neutral-800 text-white rounded-r">
+          <i class="fas fa-search"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- ============================= Nav is here ============================ -->
+
+    <%- include('../partials/adminNav') %>
+  </aside>
+
+  <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+    <!-- ============================= Header is here ============================ -->
+    <%- include('../partials/adminHeader') %>
+
+      <header class="bg-white h-14 flex items-center justify-between px-4 border-b border-gray-200">
+      </header> <!-- header overflow done -->
+
+      <!-- ==================================== Body Start Here ========================================= -->
+      <main class="bg-gray-50 p-4 md:p-8 font-sans">
+
+        <div class="max-w-7xl mx-auto">
+          <div class="bg-white border border-gray-200 rounded-sm shadow-sm">
+
+            <div class="px-5 py-4 border-b border-gray-100">
+              <h2 class="text-xl font-normal text-gray-700">Bet History</h2>
+            </div>
+
+            <div class="p-6 space-y-6">
+              <!-- 👇 YAHAN SE FORM START KARO -->
+              <form method="GET" action="/admin/BidHistory">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+                  <div class="flex flex-col">
+                    <label class="block text-[15px] font-bold text-gray-800 mb-2">Date Range</label>
+                    <div class="flex items-center border border-gray-200 rounded-md p-1.5 bg-[#f8faff] h-[42px]">
+
+                      <div class="relative flex items-center flex-1">
+                        <span class="text-[9px] font-bold text-blue-400 uppercase mr-2">From</span>
+                        <input type="date" name="fromDate" value="<%= filters?.fromDate || '' %>"
+                          class="w-full text-xs bg-transparent outline-none text-gray-600 cursor-pointer">
+                      </div>
+
+                      <div class="h-4 w-[1px] bg-gray-300 mx-2"></div>
+
+                      <div class="relative flex items-center flex-1">
+                        <span class="text-[9px] font-bold text-blue-400 uppercase mr-2">To</span>
+                        <input type="date" name="toDate" value="<%= filters?.toDate || '' %>"
+                          class="w-full text-xs bg-transparent outline-none text-gray-600 cursor-pointer">
+                      </div>
+
+                    </div>
+                  </div>
+
+                  <div class="flex flex-col">
+                    <label class="block text-[15px] font-bold text-gray-800 mb-2">
+                      Market
+                    </label>
+                    <select name="gameName"
+                      class="w-full border border-gray-300 rounded-[4px] px-3 py-2 text-sm text-gray-700 bg-white h-[42px] focus:outline-none">
+
+                      <option value="">All Markets</option>
+
+                      <% games.forEach(game=> { %>
+                        <option value="<%= game.gameName %>" <%=filters?.gameName===game.gameName ? 'selected' : '' %>>
+                          <%= game.gameName %>
+                        </option>
+                        <% }) %>
+
+                    </select>
+                  </div>
+
+                  <div class="flex flex-col relative">
+                    <label class="block text-[15px] font-bold text-gray-800 mb-2">
+                      Select User (Optional)
+                    </label>
+
+                    <div class="relative">
+                      <input type="text" id="userSearch" placeholder="Search username..." autocomplete="off"
+                        value="<%= filters?.username || '' %>"
+                        class="w-full border border-gray-300 rounded-[4px] pl-3 pr-3 py-2 text-sm text-gray-700 bg-white h-[42px] focus:outline-none" />
+
+                      <input type="hidden" name="username" id="selectedUser" value="<%= filters?.username || '' %>" />
+                    </div>
+
+                    <div id="userList"
+                      class="hidden absolute top-[72px] w-full bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-40 overflow-y-auto">
+                    </div>
+                  </div>
+
+                  <div class="flex flex-col">
+                    <label class="block text-[15px] font-bold text-gray-800 mb-2">Min Amount</label>
+                    <input type="number" name="minAmount" value="<%= filters?.minAmount || '' %>"
+                      class="w-full border border-gray-300 rounded-[4px] px-3 py-2 text-sm outline-none h-[42px]">
+                  </div>
+
+                  <div class="flex flex-col">
+                    <label class="block text-[15px] font-bold text-gray-800 mb-2">
+                      Bid Type
+                    </label>
+
+                    <select name="gameType"
+                      class="w-full border border-gray-300 rounded-[4px] px-3 py-2 text-sm text-gray-700 bg-white h-[42px] focus:outline-none">
+
+                      <option value="">All</option>
+
+                      <% gameTypes.forEach(type=> { %>
+                        <option value="<%= type %>" <%=filters?.gameType===type ? 'selected' : '' %>>
+                          <%= type %>
+                        </option>
+                        <% }) %>
+
+                    </select>
+                  </div>
+
+                  <div class="flex items-end">
+                    <button
+                      class="bg-[#f0b429] hover:bg-[#d9a01b] text-white font-bold py-2 px-8 rounded-[4px] transition-colors text-sm h-[42px] w-full md:w-auto">
+                      Apply Filters
+                    </button>
+                  </div>
+                </div>
+              </form> <!-- 👈 YAHAN FORM CLOSE KARO -->
+
+            </div>
+          </div>
+        </div>
+
+      </main>
+
+      <!-- ==================================== Body 2 Here ========================================= -->
+      <main class="bg-gray-100 p-4 md:p-8 font-sans">
+
+
+
+        <div class="max-w-full mx-auto bg-white rounded shadow-sm border border-gray-300">
+          <div class="p-3 flex flex-wrap justify-between items-center gap-4 text-sm border-b border-gray-200">
+            <div>
+              <form method="GET" action="/admin/BidHistory" class="flex gap-4 items-center">
+
+                <% Object.keys(filters).forEach(key=> {
+                  if (!['limit','page'].includes(key)) { %>
+                  <input type="hidden" name="<%= key %>" value="<%= filters[key] %>">
+                  <% } }); %>
+
+                    Show
+                    <select name="limit" onchange="this.form.submit()" class="border p-1 rounded">
+                      <option value="10" <%=perPage==10?'selected':'' %>>10</option>
+                      <option value="20" <%=perPage==20?'selected':'' %>>20</option>
+                      <option value="50" <%=perPage==50?'selected':'' %>>50</option>
+                      <option value="100" <%=perPage==100?'selected':'' %>>100</option>
+                      <option value="500" <%=perPage==500?'selected':'' %>>500</option>
+                    </select>
+                    entries
+
+              </form>
+            </div>
+            <div>
+              <form method="GET" action="/admin/BidHistory">
+                <% Object.keys(filters).forEach(key=> {
+                  if (!['tableSearch','page'].includes(key)) { %>
+                  <input type="hidden" name="<%= key %>" value="<%= filters[key] %>">
+                  <% } }); %>
+
+                    Search:
+                    <input type="text" name="tableSearch" value="<%= filters?.tableSearch || '' %>" 
+  oninput="this.form.submit()" placeholder="Username & Game"
+  class="border p-1 rounded outline-none focus:ring-1 focus:ring-blue-400">
+              </form>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs text-left border-collapse">
+              <thead class="bg-white border-b-2 border-gray-300">
+                <tr>
+                  <th class="p-2 border">Date <i class="fas fa-sort opacity-20 text-[10px]"></i></th>
+                  <th class="p-2 border">Game Type</th>
+                  <th class="p-2 border">Market</th>
+                  <th class="p-2 border">Session</th>
+                  <th class="p-2 border">Game</th>
+                  <th class="p-2 border">Number</th>
+                  <th class="p-2 border">Amount</th>
+                  <th class="p-2 border">Status</th>
+                  <th class="p-2 border">User Name</th>
+                  <th class="p-2 border">Mobile</th>
+                  <th class="p-2 border">Created At</th>
+                  <th class="p-2 border">Action</th>
+                </tr>
+              </thead>
+           <tbody class="divide-y divide-gray-200">
+  <% if (bids.length === 0) { %>
+    <tr>
+      <td colspan="12" class="text-center p-4">No Data Found</td>
+    </tr>
+  <% } %>
+
+  <% bids.forEach(b => { 
+     const amount =
+       b.amount ??
+       b.totalPoints ??
+       b.totalAmount ??
+       b.amountPerUnderNo ??
+       b.perUnderNosPoints ??
+       0;
+  %>
+  <tr class="hover:bg-gray-50">
+    <td class="p-2 border"><%= b.playedDate %></td>
+    <td class="p-2 border"><%= b.gameType %></td>
+    <td class="p-2 border font-bold"><%= b.mainGame || '-' %></td>
+    <td class="p-2 border"><%= b.session || '-' %></td>
+    <td class="p-2 border"><%= b.gameName || '-' %></td>
+    <td class="p-2 border font-mono"><%= b.number || '-' %></td>
+    <td class="p-2 border"><%= amount %></td>
+    <td class="p-2 border"><%= b.status || 'Pending' %></td>
+    <td class="p-2 border"><%= b.userId?.username %></td>
+    <td class="p-2 border"><%= b.userId?.phoneNo || '-' %></td>
+    <td class="p-2 border"><%= new Date(b.createdAt).toLocaleString() %></td>
+    <td class="p-2 border text-center">
+<button 
+  onclick="openModal('<%= b._id %>','<%= b.mainGame %>','<%= b.number %>','<%= amount %>')"
+  class="bg-[#f39c12] hover:bg-[#e67e22] text-white px-3 py-1 rounded text-xs">
+  Edit
+</button>
+    </td>
+  </tr>
+  <% }) %>
+</tbody>
+            </table>
+            <div class="p-3 flex justify-between items-center text-sm border-t">
+
+  <div>
+    Showing page <%= currentPage %> of <%= totalPages %>
+  </div>
+
+  <div class="flex gap-2">
+    <% if (currentPage > 1) { %>
+      <a href="?<%= new URLSearchParams({...filters, page: currentPage-1}).toString() %>"
+        class="px-3 py-1 border rounded">Previous</a>
+    <% } %>
+
+    <% if (currentPage < totalPages) { %>
+      <a href="?<%= new URLSearchParams({...filters, page: currentPage+1}).toString() %>"
+        class="px-3 py-1 border rounded">Next</a>
+    <% } %>
+  </div>
+
+</div>
+          </div>
+
+
+
+
+        </div>
+
+        <div id="editModal" class="fixed inset-0 z-50 flex items-start justify-center pt-20 hidden">
+          <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity" onclick="closeModal()"></div>
+
+          <div
+            class="relative bg-white w-full max-w-2xl mx-4 rounded-lg shadow-2xl border border-gray-200 overflow-hidden transform transition-all">
+            <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+              <h3 class="text-lg font-normal text-gray-700">Bet Edit</h3>
+              <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+            </div>
+
+            <div class="p-6 space-y-4">
+              <div>
+                <label class="block text-sm font-bold text-gray-800 mb-2">Number:</label>
+                <input id="modalNumber" type="text"
+                  class="w-full border border-gray-300 rounded px-3 py-2 outline-none focus:border-blue-400 transition-colors">
+              </div>
+                  <!-- 👇 ADD HIDDEN FIELDS RIGHT HERE -->
+    <input type="hidden" id="modalBetId">
+    <input type="hidden" id="modalMarket">
+              <div>
+                <label class="block text-sm font-bold text-gray-800 mb-2">Amount:</label>
+                <input id="modalAmount" type="text"
+                  class="w-full border border-gray-300 rounded px-3 py-2 outline-none focus:border-blue-400 transition-colors">
+              </div>
+
+              <div class="pt-2">
+<button onclick="updateBet()"
+  class="bg-[#eeb44a] hover:bg-[#e6a32e] text-white font-medium py-2 px-6 rounded shadow-sm transition-colors">
+  Update Bet
+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+       <script>
+  const modal = document.getElementById('editModal');
+  const numInput = document.getElementById('modalNumber');
+  const amtInput = document.getElementById('modalAmount');
+  const betIdInput = document.getElementById('modalBetId');
+  const marketInput = document.getElementById('modalMarket');
+
+  function openModal(betId, market, number, amount) {
+    betIdInput.value = betId;
+    marketInput.value = market;
+    numInput.value = number;
+    amtInput.value = amount;
+    modal.classList.remove('hidden');
+  }
+
+  function closeModal() {
+    modal.classList.add('hidden');
+  }
+
+  async function updateBet() {
+    const betId = betIdInput.value;
+    const market = marketInput.value;
+    const number = numInput.value;
+    const amount = amtInput.value;
+
+    let url = "";
+    let bodyData = {};
+
+    /* ===== CHECK MARKET ===== */
+    if (market === "Starline") {
+      url = "/admin/starline-change-bid-number-amount";
+      bodyData = {
+        betId,
+        underNo: number,
+        amountPerUnderNo: amount
+      };
+    } 
+    else if (market === "Jackpot") {
+      url = "/admin/jackpot-change-bid-number-amount";
+      bodyData = {
+        betId,
+        openDigit: number,
+        amount: amount
+      };
+    } 
+    else {
+      // MAIN MARKET
+      url = "/admin/change-bid-number-amount";
+      bodyData = {
+        betId,
+        underNo: number,
+        amountPerUnderNo: amount
+      };
+    }
+
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(bodyData)
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        alert("Bet Updated Successfully");
+        location.reload();
+      } else {
+        alert(data.message || "Update Failed");
+      }
+
+    } catch (err) {
+      console.error("Update error:", err);
+      alert("Something went wrong");
+    }
+  }
+
+  // ESC close
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
+  });
+</script>
+      </main>
+
+  </main>
+  <script>
+    const userSearch = document.getElementById("userSearch");
+    const userList = document.getElementById("userList");
+    const selectedUser = document.getElementById("selectedUser");
+
+    let debounceTimer;
+
+    userSearch.addEventListener("input", function () {
+      clearTimeout(debounceTimer);
+
+      const query = this.value.trim();
+
+      if (!query) {
+        userList.classList.add("hidden");
+        return;
+      }
+
+      debounceTimer = setTimeout(async () => {
+        try {
+          const res = await fetch(`/admin/BidHistory?ajax=userSearch&q=${query}`);
+          const users = await res.json();
+
+          userList.innerHTML = "";
+
+          if (users.length === 0) {
+            userList.classList.add("hidden");
+            return;
+          }
+
+          users.forEach(user => {
+            const div = document.createElement("div");
+            div.className = "px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer";
+            div.textContent = user.username;
+
+            div.addEventListener("click", () => {
+              userSearch.value = user.username;
+              selectedUser.value = user.username;
+              userList.classList.add("hidden");
+            });
+
+            userList.appendChild(div);
+          });
+
+          userList.classList.remove("hidden");
+
+        } catch (err) {
+          console.error("User search error:", err);
+        }
+      }, 300); // debounce 300ms
+    });
+
+    // click outside close
+    document.addEventListener("click", function (e) {
+      if (!userSearch.contains(e.target) && !userList.contains(e.target)) {
+        userList.classList.add("hidden");
+      }
+    });
+  </script>
+  <script src="js/sidebar.js"></script>
+  <!-- <script src="js/adminResult.js"></script>
+  <script src="js/adminResultDOM.js"></script> -->
+</body>
+
+</html>
