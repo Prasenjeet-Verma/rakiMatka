@@ -573,13 +573,17 @@
           <!-- QR CODE SECTION -->
           <section id="qrSection" class="space-y-6 hidden">
             <div class="bg-gray-200 rounded-lg px-4 py-3 flex justify-between items-center">
-              <span class="font-semibold">maxsales@ucobank</span>
-              <i class="fa-regular fa-copy cursor-pointer"></i>
+              <span class="font-semibold">
+                <%= manualDeposit?.upiId || "Not Available" %>
+              </span>
+              <i 
+  class="fa-regular fa-copy cursor-pointer"
+  id="copyUpiBtn"
+></i>
             </div>
 
             <div class="flex justify-center">
-              <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=maxsales@ucobank"
-                class="w-64 h-64" />
+              <img src="<%= manualDeposit?.qrImage || '' %>" class="w-64 h-64 object-contain" />
             </div>
 
             <div class="space-y-4 px-2">
@@ -587,16 +591,27 @@
                 <div class="bg-green-100 p-2 rounded-lg">
                   <i class="fa-brands fa-whatsapp text-green-600 text-xl"></i>
                 </div>
-                <div class="text-sm">
-                  <p class="font-bold text-gray-800 mb-1">
-                    Send Screenshot to Admin
-                  </p>
-                  <p class="text-gray-600 leading-tight">
-                    UPI ID पर पेमेंट करके एडमिन को व्हाट्सएप
-                    <span class="text-green-600 font-bold">(6375533409)</span>
-                    पर स्क्रीनशॉट भेजें!
-                  </p>
-                </div>
+
+<a 
+  href="https://wa.me/<%= contactDetails?.whatsappNumber %>" 
+  target="_blank"
+  class="block"
+>
+  <div class="text-sm">
+    <p class="font-bold text-gray-800 mb-1">
+      Send Screenshot to Admin
+    </p>
+
+    <p class="text-gray-600 leading-tight">
+      UPI ID पर पेमेंट करके एडमिन को व्हाट्सएप
+      <span class="text-green-600 font-bold">
+        (<%= contactDetails?.whatsappNumber %>)
+      </span>
+      पर स्क्रीनशॉट भेजें!
+    </p>
+  </div>
+</a>
+
               </div>
 
               <div class="flex items-start gap-4 p-4 bg-white border-l-4 border-blue-500 rounded-r-xl shadow-sm">
@@ -632,10 +647,13 @@
         <!-- FOOTER (ONLY FOR QR) -->
         <footer id="qrFooter" class="hidden fixed bottom-0 left-0 right-0 p-4 bg-white">
           <div class="relative">
-            <button class="w-full bg-teal-800 text-white py-4 rounded-full text-lg">
+
+            <a href="https://wa.me/<%= contactDetails?.whatsappNumber %>" target="_blank"
+              class="w-full bg-teal-800 text-white py-4 rounded-full text-lg text-center block">
               Upload Screenshot
-            </button>
-            <a href="https://wa.me/91"
+            </a>
+
+            <a href="https://wa.me/<%= contactDetails?.whatsappNumber %>" target="_blank"
               class="absolute right-4 -top-20 bg-green-500 w-12 h-12 rounded-full flex items-center justify-center ">
               <i class="fa-brands fa-whatsapp text-white text-2xl"></i>
             </a>
@@ -839,58 +857,85 @@
       animation-play-state: paused;
     }
   </style>
-<!-- Firebase Scripts -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js"></script>
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyBTNYutsoWV32W4PI409PlmHwfOErM0QTE",
-    authDomain: "matka-7f973.firebaseapp.com",
-    projectId: "matka-7f973",
-    storageBucket: "matka-7f973.firebasestorage.app",
-    messagingSenderId: "428729119315",
-    appId: "1:428729119315:web:fe6823a4fab66107f5cca6",
-  };
+  <!-- Firebase Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBTNYutsoWV32W4PI409PlmHwfOErM0QTE",
+      authDomain: "matka-7f973.firebaseapp.com",
+      projectId: "matka-7f973",
+      storageBucket: "matka-7f973.firebasestorage.app",
+      messagingSenderId: "428729119315",
+      appId: "1:428729119315:web:fe6823a4fab66107f5cca6",
+    };
 
-  firebase.initializeApp(firebaseConfig);
-  const messaging = firebase.messaging();
+    firebase.initializeApp(firebaseConfig);
+    const messaging = firebase.messaging();
 
-  async function initFCM() {
-    try {
-      const registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
+    async function initFCM() {
+      try {
+        const registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
 
-      const permission = await Notification.requestPermission();
+        const permission = await Notification.requestPermission();
 
-      if (permission !== "granted") {
-        console.log("❌ Notification permission denied");
-        return;
-      }
+        if (permission !== "granted") {
+          console.log("❌ Notification permission denied");
+          return;
+        }
 
-      const token = await messaging.getToken({
-        vapidKey: "BNW7SrgQ2oEbKZlcYcy0g_DgkJzITRQKL8PMlvgXjDaOxAtG72zHWQMN0BA2JGkVJi1uox4lzm6_UFCmsBqR1iU",
-        serviceWorkerRegistration: registration
-      });
-
-      if (token) {
-        console.log("✅ FCM Token:", token);
-
-        await fetch("/user/save-fcm-token", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token })
+        const token = await messaging.getToken({
+          vapidKey: "BNW7SrgQ2oEbKZlcYcy0g_DgkJzITRQKL8PMlvgXjDaOxAtG72zHWQMN0BA2JGkVJi1uox4lzm6_UFCmsBqR1iU",
+          serviceWorkerRegistration: registration
         });
 
-        console.log("✅ Token sent to backend");
-      } else {
-        console.log("❌ No token generated");
+        if (token) {
+          console.log("✅ FCM Token:", token);
+
+          await fetch("/user/save-fcm-token", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token })
+          });
+
+          console.log("✅ Token sent to backend");
+        } else {
+          console.log("❌ No token generated");
+        }
+
+      } catch (error) {
+        console.error("🔥 FCM Init Error:", error);
       }
-
-    } catch (error) {
-      console.error("🔥 FCM Init Error:", error);
     }
-  }
 
-  initFCM();
+    initFCM();
+  </script>
+  <script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const copyBtn = document.getElementById("copyUpiBtn");
+
+    if (copyBtn) {
+      copyBtn.addEventListener("click", function () {
+        const upiText = `<%= manualDeposit?.upiId || "" %>`;
+
+        if (!upiText) return;
+
+        navigator.clipboard.writeText(upiText)
+          .then(() => {
+            copyBtn.classList.remove("fa-copy");
+            copyBtn.classList.add("fa-check");
+
+            setTimeout(() => {
+              copyBtn.classList.remove("fa-check");
+              copyBtn.classList.add("fa-copy");
+            }, 1500);
+          })
+          .catch(err => {
+            console.error("Copy failed:", err);
+          });
+      });
+    }
+  });
 </script>
   <script src="/js/user.js"></script>
 </body>

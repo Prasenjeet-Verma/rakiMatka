@@ -8,6 +8,7 @@ const GameRate = require("../model/GameRate");
 const GameResult = require("../model/GameResult");
 const bellNotification = require("../model/normalNotification");
 const ContactAdmin = require("../model/contactAdmin");
+const ManualDeposit = require("../model/ManualDeposit");
 const SingleDigitBet = require("../model/SingleDigitBet");
 const SingleBulkDigitBet = require("../model/SingleBulkDigitBet");
 const JodiDigitBet = require("../model/JodiDigitBet");
@@ -220,6 +221,16 @@ exports.getUserDashboardPage = async (req, res, next) => {
     })
       .sort({ gameType: 1 })
       .lean();
+
+    // ===================== 🎯 FETCH MANUAL DEPOSIT METHOD =====================
+    const manualDeposit = await ManualDeposit.findOne()
+      .sort({ createdAt: -1 })
+      .lean();
+
+    // ===================== 🎯 FETCH ACTIVE CONTACT =====================
+    const contactDetails = await ContactAdmin.findOne({
+      isActive: true,
+    }).lean();
     // ===================== 🎯 RENDER DASHBOARD =====================
     res.render("User/userDashboard", {
       user,
@@ -229,6 +240,8 @@ exports.getUserDashboardPage = async (req, res, next) => {
       jackpotGames,
       starlineRates, // ✅ NEW
       jackpotRates, // ✅ NEW
+      manualDeposit,
+      contactDetails,
       transactions: formattedTransactions,
       isLoggedIn: req.session.isLoggedIn,
     });
@@ -4324,11 +4337,11 @@ exports.getUserWinHistory = async (req, res, next) => {
             digits,
             amount: Number(
               b.amount ??
-                b.totalPoints ??
-                b.totalAmount ??
-                b.amountPerUnderNo ??
-                b.perUnderNosPoints ??
-                0,
+              b.totalPoints ??
+              b.totalAmount ??
+              b.amountPerUnderNo ??
+              b.perUnderNosPoints ??
+              0,
             ),
             winAmount: Number(b.winAmount ?? 0), // ✅ ADDED
             createdAt: bet.createdAt,
