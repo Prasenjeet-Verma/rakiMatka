@@ -137,12 +137,13 @@
 
           listItems.forEach(item => {
             item.addEventListener('click', () => {
-              searchInput.value = item.textContent;
-              hiddenUserId.value = item.dataset.id;
+              searchInput.value = item.textContent.trim();
+              hiddenUserId.value = item.dataset.id?.trim() || ""; // <-- trim and ensure non-empty
               resultsList.classList.add('hidden');
             });
           });
 
+          // hide results when clicking outside
           document.addEventListener('click', (e) => {
             if (!document.getElementById('search-container').contains(e.target)) {
               resultsList.classList.add('hidden');

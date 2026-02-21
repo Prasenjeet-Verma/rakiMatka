@@ -12,6 +12,7 @@ const GameRate = require("../model/GameRate");
 const GameResult = require("../model/GameResult");
 const { isGameOpenNow } = require("../utils/gameStatus");
 const Notification = require("../model/bellNotification");
+const bellNotification = require("../model/normalNotification");
 const SingleDigitBet = require("../model/SingleDigitBet");
 const SingleBulkDigitBet = require("../model/SingleBulkDigitBet");
 const JodiDigitBet = require("../model/JodiDigitBet");
@@ -5092,14 +5093,14 @@ exports.getAdminNotifications = async (req, res) => {
       ? { title: { $regex: search, $options: "i" } } // case-insensitive search
       : {};
 
-    const total = await Notification.countDocuments(query);
+    const total = await bellNotification.countDocuments(query);
     const totalPages = Math.ceil(total / limit);
 
     // Ensure page is within bounds
     if (page > totalPages && totalPages > 0) page = totalPages;
     if (page < 1) page = 1;
 
-    const notifications = await Notification
+    const notifications = await bellNotification
       .find(query)
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
@@ -5162,7 +5163,7 @@ exports.postAdminNotifications = async (req, res) => {
     // 🔥 Make title uppercase
     title = title.toUpperCase();
 
-    const notification = new Notification({
+    const notification = new bellNotification({
       title: title,
       message: message,
     });
@@ -5200,13 +5201,13 @@ exports.deleteNotification = async (req, res) => {
     // ================= DELETE NOTIFICATION =================
     const notificationId = req.params.id;
 
-    const notification = await Notification.findById(notificationId);
+    const notification = await bellNotification.findById(notificationId);
     if (!notification) {
       req.flash("error", "Notification not found");
       return res.redirect("/admin/bell-notifications");
     }
 
-    await Notification.findByIdAndDelete(notificationId);
+    await bellNotification.findByIdAndDelete(notificationId);
     res.redirect("/admin/bell-notifications");
 
   } catch (error) {
@@ -5251,23 +5252,229 @@ exports.getSendNotificationPage = async (req, res) => {
   }
 };
 
+// exports.sendNotification = async (req, res) => {
+//   try {
+//         console.log("🔥 sendNotification route hit");
+//     console.log("📦 BODY:", req.body);
+//     const { title, message, userId } = req.body;
+
+//     if (!title || !message) {
+//       console.log("❌ Title or message missing");
+//       return res.redirect("/admin/send-notification");
+//     }
+
+//     // 🎯 ===============================
+//     // 🎯 SEND TO SPECIFIC USER
+//     // 🎯 ===============================
+//     if (userId) {
+
+//       const user = await User.findById(userId);
+
+//       if (!user) {
+//         console.log("❌ User not found");
+//         return res.redirect("/admin/send-notification");
+//       }
+
+//       if (user.fcmToken) {
+//         try {
+//           const response = await admin.messaging().send({
+//             token: user.fcmToken,
+//             notification: {
+//               title: title,
+//               body: message,
+//             },
+//           });
+
+//           console.log("✅ FCM Response (Single User):", response);
+
+//         } catch (fcmError) {
+//           console.error("🔥 FCM Error (Single User):", fcmError.message);
+//         }
+//       } else {
+//         console.log("❌ User has no FCM token");
+//       }
+
+//       await Notification.create({
+//         title,
+//         message,
+//         user: userId
+//       });
+
+//       return res.redirect("/admin/send-notification");
+//     }
+
+//     // 🌍 ===============================
+//     // 🌍 SEND TO ALL USERS
+//     // 🌍 ===============================
+
+//     const users = await User.find({
+//       role: "user",
+//       userStatus: "active",
+//       fcmToken: { $exists: true, $ne: null }
+//     });
+
+//     const tokens = users.map(u => u.fcmToken);
+
+//     console.log("📦 Total Active Users with Token:", tokens.length);
+
+//     if (tokens.length > 0) {
+//       try {
+//         const response = await admin.messaging().sendEachForMulticast({
+//           tokens: tokens,
+//           notification: {
+//             title,
+//             body: message,
+//           },
+//         });
+
+//         console.log("✅ FCM Multicast Response:");
+//         console.log("✔ Success:", response.successCount);
+//         console.log("❌ Failure:", response.failureCount);
+
+//         if (response.failureCount > 0) {
+//           response.responses.forEach((resp, idx) => {
+//             if (!resp.success) {
+//               console.error(
+//                 `❌ Failed Token: ${tokens[idx]} →`,
+//                 resp.error.message
+//               );
+//             }
+//           });
+//         }
+
+//       } catch (fcmError) {
+//         console.error("🔥 FCM Multicast Error:", fcmError.message);
+//       }
+//     } else {
+//       console.log("❌ No users with valid FCM tokens found");
+//     }
+
+//     // Save notification in DB
+//     const notifications = users.map(u => ({
+//       title,
+//       message,
+//       user: u._id
+//     }));
+
+//     if (notifications.length > 0) {
+//       await Notification.insertMany(notifications);
+//     }
+
+//     return res.redirect("/admin/send-notification");
+
+//   } catch (error) {
+//     console.error("🚨 Server Error:", error);
+//     res.status(500).send("Server Error");
+//   }
+// };
+
+// exports.sendNotification = async (req, res) => {
+//   try {
+//     console.log("🔥 sendNotification route hit");
+//     console.log("📦 BODY:", req.body);
+
+//     const { title, message, userId } = req.body;
+
+
+//     if (!title || !message) {
+//       console.log("❌ Title or message missing");
+//       return res.redirect("/admin/send-notification");
+//     }
+
+//     // 🎯 SEND TO SPECIFIC USER
+//     if (userId) {
+//       const user = await User.findById(userId);
+
+//       if (!user) {
+//         console.log("❌ User not found");
+//         return res.redirect("/admin/send-notification");
+//       }
+
+//       if (user.fcmToken) {
+//         try {
+//           const response = await admin.messaging().send({
+//             token: user.fcmToken,
+//             notification: {
+//               title,
+//               body: message,
+//             },
+//           });
+
+//           console.log("✅ FCM Response (Single User):", response);
+//         } catch (fcmError) {
+//           console.error("🔥 FCM Error (Single User):", fcmError.message);
+//         }
+//       } else {
+//         console.log("❌ User has no FCM token");
+//       }
+
+//       return res.redirect("/admin/send-notification");
+//     }
+
+//     // 🌍 SEND TO ALL USERS
+//     const users = await User.find({
+//       role: "user",
+//       userStatus: "active",
+//       fcmToken: { $exists: true, $ne: null }
+//     });
+
+//     const tokens = users.map(u => u.fcmToken);
+//     console.log("📦 Total Active Users with Token:", tokens.length);
+
+//     if (tokens.length > 0) {
+//       try {
+//         const response = await admin.messaging().sendEachForMulticast({
+//           tokens,
+//           notification: {
+//             title,
+//             body: message,
+//           },
+//         });
+
+//         console.log("✅ FCM Multicast Response:");
+//         console.log("✔ Success:", response.successCount);
+//         console.log("❌ Failure:", response.failureCount);
+
+//         if (response.failureCount > 0) {
+//           response.responses.forEach((resp, idx) => {
+//             if (!resp.success) {
+//               console.error(`❌ Failed Token: ${tokens[idx]} →`, resp.error.message);
+//             }
+//           });
+//         }
+//       } catch (fcmError) {
+//         console.error("🔥 FCM Multicast Error:", fcmError.message);
+//       }
+//     } else {
+//       console.log("❌ No users with valid FCM tokens found");
+//     }
+
+//     return res.redirect("/admin/send-notification");
+
+//   } catch (error) {
+//     console.error("🚨 Server Error:", error);
+//     res.status(500).send("Server Error");
+//   }
+// };
+
 exports.sendNotification = async (req, res) => {
   try {
-        console.log("🔥 sendNotification route hit");
+    console.log("🔥 sendNotification route hit");
     console.log("📦 BODY:", req.body);
+
     const { title, message, userId } = req.body;
+    const trimmedUserId = userId?.trim(); // <-- trim userId
 
     if (!title || !message) {
       console.log("❌ Title or message missing");
       return res.redirect("/admin/send-notification");
     }
 
-    // 🎯 ===============================
-    // 🎯 SEND TO SPECIFIC USER
-    // 🎯 ===============================
-    if (userId) {
+    console.log("🆔 Received userId:", JSON.stringify(trimmedUserId));
 
-      const user = await User.findById(userId);
+    // 🎯 SEND TO SPECIFIC USER
+    if (trimmedUserId) {
+      const user = await User.findById(trimmedUserId);
 
       if (!user) {
         console.log("❌ User not found");
@@ -5279,13 +5486,11 @@ exports.sendNotification = async (req, res) => {
           const response = await admin.messaging().send({
             token: user.fcmToken,
             notification: {
-              title: title,
+              title,
               body: message,
             },
           });
-
           console.log("✅ FCM Response (Single User):", response);
-
         } catch (fcmError) {
           console.error("🔥 FCM Error (Single User):", fcmError.message);
         }
@@ -5293,19 +5498,11 @@ exports.sendNotification = async (req, res) => {
         console.log("❌ User has no FCM token");
       }
 
-      await Notification.create({
-        title,
-        message,
-        user: userId
-      });
-
+      // ✅ Done sending to specific user, exit
       return res.redirect("/admin/send-notification");
     }
 
-    // 🌍 ===============================
-    // 🌍 SEND TO ALL USERS
-    // 🌍 ===============================
-
+    // 🌍 SEND TO ALL USERS (only if no specific user selected)
     const users = await User.find({
       role: "user",
       userStatus: "active",
@@ -5313,13 +5510,12 @@ exports.sendNotification = async (req, res) => {
     });
 
     const tokens = users.map(u => u.fcmToken);
-
     console.log("📦 Total Active Users with Token:", tokens.length);
 
     if (tokens.length > 0) {
       try {
         const response = await admin.messaging().sendEachForMulticast({
-          tokens: tokens,
+          tokens,
           notification: {
             title,
             body: message,
@@ -5333,30 +5529,15 @@ exports.sendNotification = async (req, res) => {
         if (response.failureCount > 0) {
           response.responses.forEach((resp, idx) => {
             if (!resp.success) {
-              console.error(
-                `❌ Failed Token: ${tokens[idx]} →`,
-                resp.error.message
-              );
+              console.error(`❌ Failed Token: ${tokens[idx]} →`, resp.error.message);
             }
           });
         }
-
       } catch (fcmError) {
         console.error("🔥 FCM Multicast Error:", fcmError.message);
       }
     } else {
       console.log("❌ No users with valid FCM tokens found");
-    }
-
-    // Save notification in DB
-    const notifications = users.map(u => ({
-      title,
-      message,
-      user: u._id
-    }));
-
-    if (notifications.length > 0) {
-      await Notification.insertMany(notifications);
     }
 
     return res.redirect("/admin/send-notification");

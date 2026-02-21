@@ -6,7 +6,7 @@ const UserBankDetails = require("../model/UserBankDetails");
 const Game = require("../model/Game");
 const GameRate = require("../model/GameRate");
 const GameResult = require("../model/GameResult");
-const Notification = require("../model/bellNotification");
+const bellNotification = require("../model/normalNotification");
 const SingleDigitBet = require("../model/SingleDigitBet");
 const SingleBulkDigitBet = require("../model/SingleBulkDigitBet");
 const JodiDigitBet = require("../model/JodiDigitBet");
@@ -4562,51 +4562,50 @@ exports.getUserGameChartPage = async (req, res, next) => {
     }
 
     // ===============================
-// ✅ STARLINE LOGIC (ONLY OPEN RESULTS)
-// ===============================
-let starlineResults = null;
-let starlineGames = [];
+    // ✅ STARLINE LOGIC (ONLY OPEN RESULTS)
+    // ===============================
+    let starlineResults = null;
+    let starlineGames = [];
 
-if (viewType === "starline") {
-  starlineGames = await Game.find({
-    isDeleted: false,
-    isStarline: true,
-  })
-    .select("gameName")
-    .lean();
+    if (viewType === "starline") {
+      starlineGames = await Game.find({
+        isDeleted: false,
+        isStarline: true,
+      })
+        .select("gameName")
+        .lean();
 
-  const starlineGameNames = starlineGames.map((g) => g.gameName);
+      const starlineGameNames = starlineGames.map((g) => g.gameName);
 
-  // 👇 fetch only OPEN results
-  const results = await StarlineGameResult.find({
-    gameName: { $in: starlineGameNames },
-    session: "OPEN" // only open
-  })
-    .sort({ resultDate: -1 })
-    .lean();
+      // 👇 fetch only OPEN results
+      const results = await StarlineGameResult.find({
+        gameName: { $in: starlineGameNames },
+        session: "OPEN", // only open
+      })
+        .sort({ resultDate: -1 })
+        .lean();
 
-  starlineResults = {};
+      starlineResults = {};
 
-  results.forEach((result) => {
-    if (!starlineResults[result.resultDate]) {
-      starlineResults[result.resultDate] = {
-        weekday: result.resultWeekday,
-        games: {},
-      };
+      results.forEach((result) => {
+        if (!starlineResults[result.resultDate]) {
+          starlineResults[result.resultDate] = {
+            weekday: result.resultWeekday,
+            games: {},
+          };
+        }
+
+        if (!starlineResults[result.resultDate].games[result.gameName]) {
+          starlineResults[result.resultDate].games[result.gameName] = {};
+        }
+
+        // only OPEN data
+        starlineResults[result.resultDate].games[result.gameName].open = {
+          panna: result.panna,
+          digit: result.digit,
+        };
+      });
     }
-
-    if (!starlineResults[result.resultDate].games[result.gameName]) {
-      starlineResults[result.resultDate].games[result.gameName] = {};
-    }
-
-    // only OPEN data
-    starlineResults[result.resultDate].games[result.gameName].open = {
-      panna: result.panna,
-      digit: result.digit,
-    };
-  });
-}
-
 
     res.render("User/userGameCharts", {
       user,
@@ -4627,7 +4626,7 @@ if (viewType === "starline") {
 
 exports.getUserBellNotificationsPage = async (req, res, next) => {
   try {
-
+    // 🔐 User Security Check
     if (
       !req.session.isLoggedIn ||
       !req.session.user ||
@@ -4647,19 +4646,17 @@ exports.getUserBellNotificationsPage = async (req, res, next) => {
       return res.redirect("/login");
     }
 
-    // ✅ FIXED LINE
-    const notifications = await Notification.find({
-      user: req.session.user._id
-    })
-    .sort({ createdAt: -1 })
-    .limit(20);
+    // Fetch notifications
+    const notifications = await bellNotification
+      .find({})
+      .sort({ createdAt: -1 }) // latest first
+      .limit(20); // optional limit
 
     res.render("User/bellNotifications", {
       user,
       isLoggedIn: req.session.isLoggedIn,
-      notifications,
+      notifications, // pass notifications to EJS
     });
-
   } catch (err) {
     console.error(err);
     next(err);
@@ -4679,12 +4676,12 @@ exports.saveFcmToken = async (req, res) => {
     }
 
     await User.findByIdAndUpdate(req.session.user._id, {
-      fcmToken: token
+      fcmToken: token,
     });
 
     res.json({ success: true });
-console.log("Saving token for user:", req.session.user._id);
-console.log("Token:", token);
+    console.log("Saving token for user:", req.session.user._id);
+    console.log("Token:", token);
   } catch (error) {
     console.error("FCM Token Save Error:", error);
     res.status(500).json({ success: false });
