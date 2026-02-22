@@ -514,6 +514,7 @@
             </button>
 
             <script>
+              const directUpiStatus = "<%= directUpiStatus %>";
               const inputField = document.getElementById("depositAmount");
               const quickButtons = document.querySelectorAll(".quick-btn");
               const messageBox = document.getElementById("messageBox");
@@ -545,10 +546,10 @@
 
                   e.preventDefault();
                   // ❌ Direct UPI Disabled Check
-                  // if (directUpiStatus !== "Enable") {
-                  //   showMessage("Direct UPI payment is currently disabled");
-                  //   return;
-                  // }
+                  if (directUpiStatus !== "Enable") {
+                    showMessage("Direct UPI payment is currently disabled");
+                    return;
+                  }
                   const amount = Number(inputField.value);
 
                   if (!amount || amount < minDeposit) {
@@ -910,7 +911,7 @@
         <i class="fa-solid fa-trophy mr-4"></i> Win History
       </div>
     </a>
-    <a href="/userGameRates">
+    <a href="/user-GameRates">
       <div class="menu-item">
         <i class="fa-solid fa-chart-line mr-4"></i> Game Rates
       </div>

@@ -226,9 +226,9 @@ exports.getUserDashboardPage = async (req, res, next) => {
       .lean();
 
     // ===================== 🎯 FETCH MANUAL DEPOSIT METHOD =====================
-const manualDeposit = await ManualDeposit.findOne({ isActive: true })
-  .sort({ createdAt: -1 })
-  .lean();
+    const manualDeposit = await ManualDeposit.findOne({ isActive: true })
+      .sort({ createdAt: -1 })
+      .lean();
 
     // ===================== 🎯 FETCH ACTIVE CONTACT =====================
     const contactDetails = await ContactAdmin.findOne({
@@ -279,7 +279,7 @@ const manualDeposit = await ManualDeposit.findOne({ isActive: true })
       directPhonepeId: paymentSettings?.directPhonepeId || "",
       directPaytmId: paymentSettings?.directPaytmId || "",
       todayWithdrawTime,
-      // directUpiStatus: paymentSettings?.directUpi || "Disable",
+      directUpiStatus: paymentSettings?.directUpi || "Disable",
       isLoggedIn: req.session.isLoggedIn,
     });
   } catch (err) {
