@@ -10,7 +10,7 @@ const paymentGatewaySettingsSchema = new mongoose.Schema(
     directPhonepeId: { type: String, default: "" },
     directPaytmId: { type: String, default: "" },
 
-    quickDepositAmounts: { type: String, default: "200,300,500,1000,2500,5000,10000,25000,50000" },
+    quickDepositAmounts: { type: String},
     gatewayWindow: { type: String, default: "Inside App" }, // Inside App / Browser
   },
   { timestamps: true }

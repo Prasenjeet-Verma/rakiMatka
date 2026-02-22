@@ -11,7 +11,16 @@ const Game = require("../model/Game");
 const GameRate = require("../model/GameRate");
 const GameResult = require("../model/GameResult");
 const { isGameOpenNow } = require("../utils/gameStatus");
+const WithdrawTime = require("../model/WithdrawTime");
+const MainSettings = require("../model/MainSettings");
+const ContactAdmin = require("../model/contactAdmin");
 const bellNotification = require("../model/normalNotification");
+const ManualDeposit = require("../model/ManualDeposit");
+const uploadToPhpServer = require("../utils/uploadToPhpServer");
+const fs = require("fs");
+const HomeSliderImage = require("../model/HomeSliderImage");
+const SendImageMsg = require("../model/SendImageMessage");
+const PaymentGatewaySettings = require("../model/PaymentGatewaySettings");
 const SingleDigitBet = require("../model/SingleDigitBet");
 const SingleBulkDigitBet = require("../model/SingleBulkDigitBet");
 const JodiDigitBet = require("../model/JodiDigitBet");
@@ -5926,7 +5935,7 @@ exports.getBidHistoryPage = async (req, res, next) => {
   }
 };
 
-const ContactAdmin = require("../model/contactAdmin");
+
 exports.getContactUsDetailsPage = async (req, res) => {
   try {
     if (
@@ -6013,9 +6022,7 @@ exports.updateContactUsDetails = async (req, res) => {
   }
 };
 
-const ManualDeposit = require("../model/ManualDeposit");
-const uploadToPhpServer = require("../utils/uploadToPhpServer");
-const fs = require("fs");
+
 
 exports.getManualDepositMethodsPage = async (req, res) => {
   try {
@@ -6129,7 +6136,7 @@ exports.deleteManualDeposit = async (req, res) => {
   }
 };
 
-const WithdrawTime = require("../model/WithdrawTime");
+
 
 exports.setWithdrawTimings = async (req, res) => {
   try {
@@ -6203,7 +6210,7 @@ exports.postWithdrawTimings = async (req, res) => {
   }
 };
 
-const MainSettings = require("../model/MainSettings");
+
 exports.getMainSettingsPage = async (req, res) => {
   try {
     if (
@@ -6298,7 +6305,7 @@ exports.postMainSettings = async (req, res) => {
   }
 };
 
-const PaymentGatewaySettings = require("../model/PaymentGatewaySettings");
+
 exports.getPaymentGatewaySettingsPage = async (req, res) => {
   try {
     if (
@@ -6383,8 +6390,7 @@ exports.postPaymentGatewaySettings = async (req, res) => {
   }
 };
 
-const HomeSliderImage = require("../model/HomeSliderImage");
-const SendImageMsg = require("../model/SendImageMessage");
+
 // GET page
 exports.getImageSliderPage = async (req, res) => {
   try {

@@ -47,9 +47,7 @@
           <div class="flex-1 overflow-hidden relative h-full flex items-center bg-emerald-50">
             <div class="whitespace-nowrap inline-block animate-scrollText-slow hover:pause-scroll">
               <span class="text-emerald-900 font-semibold px-6 text-sm">
-                Welcome here, I am Saurav!
-                We are fromReckline Tech. We provide high-quality tech solutions. What are you doing today?
-                Check out our latest updates and features!
+                <%= homescreenText %>
               </span>
             </div>
           </div>
@@ -483,33 +481,26 @@
             </button>
           </div>
 
+
+<!-- Start -->
           <!-- AUTO DEPOSIT SECTION -->
           <section id="autoSection" class="space-y-6">
             <div>
               <h2 class="font-semibold text-lg mb-3">ADD POINTS</h2>
-              <input type="number" placeholder="Add amount"
+              <input type="number" id="depositAmount" placeholder="Add amount"
                 class="w-full px-4 py-4 rounded-lg bg-gray-200 focus:outline-none" />
+              <div id="messageBox"></div>
             </div>
 
             <div class="grid grid-cols-3 gap-4">
-              <button class="bg-teal-700 text-white py-3 rounded-lg">
-                300
-              </button>
-              <button class="bg-teal-700 text-white py-3 rounded-lg">
-                500
-              </button>
-              <button class="bg-teal-700 text-white py-3 rounded-lg">
-                1000
-              </button>
-              <button class="bg-teal-700 text-white py-3 rounded-lg">
-                1500
-              </button>
-              <button class="bg-teal-700 text-white py-3 rounded-lg">
-                2000
-              </button>
-              <button class="bg-teal-700 text-white py-3 rounded-lg">
-                10000
-              </button>
+              <% if (quickDepositAmounts) { %>
+                <% quickDepositAmounts.split(',').forEach(function(amount){ %>
+                  <button type="button" class="quick-btn bg-teal-700 text-white py-3 rounded-lg"
+                    data-amount="<%= amount.trim() %>">
+                    <%= amount.trim() %>
+                  </button>
+                  <% }) %>
+                    <% } %>
             </div>
 
             <div class="space-y-4 text-lg">
@@ -522,6 +513,67 @@
             <button class="w-full bg-teal-800 text-white py-4 rounded-full text-xl">
               Proceed
             </button>
+
+            <script>
+              const inputField = document.getElementById("depositAmount");
+              const quickButtons = document.querySelectorAll(".quick-btn");
+              const messageBox = document.getElementById("messageBox");
+              const minDeposit = <%= minDeposit %>;
+
+              quickButtons.forEach(btn => {
+                btn.addEventListener("click", function () {
+                  inputField.value = this.dataset.amount;
+                });
+              });
+
+              function showMessage(message, type = "error") {
+                messageBox.innerHTML = "";
+
+                const div = document.createElement("div");
+                div.className = "p-3 rounded mt-3 text-white " +
+                  (type === "error" ? "bg-red-500" : "bg-green-500");
+                div.innerText = message;
+
+                messageBox.appendChild(div);
+
+                setTimeout(() => {
+                  div.remove();
+                }, 3000);
+              }
+
+              document.querySelector("button.w-full.bg-teal-800")
+                .addEventListener("click", function (e) {
+
+                  e.preventDefault();
+
+                  const amount = Number(inputField.value);
+
+                  if (!amount || amount < minDeposit) {
+                    showMessage("Minimum deposit ₹" + minDeposit + " hai");
+                    return;
+                  }
+
+                  const selectedPay = document.querySelector("input[name='pay']:checked");
+
+                  if (!selectedPay) {
+                    showMessage("Payment method select karo");
+                    return;
+                  }
+
+                  // Direct Payment Open
+                  if (selectedPay.parentElement.innerText.includes("Google")) {
+                    window.location.href = "upi://pay?pa=<%= directGpayId %>";
+                  }
+                  else if (selectedPay.parentElement.innerText.includes("PhonePe")) {
+                    window.location.href = "upi://pay?pa=<%= directPhonepeId %>";
+                  }
+                  else if (selectedPay.parentElement.innerText.includes("Paytm")) {
+                    window.location.href = "upi://pay?pa=<%= directPaytmId %>";
+                  }
+                });
+            </script>
+<!-- End -->
+
 
             <div class="px-2">
               <div class="bg-orange-50 border-2 border-orange-200 rounded-2xl p-5 shadow-sm relative overflow-hidden">
@@ -576,10 +628,7 @@
               <span class="font-semibold">
                 <%= manualDeposit?.upiId || "Not Available" %>
               </span>
-              <i 
-  class="fa-regular fa-copy cursor-pointer"
-  id="copyUpiBtn"
-></i>
+              <i class="fa-regular fa-copy cursor-pointer" id="copyUpiBtn"></i>
             </div>
 
             <div class="flex justify-center">
@@ -592,25 +641,21 @@
                   <i class="fa-brands fa-whatsapp text-green-600 text-xl"></i>
                 </div>
 
-<a 
-  href="https://wa.me/<%= contactDetails?.whatsappNumber %>" 
-  target="_blank"
-  class="block"
->
-  <div class="text-sm">
-    <p class="font-bold text-gray-800 mb-1">
-      Send Screenshot to Admin
-    </p>
+                <a href="https://wa.me/<%= contactDetails?.whatsappNumber %>" target="_blank" class="block">
+                  <div class="text-sm">
+                    <p class="font-bold text-gray-800 mb-1">
+                      Send Screenshot to Admin
+                    </p>
 
-    <p class="text-gray-600 leading-tight">
-      UPI ID पर पेमेंट करके एडमिन को व्हाट्सएप
-      <span class="text-green-600 font-bold">
-        (<%= contactDetails?.whatsappNumber %>)
-      </span>
-      पर स्क्रीनशॉट भेजें!
-    </p>
-  </div>
-</a>
+                    <p class="text-gray-600 leading-tight">
+                      UPI ID पर पेमेंट करके एडमिन को व्हाट्सएप
+                      <span class="text-green-600 font-bold">
+                        (<%= contactDetails?.whatsappNumber %>)
+                      </span>
+                      पर स्क्रीनशॉट भेजें!
+                    </p>
+                  </div>
+                </a>
 
               </div>
 
@@ -911,32 +956,32 @@
     initFCM();
   </script>
   <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const copyBtn = document.getElementById("copyUpiBtn");
+    document.addEventListener("DOMContentLoaded", function () {
+      const copyBtn = document.getElementById("copyUpiBtn");
 
-    if (copyBtn) {
-      copyBtn.addEventListener("click", function () {
-        const upiText = `<%= manualDeposit?.upiId || "" %>`;
+      if (copyBtn) {
+        copyBtn.addEventListener("click", function () {
+          const upiText = `<%= manualDeposit?.upiId || "" %>`;
 
-        if (!upiText) return;
+          if (!upiText) return;
 
-        navigator.clipboard.writeText(upiText)
-          .then(() => {
-            copyBtn.classList.remove("fa-copy");
-            copyBtn.classList.add("fa-check");
+          navigator.clipboard.writeText(upiText)
+            .then(() => {
+              copyBtn.classList.remove("fa-copy");
+              copyBtn.classList.add("fa-check");
 
-            setTimeout(() => {
-              copyBtn.classList.remove("fa-check");
-              copyBtn.classList.add("fa-copy");
-            }, 1500);
-          })
-          .catch(err => {
-            console.error("Copy failed:", err);
-          });
-      });
-    }
-  });
-</script>
+              setTimeout(() => {
+                copyBtn.classList.remove("fa-check");
+                copyBtn.classList.add("fa-copy");
+              }, 1500);
+            })
+            .catch(err => {
+              console.error("Copy failed:", err);
+            });
+        });
+      }
+    });
+  </script>
   <script src="/js/user.js"></script>
 </body>
 

@@ -8,6 +8,8 @@ const GameRate = require("../model/GameRate");
 const GameResult = require("../model/GameResult");
 const bellNotification = require("../model/normalNotification");
 const ContactAdmin = require("../model/contactAdmin");
+const MainSettings = require("../model/MainSettings");
+const payment = require("../model/PaymentGatewaySettings");
 const ManualDeposit = require("../model/ManualDeposit");
 const SingleDigitBet = require("../model/SingleDigitBet");
 const SingleBulkDigitBet = require("../model/SingleBulkDigitBet");
@@ -231,6 +233,13 @@ exports.getUserDashboardPage = async (req, res, next) => {
     const contactDetails = await ContactAdmin.findOne({
       isActive: true,
     }).lean();
+
+    // ===================== 🎯 FETCH MAIN SETTINGS =====================
+    const mainSettings = await MainSettings.findOne().lean();
+
+    // ===================== 🎯 FETCH PAYMENT SETTINGS =====================
+    const paymentSettings = await payment.findOne().lean();
+
     // ===================== 🎯 RENDER DASHBOARD =====================
     res.render("User/userDashboard", {
       user,
@@ -243,6 +252,12 @@ exports.getUserDashboardPage = async (req, res, next) => {
       manualDeposit,
       contactDetails,
       transactions: formattedTransactions,
+      homescreenText: mainSettings?.homescreenText || "",
+      minDeposit: mainSettings?.minDeposit || 0,
+      quickDepositAmounts: paymentSettings?.quickDepositAmounts || "",
+      directGpayId: paymentSettings?.directGpayId || "",
+      directPhonepeId: paymentSettings?.directPhonepeId || "",
+      directPaytmId: paymentSettings?.directPaytmId || "",
       isLoggedIn: req.session.isLoggedIn,
     });
   } catch (err) {
@@ -753,7 +768,7 @@ exports.getUserContactAdminPage = async (req, res, next) => {
     }
 
     const admin = await User.findOne({ role: "admin" }).select(
-      "username phoneNo profilePhoto"
+      "username phoneNo profilePhoto",
     );
 
     // 🔥 GET CONTACT DETAILS FROM DB
@@ -765,7 +780,6 @@ exports.getUserContactAdminPage = async (req, res, next) => {
       contactDetails,
       isLoggedIn: req.session.isLoggedIn,
     });
-
   } catch (err) {
     console.error("userContactAdmin Error:", err);
     next(err);
@@ -4337,11 +4351,11 @@ exports.getUserWinHistory = async (req, res, next) => {
             digits,
             amount: Number(
               b.amount ??
-              b.totalPoints ??
-              b.totalAmount ??
-              b.amountPerUnderNo ??
-              b.perUnderNosPoints ??
-              0,
+                b.totalPoints ??
+                b.totalAmount ??
+                b.amountPerUnderNo ??
+                b.perUnderNosPoints ??
+                0,
             ),
             winAmount: Number(b.winAmount ?? 0), // ✅ ADDED
             createdAt: bet.createdAt,

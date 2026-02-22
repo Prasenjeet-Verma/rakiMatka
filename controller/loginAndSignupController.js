@@ -1,7 +1,8 @@
 const { check, validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const User = require("../model/userSchema");
-
+const Reward = require("../model/Reward");
+const Main = require("../model/MainSettings");
 // --- GET Signup Page ---
 exports.getSignupPage = async (req, res, next) => {
   try {
@@ -20,21 +21,31 @@ exports.getSignupPage = async (req, res, next) => {
 
 // --- POST Signup Page ---
 exports.postSignupPage = [
-  check("username").trim().notEmpty().withMessage("Username is required")
-    .isLength({ min: 3 }).withMessage("Username must be at least 3 characters")
+  check("username")
+    .trim()
+    .notEmpty()
+    .withMessage("Username is required")
+    .isLength({ min: 3 })
+    .withMessage("Username must be at least 3 characters")
     .custom(async (value) => {
       const user = await User.findOne({ username: value });
       if (user) throw new Error("Username already in use");
       return true;
     }),
-  check("phone").trim().notEmpty().withMessage("Phone number is required")
+  check("phone")
+    .trim()
+    .notEmpty()
+    .withMessage("Phone number is required")
     .custom(async (value) => {
       const user = await User.findOne({ phoneNo: value });
       if (user) throw new Error("Phone number already in use");
       return true;
     }),
-  check("password").notEmpty().withMessage("Password is required")
-    .isLength({ min: 6 }).withMessage("Password must be at least 6 characters"),
+  check("password")
+    .notEmpty()
+    .withMessage("Password is required")
+    .isLength({ min: 6 })
+    .withMessage("Password must be at least 6 characters"),
   check("confirmPassword").custom((value, { req }) => {
     if (value !== req.body.password) throw new Error("Passwords do not match");
     return true;
@@ -49,7 +60,12 @@ exports.postSignupPage = [
         pageTitle: "Create Account",
         isLoggedIn: false,
         errors: errors.array().map((e) => e.msg),
-        oldInput: { username, phone, password, confirmPassword: req.body.confirmPassword },
+        oldInput: {
+          username,
+          phone,
+          password,
+          confirmPassword: req.body.confirmPassword,
+        },
       });
     }
 
@@ -65,6 +81,26 @@ exports.postSignupPage = [
       });
 
       await newUser.save();
+
+      // ================== 🎁 SIGNUP REWARD LOGIC ==================
+
+      const mainSettings = await Main.findOne().lean();
+
+      if (mainSettings && mainSettings.signupReward > 0) {
+        // 💰 Add reward to wallet
+        newUser.wallet += mainSettings.signupReward;
+        await newUser.save();
+
+        // 📝 Save reward history
+        await Reward.create({
+          user: newUser._id,
+          rewardAmount: mainSettings.signupReward,
+          rewardType: "signup",
+          description: "Signup Bonus Reward",
+          status: "credited",
+        });
+      }
+
       res.redirect("/login");
     } catch (err) {
       console.error(err);
@@ -72,7 +108,12 @@ exports.postSignupPage = [
         pageTitle: "Create Account",
         isLoggedIn: false,
         errors: ["Something went wrong. Try again."],
-        oldInput: { username, phone, password, confirmPassword: req.body.confirmPassword },
+        oldInput: {
+          username,
+          phone,
+          password,
+          confirmPassword: req.body.confirmPassword,
+        },
       });
     }
   },
@@ -112,13 +153,17 @@ exports.postLoginPage = [
     }
 
     try {
-      const user = await User.findOne({ $or: [{ username: login }, { phoneNo: login }] });
+      const user = await User.findOne({
+        $or: [{ username: login }, { phoneNo: login }],
+      });
 
       if (!user || user.userStatus === "suspended") {
         return res.status(400).render("LoginandSignup/login", {
           pageTitle: "Login",
           isLoggedIn: false,
-          errors: [user ? "Your account is suspended" : "Invalid login or password"],
+          errors: [
+            user ? "Your account is suspended" : "Invalid login or password",
+          ],
           oldInput: { login, password },
         });
       }
@@ -164,7 +209,6 @@ exports.postLoginPage = [
       } else {
         return res.redirect("/userdashboard"); // ya user home
       }
-
     } catch (err) {
       console.error(err);
       res.status(500).render("LoginandSignup/login", {
@@ -200,6 +244,3 @@ exports.logoutUserAndAdmin = (req, res, next) => {
     res.redirect("/login");
   });
 };
-
-
-
