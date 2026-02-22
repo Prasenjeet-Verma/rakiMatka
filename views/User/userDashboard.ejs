@@ -565,10 +565,10 @@
                     window.location.href = "gpay://upi/pay?pa=<%= directGpayId %>";
                   }
                   else if (selectedPay.parentElement.innerText.includes("PhonePe")) {
-                    window.location.href = "upi://pay?pa=<%= directPhonepeId %>";
+                    window.location.href = "phonepe://upi/pay?pa=<%= directPhonepeId %>";
                   }
                   else if (selectedPay.parentElement.innerText.includes("Paytm")) {
-                    window.location.href = "upi://pay?pa=<%= directPaytmId %>";
+                    window.location.href = "paytmmp://upi/pay?pa=<%= directPaytmId %>";
                   }
                 });
             </script>
