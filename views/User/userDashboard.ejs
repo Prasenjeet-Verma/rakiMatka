@@ -562,7 +562,7 @@
 
                   // Direct Payment Open
                   if (selectedPay.parentElement.innerText.includes("Google")) {
-                    window.location.href = "upi://pay?pa=<%= directGpayId %>";
+                    window.location.href = "gpay://upi/pay?pa=<%= directGpayId %>";
                   }
                   else if (selectedPay.parentElement.innerText.includes("PhonePe")) {
                     window.location.href = "upi://pay?pa=<%= directPhonepeId %>";
