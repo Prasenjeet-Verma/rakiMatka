@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const { check, validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const User = require("../model/userSchema");
-const admin = require("../config/firebase");
+const firebaseAdmin = require("../config/firebase");
 const WalletTransaction = require("../model/WalletTransaction");
 const UserBankDetails = require("../model/UserBankDetails");
 const moment = require("moment-timezone");
@@ -5282,6 +5282,7 @@ exports.deleteNotification = async (req, res) => {
   }
 };
 
+// POP UP NOTIFICATION PAGE STARTS HERE
 exports.getSendNotificationPage = async (req, res) => {
   try {
     if (
@@ -5319,210 +5320,6 @@ exports.getSendNotificationPage = async (req, res) => {
     res.status(500).send("Server Error");
   }
 };
-
-// exports.sendNotification = async (req, res) => {
-//   try {
-//         console.log("🔥 sendNotification route hit");
-//     console.log("📦 BODY:", req.body);
-//     const { title, message, userId } = req.body;
-
-//     if (!title || !message) {
-//       console.log("❌ Title or message missing");
-//       return res.redirect("/admin/send-notification");
-//     }
-
-//     // 🎯 ===============================
-//     // 🎯 SEND TO SPECIFIC USER
-//     // 🎯 ===============================
-//     if (userId) {
-
-//       const user = await User.findById(userId);
-
-//       if (!user) {
-//         console.log("❌ User not found");
-//         return res.redirect("/admin/send-notification");
-//       }
-
-//       if (user.fcmToken) {
-//         try {
-//           const response = await admin.messaging().send({
-//             token: user.fcmToken,
-//             notification: {
-//               title: title,
-//               body: message,
-//             },
-//           });
-
-//           console.log("✅ FCM Response (Single User):", response);
-
-//         } catch (fcmError) {
-//           console.error("🔥 FCM Error (Single User):", fcmError.message);
-//         }
-//       } else {
-//         console.log("❌ User has no FCM token");
-//       }
-
-//       await Notification.create({
-//         title,
-//         message,
-//         user: userId
-//       });
-
-//       return res.redirect("/admin/send-notification");
-//     }
-
-//     // 🌍 ===============================
-//     // 🌍 SEND TO ALL USERS
-//     // 🌍 ===============================
-
-//     const users = await User.find({
-//       role: "user",
-//       userStatus: "active",
-//       fcmToken: { $exists: true, $ne: null }
-//     });
-
-//     const tokens = users.map(u => u.fcmToken);
-
-//     console.log("📦 Total Active Users with Token:", tokens.length);
-
-//     if (tokens.length > 0) {
-//       try {
-//         const response = await admin.messaging().sendEachForMulticast({
-//           tokens: tokens,
-//           notification: {
-//             title,
-//             body: message,
-//           },
-//         });
-
-//         console.log("✅ FCM Multicast Response:");
-//         console.log("✔ Success:", response.successCount);
-//         console.log("❌ Failure:", response.failureCount);
-
-//         if (response.failureCount > 0) {
-//           response.responses.forEach((resp, idx) => {
-//             if (!resp.success) {
-//               console.error(
-//                 `❌ Failed Token: ${tokens[idx]} →`,
-//                 resp.error.message
-//               );
-//             }
-//           });
-//         }
-
-//       } catch (fcmError) {
-//         console.error("🔥 FCM Multicast Error:", fcmError.message);
-//       }
-//     } else {
-//       console.log("❌ No users with valid FCM tokens found");
-//     }
-
-//     // Save notification in DB
-//     const notifications = users.map(u => ({
-//       title,
-//       message,
-//       user: u._id
-//     }));
-
-//     if (notifications.length > 0) {
-//       await Notification.insertMany(notifications);
-//     }
-
-//     return res.redirect("/admin/send-notification");
-
-//   } catch (error) {
-//     console.error("🚨 Server Error:", error);
-//     res.status(500).send("Server Error");
-//   }
-// };
-
-// exports.sendNotification = async (req, res) => {
-//   try {
-//     console.log("🔥 sendNotification route hit");
-//     console.log("📦 BODY:", req.body);
-
-//     const { title, message, userId } = req.body;
-
-//     if (!title || !message) {
-//       console.log("❌ Title or message missing");
-//       return res.redirect("/admin/send-notification");
-//     }
-
-//     // 🎯 SEND TO SPECIFIC USER
-//     if (userId) {
-//       const user = await User.findById(userId);
-
-//       if (!user) {
-//         console.log("❌ User not found");
-//         return res.redirect("/admin/send-notification");
-//       }
-
-//       if (user.fcmToken) {
-//         try {
-//           const response = await admin.messaging().send({
-//             token: user.fcmToken,
-//             notification: {
-//               title,
-//               body: message,
-//             },
-//           });
-
-//           console.log("✅ FCM Response (Single User):", response);
-//         } catch (fcmError) {
-//           console.error("🔥 FCM Error (Single User):", fcmError.message);
-//         }
-//       } else {
-//         console.log("❌ User has no FCM token");
-//       }
-
-//       return res.redirect("/admin/send-notification");
-//     }
-
-//     // 🌍 SEND TO ALL USERS
-//     const users = await User.find({
-//       role: "user",
-//       userStatus: "active",
-//       fcmToken: { $exists: true, $ne: null }
-//     });
-
-//     const tokens = users.map(u => u.fcmToken);
-//     console.log("📦 Total Active Users with Token:", tokens.length);
-
-//     if (tokens.length > 0) {
-//       try {
-//         const response = await admin.messaging().sendEachForMulticast({
-//           tokens,
-//           notification: {
-//             title,
-//             body: message,
-//           },
-//         });
-
-//         console.log("✅ FCM Multicast Response:");
-//         console.log("✔ Success:", response.successCount);
-//         console.log("❌ Failure:", response.failureCount);
-
-//         if (response.failureCount > 0) {
-//           response.responses.forEach((resp, idx) => {
-//             if (!resp.success) {
-//               console.error(`❌ Failed Token: ${tokens[idx]} →`, resp.error.message);
-//             }
-//           });
-//         }
-//       } catch (fcmError) {
-//         console.error("🔥 FCM Multicast Error:", fcmError.message);
-//       }
-//     } else {
-//       console.log("❌ No users with valid FCM tokens found");
-//     }
-
-//     return res.redirect("/admin/send-notification");
-
-//   } catch (error) {
-//     console.error("🚨 Server Error:", error);
-//     res.status(500).send("Server Error");
-//   }
-// };
 
 exports.sendNotification = async (req, res) => {
   try {
@@ -5568,7 +5365,7 @@ exports.sendNotification = async (req, res) => {
 
       if (user.fcmToken) {
         try {
-          const response = await admin.messaging().send({
+          const response = await firebaseAdmin.messaging().send({
             token: user.fcmToken,
             notification: {
               title,
@@ -5599,7 +5396,7 @@ exports.sendNotification = async (req, res) => {
 
     if (tokens.length > 0) {
       try {
-        const response = await admin.messaging().sendEachForMulticast({
+        const response = await firebaseAdmin.messaging().sendEachForMulticast({
           tokens,
           notification: {
             title,
@@ -6258,10 +6055,9 @@ exports.getManualDepositMethodsPage = async (req, res) => {
   }
 };
 
-
 exports.postManualDepositMethods = async (req, res) => {
   try {
-        if (
+    if (
       !req.session.isLoggedIn ||
       !req.session.admin ||
       req.session.admin.role !== "admin"
@@ -6307,7 +6103,7 @@ exports.postManualDepositMethods = async (req, res) => {
 
 exports.deleteManualDeposit = async (req, res) => {
   try {
-        if (
+    if (
       !req.session.isLoggedIn ||
       !req.session.admin ||
       req.session.admin.role !== "admin"
@@ -6330,5 +6126,539 @@ exports.deleteManualDeposit = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.redirect("/admin/manual-deposit-methods");
+  }
+};
+
+const WithdrawTime = require("../model/WithdrawTime");
+
+exports.setWithdrawTimings = async (req, res) => {
+  try {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    }).lean();
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+    let withdrawTimings = await WithdrawTime.findOne().lean();
+
+    res.render("Admin/setWithdrawTimings", {
+      pageTitle: "Set Withdraw Timings",
+      admin,
+      withdrawTimings,
+      isLoggedIn: req.session.isLoggedIn,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server Error");
+  }
+};
+
+exports.postWithdrawTimings = async (req, res) => {
+  try {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    }).lean();
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    const data = req.body;
+
+    let existing = await WithdrawTime.findOne();
+
+    if (existing) {
+      await WithdrawTime.updateOne({}, data);
+    } else {
+      await WithdrawTime.create(data);
+    }
+
+    res.redirect("/admin/set-withdraw-timings");
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error saving timings");
+  }
+};
+
+const MainSettings = require("../model/MainSettings");
+exports.getMainSettingsPage = async (req, res) => {
+  try {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    }).lean();
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    // 🔥 SETTINGS FETCH KARO
+    let mainSettings = await MainSettings.findOne().lean();
+
+    // Agar first time hai to empty object bhej do
+    if (!mainSettings) {
+      mainSettings = {};
+    }
+
+    res.render("Admin/adminMainSettings", {
+      pageTitle: "Main Settings",
+      admin,
+      mainSettings, // 🔥 YE IMPORTANT HAI
+      isLoggedIn: req.session.isLoggedIn,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server Error");
+  }
+};
+
+exports.postMainSettings = async (req, res) => {
+  try {
+    // 🔒 Admin authentication check
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    }).lean();
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    // 🔥 Directly form values fetch karo
+    const data = {
+      homescreenText: req.body.homescreenText,
+      signupReward: req.body.signupReward,
+      minDeposit: req.body.minDeposit,
+      minWithdraw: req.body.minWithdraw,
+      maxWithdraw: req.body.maxWithdraw,
+      minBet: req.body.minBet,
+      maxBet: req.body.maxBet,
+      shareLink: req.body.shareLink,
+      withdrawVideoLink: req.body.withdrawVideoLink,
+      withdrawDisabled: req.body.withdrawDisabled, // direct save, no conversion
+    };
+
+    // 🔄 Single settings document update or create
+    let settings = await MainSettings.findOne();
+
+    if (settings) {
+      await MainSettings.findOneAndUpdate({}, data);
+    } else {
+      await MainSettings.create(data);
+    }
+
+    // ✅ Redirect back so updated values show in form
+    res.redirect("/admin/main-settings");
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server Error");
+  }
+};
+
+const PaymentGatewaySettings = require("../model/PaymentGatewaySettings");
+exports.getPaymentGatewaySettingsPage = async (req, res) => {
+  try {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    }).lean();
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    let settings = await PaymentGatewaySettings.findOne().lean();
+    if (!settings) settings = {}; // first load
+
+    res.render("Admin/paymentGatewaySettings", {
+      pageTitle: "Payment Gateway Settings",
+      admin,
+      isLoggedIn: req.session.isLoggedIn,
+      settings,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server Error");
+  }
+};
+
+exports.postPaymentGatewaySettings = async (req, res) => {
+  try {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    }).lean();
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    const data = {
+      upiGateway: req.body.upiGateway,
+      upiGatewayKey: req.body.upiGatewayKey,
+
+      directUpi: req.body.directUpi,
+      directGpayId: req.body.directGpayId,
+      directPhonepeId: req.body.directPhonepeId,
+      directPaytmId: req.body.directPaytmId,
+
+      quickDepositAmounts: req.body.quickDepositAmounts,
+      gatewayWindow: req.body.gatewayWindow,
+    };
+
+    let settings = await PaymentGatewaySettings.findOne();
+    if (settings) {
+      await PaymentGatewaySettings.findOneAndUpdate({}, data);
+    } else {
+      await PaymentGatewaySettings.create(data);
+    }
+
+    res.redirect("/admin/payment-gateway-settings");
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server Error");
+  }
+};
+
+const HomeSliderImage = require("../model/HomeSliderImage");
+const SendImageMsg = require("../model/SendImageMessage");
+// GET page
+exports.getImageSliderPage = async (req, res) => {
+  try {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    }).lean();
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    // 🧠 Pagination Logic
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const totalEntries = await SendImageMsg.countDocuments();
+
+    const notifications = await SendImageMsg.find()
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const totalPages = Math.ceil(totalEntries / limit);
+
+    // fetch current slider
+    let slider = await HomeSliderImage.findOne().lean();
+    if (!slider) {
+      // create default empty document if not exists
+      slider = new HomeSliderImage({
+        sliderImage1: "",
+        sliderImage2: "",
+        sliderImage3: "",
+      });
+      await slider.save();
+    }
+
+    res.render("Admin/imageSlider", {
+      pageTitle: "Image Slider Settings",
+      admin,
+      isLoggedIn: req.session.isLoggedIn,
+      slider,
+      // 👇 New pagination data
+      notifications,
+      currentPage: page,
+      totalPages,
+      totalEntries,
+      limit,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server Error");
+  }
+};
+
+// POST upload/update single slider image
+exports.uploadHomeSliderImage = async (req, res) => {
+  try {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    }).lean();
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    if (!req.file || !req.body.fieldName) {
+      return res.status(400).send("No file or field specified");
+    }
+
+    const uploadedImageUrl = await uploadToPhpServer(req.file.path);
+
+    // update only the specific slider field
+    const updateData = {};
+    updateData[req.body.fieldName] = uploadedImageUrl;
+
+    await HomeSliderImage.findOneAndUpdate({}, updateData, { new: true });
+
+    fs.unlinkSync(req.file.path);
+
+    res.redirect("/admin/image-slider");
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server Error");
+  }
+};
+
+// DELETE slider image
+exports.deleteSliderImage = async (req, res) => {
+  try {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    }).lean();
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    const { fieldName } = req.params; // expects "sliderImage1", "sliderImage2", "sliderImage3"
+
+    const updateData = {};
+    updateData[fieldName] = "";
+
+    await HomeSliderImage.findOneAndUpdate({}, updateData);
+
+    res.redirect("/admin/image-slider");
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server Error");
+  }
+};
+
+exports.sendImageAndMessageNotification = async (req, res) => {
+  try {
+    // 🔐 Admin Authentication
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const adminUser = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    });
+
+    if (!adminUser) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    const { sendMessage } = req.body;
+
+    if (!sendMessage) {
+      return res.redirect("/admin/image-slider");
+    }
+
+    let imageUrl = "";
+
+    // 📂 Upload Image If Exists
+    if (req.file) {
+      imageUrl = await uploadToPhpServer(req.file.path);
+      fs.unlinkSync(req.file.path);
+    }
+
+    // 💾 Save to DB (History)
+    await SendImageMsg.create({
+      sendImage: imageUrl,
+      sendMessage,
+    });
+
+    // 🌍 GET ALL ACTIVE USERS WITH TOKEN
+    const users = await User.find({
+      role: "user",
+      userStatus: "active",
+      fcmToken: { $exists: true, $ne: null },
+    });
+
+    const tokens = users.map((u) => u.fcmToken);
+
+    if (tokens.length === 0) {
+      console.log("❌ No users with FCM token found");
+      return res.redirect("/admin/image-slider");
+    }
+
+    // 🚀 SEND MULTICAST NOTIFICATION
+    const response = await firebaseAdmin.messaging().sendEachForMulticast({
+      tokens,
+      notification: {
+        title: "New Notification",
+        body: sendMessage,
+        imageUrl: imageUrl || undefined,
+      },
+      android: {
+        notification: {
+          imageUrl: imageUrl || undefined,
+        },
+      },
+      apns: {
+        payload: {
+          aps: {
+            "mutable-content": 1,
+          },
+        },
+        fcm_options: {
+          image: imageUrl || undefined,
+        },
+      },
+    });
+
+    console.log("✅ Multicast Success:", response.successCount);
+    console.log("❌ Multicast Failed:", response.failureCount);
+
+    return res.redirect("/admin/image-slider");
+  } catch (error) {
+    console.error("🚨 FCM Error:", error);
+    res.status(500).send("Server Error");
+  }
+};
+
+exports.deleteNotification = async (req, res) => {
+  try {
+    // 🔐 Admin Authentication Check
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const adminUser = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    });
+
+    if (!adminUser) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    const notificationId = req.params.id;
+
+    if (!notificationId) {
+      return res.redirect("/admin/image-slider");
+    }
+
+    // 🗑 Delete from DB
+    await SendImageMsg.findByIdAndDelete(notificationId);
+
+    console.log("✅ Notification Deleted:", notificationId);
+
+    return res.redirect("/admin/image-slider");
+
+  } catch (error) {
+    console.error("🚨 Delete Error:", error);
+    res.status(500).send("Server Error");
   }
 };

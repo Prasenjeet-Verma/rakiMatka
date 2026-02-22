@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  <link rel="stylesheet" href="/css/adminDashbord.css">
+
+  <style>
+    /* Custom scrollbar for the table wrapper */
+    .custom-scrollbar::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 10px;
+    }
+  </style>
+
+</head>
+
+<body class="flex min-h-screen">
+  <aside id="sidebar"
+    class="sidebar border-r border-gray-200 fixed inset-y-0 left-0 z-50 lg:relative lg:translate-x-0 transform -translate-x-full lg:block">
+    <div class="p-4">
+      <div class="relative mb-4">
+        <input type="text" placeholder="Search"
+          class="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
+        <button class="absolute right-0 top-0 bottom-0 px-3 bg-neutral-800 text-white rounded-r">
+          <i class="fas fa-search"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- ============================= Nav is here ============================ -->
+
+    <%- include('../partials/adminNav') %>
+  </aside>
+
+  <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+    <!-- ============================= Header is here ============================ -->
+    <%- include('../partials/adminHeader') %>
+
+      <header class="bg-white h-14 flex items-center justify-between px-4 border-b border-gray-200">
+      </header> <!-- header overflow done -->
+
+      <!-- ==================================== Body Start Here ========================================= -->
+
+      <main class="bg-gray-50 p-4 md:p-8 font-sans">
+
+        <div class="max-w-6xl mx-auto bg-white border border-gray-200 rounded-sm shadow-sm">
+
+          <div class="px-6 py-3 border-b border-gray-200">
+            <h1 class="text-gray-700 text-lg">Withdraw Timings</h1>
+          </div>
+
+          <div class="px-6 pt-4">
+            <div
+              class="inline-block border border-b-0 border-gray-200 px-4 py-2 text-sm text-gray-600 rounded-t-md bg-white">
+              Withdraw Timings
+            </div>
+            <div class="border-t border-gray-200 -mt-[1px]"></div>
+          </div>
+
+          <form action="/admin/set-withdraw-timings" method="POST" class="p-6 space-y-6">
+
+
+            <% const days=["sunday","monday","tuesday","wednesday","thursday","friday","saturday"]; days.forEach(day=> {
+              %>
+
+              <div class="space-y-2">
+                <h2 class="text-xl font-normal text-gray-800 capitalize">
+                  <%= day %>
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                  <!-- Start Time -->
+                  <div class="space-y-1">
+                    <label class="block text-sm font-bold text-gray-700">Start Time:</label>
+                    <input type="time" name="<%= day %>[startTime]"
+                      value="<%= withdrawTimings?.[day]?.startTime || '08:00' %>"
+                      class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-gray-600">
+                  </div>
+
+                  <!-- End Time -->
+                  <div class="space-y-1">
+                    <label class="block text-sm font-bold text-gray-700">End Time:</label>
+                    <input type="time" name="<%= day %>[endTime]"
+                      value="<%= withdrawTimings?.[day]?.endTime || '22:00' %>"
+                      class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 text-gray-600">
+                  </div>
+
+                </div>
+              </div>
+
+              <% }) %>
+
+
+                <div class="pt-6 border-t border-gray-100 bg-gray-50 -mx-6 -mb-6 px-6 py-4">
+                  <button type="submit"
+                    class="bg-[#eeb644] hover:bg-[#d9a53d] text-white px-5 py-2 rounded shadow-sm transition duration-200">
+                    Submit
+                  </button>
+                </div>
+
+          </form>
+        </div>
+
+      </main>
+      <!-- ==================================== Body End Here ========================================= -->
+  </main>
+  <script src="/js/sidebar.js"></script>
+</body>
+
+</html>

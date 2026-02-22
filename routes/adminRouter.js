@@ -217,4 +217,26 @@ adminRouter.post(
   adminController.deleteManualDeposit
 );
 
+adminRouter.get("/admin/set-withdraw-timings", adminController.setWithdrawTimings);
+adminRouter.post(
+  "/admin/set-withdraw-timings",
+  adminController.postWithdrawTimings
+);
+
+adminRouter.get("/admin/main-settings", adminController.getMainSettingsPage);
+adminRouter.post("/admin/main-settings", adminController.postMainSettings);
+
+adminRouter.get("/admin/payment-gateway-settings", adminController.getPaymentGatewaySettingsPage);
+adminRouter.post("/admin/payment-gateway-settings", adminController.postPaymentGatewaySettings);
+
+// Admin routes for image slider
+adminRouter.get("/admin/image-slider", adminController.getImageSliderPage);
+adminRouter.post("/admin/upload-home-slider-image", upload.single("sliderImage"), adminController.uploadHomeSliderImage);
+adminRouter.get("/admin/delete-home-slider-image/:fieldName", adminController.deleteSliderImage);
+// Admin routes for sending image and message
+adminRouter.post("/sendimageandmsgnotification", upload.single("sendImage"), adminController.sendImageAndMessageNotification);
+adminRouter.post(
+  "/admin/delete-notification/:id",
+  adminController.deleteNotification
+);
 module.exports = adminRouter;

@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  <link rel="stylesheet" href="/css/adminDashbord.css">
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+  <style>
+    /* Custom scrollbar for the table wrapper */
+    .custom-scrollbar::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 10px;
+    }
+  </style>
+
+</head>
+
+<body class="flex min-h-screen">
+  <aside id="sidebar"
+    class="sidebar border-r border-gray-200 fixed inset-y-0 left-0 z-50 lg:relative lg:translate-x-0 transform -translate-x-full lg:block">
+    <div class="p-4">
+      <div class="relative mb-4">
+        <input type="text" placeholder="Search"
+          class="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
+        <button class="absolute right-0 top-0 bottom-0 px-3 bg-neutral-800 text-white rounded-r">
+          <i class="fas fa-search"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- ============================= Nav is here ============================ -->
+
+    <%- include('../partials/adminNav') %>
+  </aside>
+
+  <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+    <!-- ============================= Header is here ============================ -->
+    <%- include('../partials/adminHeader') %>
+
+      <header class="bg-white h-14 flex items-center justify-between px-4 border-b border-gray-200">
+      </header> <!-- header overflow done -->
+
+      <!-- ==================================== Body Start Here ========================================= -->
+      <div class="p-4 md:p-8 bg-gray-100 ">
+        <div class="max-w-6xl mx-auto bg-white border border-gray-200 rounded-sm shadow-sm">
+
+          <div
+            class="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 border-b border-gray-200 gap-4 bg-yellow-500">
+            <h1 class="text-xl font-medium text-black-300">Home Sliders</h1>
+          </div>
+
+          <div class="p-4 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-700">
+            <div class="flex items-center gap-2">
+
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full border-collapse border-t border-gray-200">
+              <thead class="bg-white text-sm font-bold border-b-2 border-gray-300">
+                <tr>
+                  <th class="border border-gray-200 p-2 text-left w-12 uppercase">ID</th>
+                  <th class="border border-gray-200 p-2 text-left uppercase">Upload</th>
+                  <th class="border border-gray-200 p-2 text-left uppercase">Image</th>
+                  <th class="border border-gray-200 p-2 text-left uppercase">Action</th>
+                </tr>
+              </thead>
+              <tbody class="text-xs md:text-sm">
+
+                <% ["sliderImage1", "sliderImage2" , "sliderImage3" ].forEach((field, index)=> { %>
+                  <tr class="hover:bg-gray-50">
+                    <td class="border border-gray-200 p-3 text-center font-bold">
+                      <%= index + 1 %>
+                    </td>
+
+                    <form action="/admin/upload-home-slider-image" method="POST" enctype="multipart/form-data">
+                      <td class="border border-gray-200 p-3 max-w-xs md:max-w-md flex flex-col gap-2">
+                        <input type="file" name="sliderImage"
+                          class="w-full border border-gray-300 rounded p-1 text-sm text-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                        <input type="hidden" name="fieldName" value="<%= field %>" />
+                        <button type="submit"
+                          class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm mt-1">Submit</button>
+                      </td>
+                    </form>
+
+                    <td class="border border-gray-200 p-3 w-32">
+                      <img src="<%= slider[field] || 'https://via.placeholder.com/80x80' %>"
+                        alt="Promo <%= index + 1 %>" class="w-20 h-20 object-cover border border-gray-300">
+                    </td>
+
+                    <td class="border border-gray-200 p-3 text-center">
+                      <% if(slider[field]) { %>
+                        <a href="/admin/delete-home-slider-image/<%= field %>"
+                          class="bg-[#d9534f] hover:bg-[#c9302c] text-white p-2 rounded inline-block">
+                          Delete
+                        </a>
+                        <% } %>
+                    </td>
+                  </tr>
+                  <% }) %>
+
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================================== Body popup message Here ========================================= -->
+
+      <main class="bg-gray-100 p-4 md:p-8" x-data="{ openModal: false }">
+
+        <div class="max-w-6xl mx-auto bg-white border border-gray-200 rounded-sm shadow-sm relative">
+
+          <div
+            class="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 border-b border-gray-200 gap-4 bg-orange-300">
+            <h1 class="text-xl font-medium text-gray-700">Home popup message</h1>
+            <button @click="openModal = true"
+              class="bg-[#f0ad4e] hover:bg-[#ec971f] text-white px-4 py-2 rounded text-sm font-semibold transition-colors">
+              New Message
+            </button>
+          </div>
+
+          <div class="p-4 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-700">
+            <div class="flex items-center gap-2">
+              <span>Show</span>
+              <select onchange="changeLimit(this.value)"
+                class="border border-gray-300 rounded px-2 py-1 focus:outline-none">
+                <option value="10" <%=limit==10 ? "selected" : "" %>>10</option>
+                <option value="25" <%=limit==25 ? "selected" : "" %>>25</option>
+              </select>
+
+              <script>
+                function changeLimit(limit) {
+                  window.location.href = `?page=1&limit=${limit}`;
+                }
+              </script>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full border-collapse border-t border-gray-200">
+              <thead class="bg-white text-[13px] font-bold border-b-2 border-gray-300">
+                <tr class="text-left">
+                  <th class="border border-gray-200 p-2 w-12">ID ↕</th>
+                  <th class="border border-gray-200 p-2">Text ↕</th>
+                  <th class="border border-gray-200 p-2">Image ↕</th>
+                  <th class="border border-gray-200 p-2">Created at ↕</th>
+                  <th class="border border-gray-200 p-2 text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody class="text-xs md:text-sm">
+                <% if (notifications && notifications.length> 0) { %>
+                  <% notifications.forEach((item, index)=> { %>
+                    <tr class="hover:bg-gray-50">
+                      <td class="border border-gray-200 p-3 text-center font-bold">
+                       <%= (currentPage - 1) * limit + index + 1 %>
+                      </td>
+
+                      <td class="border border-gray-200 p-3 max-w-xs">
+                        <span class="font-bold">
+                          <%= item.sendMessage %>
+                        </span>
+                      </td>
+
+                      <td class="border border-gray-200 p-3">
+                        <% if (item.sendImage) { %>
+                          <img src="<%= item.sendImage %>" class="w-16 h-16 object-cover border rounded" />
+                          <% } else { %>
+                            <div class="w-16 h-16 bg-gray-200 flex items-center justify-center border">
+                              No Image
+                            </div>
+                            <% } %>
+                      </td>
+
+                      <td class="border border-gray-200 p-3">
+                        <%= new Date(item.createdAt).toLocaleString() %>
+                      </td>
+
+                      <td class="border border-gray-200 p-3 text-center">
+                        <form action="/admin/delete-notification/<%= item._id %>" method="POST">
+                          <button class="bg-[#d9534f] text-white p-1.5 rounded hover:bg-red-700">
+                            Delete
+                          </button>
+                        </form>
+                      </td>
+                    </tr>
+                    <% }) %>
+                      <% } else { %>
+                        <tr>
+                          <td colspan="5" class="text-center p-4">No Data Found</td>
+                        </tr>
+                        <% } %>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="p-4 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm">
+            <p>
+              Showing
+              <%= totalEntries===0 ? 0 : (currentPage - 1) * limit + 1 %>
+                to
+                <%= Math.min(currentPage * limit, totalEntries) %>
+                  of
+                  <%= totalEntries %> entries
+            </p>
+            <div class="flex items-center space-x-1">
+
+              <% if (currentPage> 1) { %>
+                <a href="?page=<%= currentPage - 1 %>&limit=<%= limit %>" class="px-2 py-1 text-blue-600">Previous</a>
+                <% } else { %>
+                  <span class="px-2 py-1 text-gray-400">Previous</span>
+                  <% } %>
+
+                    <% for (let i=1; i <=totalPages; i++) { %>
+                      <a href="?page=<%= i %>&limit=<%= limit %>"
+                        class="px-3 py-1 border <%= i === currentPage ? 'bg-gray-100' : '' %> rounded">
+                        <%= i %>
+                      </a>
+                      <% } %>
+
+                        <% if (currentPage < totalPages) { %>
+                          <a href="?page=<%= currentPage + 1 %>&limit=<%= limit %>"
+                            class="px-2 py-1 text-blue-600">Next</a>
+                          <% } else { %>
+                            <span class="px-2 py-1 text-gray-400">Next</span>
+                            <% } %>
+
+            </div>
+          </div>
+
+          <div x-show="openModal" x-transition.opacity
+            class="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-start justify-center pt-20 px-4">
+            <div @click.away="openModal = false" class="bg-white rounded shadow-xl w-full max-w-lg overflow-hidden">
+              <div class="flex justify-between items-center p-4 border-b border-gray-200 bg-white">
+                <h2 class="text-2xl text-gray-700 font-light">Add new message</h2>
+                <button @click="openModal = false"
+                  class="text-gray-400 hover:text-gray-600 text-2xl font-bold">&times;</button>
+              </div>
+
+
+              <form action="/sendimageandmsgnotification" method="POST" enctype="multipart/form-data">
+                <div class="p-5 space-y-6">
+                  <div>
+                    <label class="block font-bold text-gray-800 mb-2">Select Image</label>
+                    <input type="file" name="sendImage"
+                      class="w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring-1 focus:ring-blue-500">
+                  </div>
+
+                  <div>
+                    <label class="block font-bold text-gray-800 mb-2">Enter Message</label>
+                    <textarea rows="4" name="sendMessage"
+                      class="w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"></textarea>
+                  </div>
+                </div>
+
+                <div class="flex justify-end gap-3 p-4 border-t border-gray-100">
+                  <button type="submit"
+                    class="bg-[#5cb85c] hover:bg-[#449d44] text-white px-5 py-2 rounded text-lg transition-colors">Submit</button>
+              </form>
+
+
+              <button @click="openModal = false"
+                class="bg-[#d9534f] hover:bg-[#c9302c] text-white px-5 py-2 rounded text-lg transition-colors">Close</button>
+            </div>
+          </div>
+        </div>
+        </div>
+
+      </main>
+
+  </main>
+  <script src="/js/sidebar.js"></script>
+</body>
+
+</html>
