@@ -5935,7 +5935,6 @@ exports.getBidHistoryPage = async (req, res, next) => {
   }
 };
 
-
 exports.getContactUsDetailsPage = async (req, res) => {
   try {
     if (
@@ -6022,8 +6021,6 @@ exports.updateContactUsDetails = async (req, res) => {
   }
 };
 
-
-
 exports.getManualDepositMethodsPage = async (req, res) => {
   try {
     if (
@@ -6094,6 +6091,26 @@ exports.postManualDepositMethods = async (req, res) => {
       fs.unlinkSync(req.file.path);
     }
 
+    // 🔄 SYNC UPI WITH PAYMENT GATEWAY
+    if (upiId) {
+      let gateway = await PaymentGatewaySettings.findOne();
+
+      if (gateway) {
+        gateway.upiGatewayKey = upiId;
+        await gateway.save();
+      } else {
+        await PaymentGatewaySettings.create({
+          upiGatewayKey: upiId,
+        });
+      }
+    } else {
+      // If deleted / empty → remove from gateway also
+      await PaymentGatewaySettings.findOneAndUpdate(
+        {},
+        { $unset: { upiGatewayKey: "" } },
+      );
+    }
+
     // Save in DB
     await ManualDeposit.create({
       qrImage: qrImageUrl,
@@ -6135,8 +6152,6 @@ exports.deleteManualDeposit = async (req, res) => {
     res.redirect("/admin/manual-deposit-methods");
   }
 };
-
-
 
 exports.setWithdrawTimings = async (req, res) => {
   try {
@@ -6209,7 +6224,6 @@ exports.postWithdrawTimings = async (req, res) => {
     res.status(500).send("Error saving timings");
   }
 };
-
 
 exports.getMainSettingsPage = async (req, res) => {
   try {
@@ -6305,7 +6319,6 @@ exports.postMainSettings = async (req, res) => {
   }
 };
 
-
 exports.getPaymentGatewaySettingsPage = async (req, res) => {
   try {
     if (
@@ -6377,6 +6390,30 @@ exports.postPaymentGatewaySettings = async (req, res) => {
     };
 
     let settings = await PaymentGatewaySettings.findOne();
+    // 🔄 ONLY CONTROL isActive BASED ON upiGateway (Independent Logic)
+    if (req.body.upiGateway === "Enable") {
+      await ManualDeposit.updateMany({}, { isActive: true });
+    }
+
+    if (req.body.upiGateway === "Disable") {
+      await ManualDeposit.updateMany({}, { isActive: false });
+    }
+    // 🔄 SYNC UPI WITH MANUAL DEPOSIT
+    if (req.body.upiGatewayKey) {
+      let manual = await ManualDeposit.findOne();
+
+      if (manual) {
+        manual.upiId = req.body.upiGatewayKey;
+        await manual.save();
+      } else {
+        await ManualDeposit.create({
+          upiId: req.body.upiGatewayKey,
+        });
+      }
+    } else {
+      // If deleted / empty → remove from manual also
+      await ManualDeposit.findOneAndUpdate({}, { $unset: { upiId: "" } });
+    }
     if (settings) {
       await PaymentGatewaySettings.findOneAndUpdate({}, data);
     } else {
@@ -6389,7 +6426,6 @@ exports.postPaymentGatewaySettings = async (req, res) => {
     res.status(500).send("Server Error");
   }
 };
-
 
 // GET page
 exports.getImageSliderPage = async (req, res) => {
@@ -6662,7 +6698,6 @@ exports.deleteNotification = async (req, res) => {
     console.log("✅ Notification Deleted:", notificationId);
 
     return res.redirect("/admin/image-slider");
-
   } catch (error) {
     console.error("🚨 Delete Error:", error);
     res.status(500).send("Server Error");

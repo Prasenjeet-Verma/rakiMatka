@@ -27,17 +27,27 @@ const walletTransactionSchema = new mongoose.Schema(
     source: {
       type: String,
       enum: [
-        "deposit",        // User deposits money (e.g., payment gateway)
-        "withdraw",       // User withdraws money
-        "game_win",       // User wins in a game
-        "game_loss",      // User loses in a game
-        "admin_credit",   // Admin adds money to user wallet
-        "admin_debit",    // Admin removes money from user wallet
-        "refund"          // Refunds
+        "deposit", // User deposits money (e.g., payment gateway)
+        "withdraw", // User withdraws money
+        "game_win", // User wins in a game
+        "game_loss", // User loses in a game
+        "admin_credit", // Admin adds money to user wallet
+        "admin_debit", // Admin removes money from user wallet
+        "refund", // Refunds
       ],
       required: true,
     },
-
+    // Payment method selected by user for receiving money
+    receiveMethod: {
+      type: String,
+      enum: ["phonepe", "gpay", "paytm", "bank", null],
+      default: null,
+    },
+    // User entered mobile number or UPI ID for withdraw
+    mobileNoOrUpiId: {
+      type: String,
+      default: null,
+    },
     // Amount of this transaction
     amount: {
       type: Number,
@@ -62,7 +72,7 @@ const walletTransactionSchema = new mongoose.Schema(
     // Optional remarks for clarity
     remark: { type: String },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 module.exports = mongoose.model("WalletTransaction", walletTransactionSchema);

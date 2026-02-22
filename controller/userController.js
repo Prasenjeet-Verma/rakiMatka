@@ -11,6 +11,7 @@ const ContactAdmin = require("../model/contactAdmin");
 const MainSettings = require("../model/MainSettings");
 const payment = require("../model/PaymentGatewaySettings");
 const ManualDeposit = require("../model/ManualDeposit");
+const WithdrawTime = require("../model/WithdrawTime");
 const SingleDigitBet = require("../model/SingleDigitBet");
 const SingleBulkDigitBet = require("../model/SingleBulkDigitBet");
 const JodiDigitBet = require("../model/JodiDigitBet");
@@ -225,9 +226,9 @@ exports.getUserDashboardPage = async (req, res, next) => {
       .lean();
 
     // ===================== 🎯 FETCH MANUAL DEPOSIT METHOD =====================
-    const manualDeposit = await ManualDeposit.findOne()
-      .sort({ createdAt: -1 })
-      .lean();
+const manualDeposit = await ManualDeposit.findOne({ isActive: true })
+  .sort({ createdAt: -1 })
+  .lean();
 
     // ===================== 🎯 FETCH ACTIVE CONTACT =====================
     const contactDetails = await ContactAdmin.findOne({
@@ -239,6 +240,25 @@ exports.getUserDashboardPage = async (req, res, next) => {
 
     // ===================== 🎯 FETCH PAYMENT SETTINGS =====================
     const paymentSettings = await payment.findOne().lean();
+
+    // ===================== 🎯 FETCH WITHDRAW TIME =====================
+    const withdrawTimeSettings = await WithdrawTime.findOne().lean();
+
+    // 🇮🇳 India time already defined above as:
+    // const now = moment().tz("Asia/Kolkata");
+
+    let todayWithdrawTime = null;
+
+    if (withdrawTimeSettings) {
+      const todayConfig = withdrawTimeSettings[todayKey];
+
+      if (todayConfig && todayConfig.isActive) {
+        todayWithdrawTime = {
+          startTime: moment(todayConfig.startTime, "HH:mm").format("hh:mm A"),
+          endTime: moment(todayConfig.endTime, "HH:mm").format("hh:mm A"),
+        };
+      }
+    }
 
     // ===================== 🎯 RENDER DASHBOARD =====================
     res.render("User/userDashboard", {
@@ -258,11 +278,150 @@ exports.getUserDashboardPage = async (req, res, next) => {
       directGpayId: paymentSettings?.directGpayId || "",
       directPhonepeId: paymentSettings?.directPhonepeId || "",
       directPaytmId: paymentSettings?.directPaytmId || "",
+      todayWithdrawTime,
+      directUpiStatus: paymentSettings?.directUpi || "Disable",
       isLoggedIn: req.session.isLoggedIn,
     });
   } catch (err) {
     console.error("UserDashboardPage Error:", err);
     next(err);
+  }
+};
+
+exports.postWithdrawRequest = async (req, res) => {
+  try {
+    if (!req.session.isLoggedIn || !req.session.user) {
+      return res.json({ success: false, message: "Unauthorized" });
+    }
+
+    const { amount, method, mobileNoOrUpiId } = req.body;
+
+    const user = await User.findById(req.session.user._id);
+
+    if (!user) {
+      return res.json({ success: false, message: "User not found" });
+    }
+
+    const settings = await MainSettings.findOne();
+
+    // 🔒 GLOBAL WITHDRAW DISABLE CHECK
+    if (settings?.withdrawDisabled) {
+      return res.json({
+        success: false,
+        message: "Withdraw is temporarily disabled by admin",
+      });
+    }
+
+    const minWithdraw = settings?.minWithdraw || 0;
+    const maxWithdraw = settings?.maxWithdraw || 0;
+
+    if (!amount || amount < minWithdraw) {
+      return res.json({
+        success: false,
+        message: `Minimum withdraw ₹${minWithdraw} hai`,
+      });
+    }
+
+    if (amount > maxWithdraw) {
+      return res.json({
+        success: false,
+        message: `Maximum withdraw ₹${maxWithdraw} hai`,
+      });
+    }
+
+    if (amount > user.wallet) {
+      return res.json({
+        success: false,
+        message: "Insufficient wallet balance",
+      });
+    }
+
+    if (!method) {
+      return res.json({
+        success: false,
+        message: "Withdraw method select karo",
+      });
+    }
+
+    if (!mobileNoOrUpiId) {
+      return res.json({
+        success: false,
+        message: "Mobile number ya UPI ID enter karo",
+      });
+    }
+    // ⏰ WITHDRAW TIME CHECK (India Time)
+    const now = moment().tz("Asia/Kolkata");
+
+    const days = [
+      "sunday",
+      "monday",
+      "tuesday",
+      "wednesday",
+      "thursday",
+      "friday",
+      "saturday",
+    ];
+
+    const todayKey = days[now.day()];
+
+    const withdrawTimeSettings = await WithdrawTime.findOne().lean();
+
+    if (!withdrawTimeSettings) {
+      return res.json({
+        success: false,
+        message: "Withdraw timing not configured",
+      });
+    }
+
+    const todayConfig = withdrawTimeSettings[todayKey];
+
+    if (!todayConfig || !todayConfig.isActive) {
+      return res.json({
+        success: false,
+        message: "Withdraw is closed today",
+      });
+    }
+
+    const nowMinutes = now.hours() * 60 + now.minutes();
+
+    const [startH, startM] = todayConfig.startTime.split(":").map(Number);
+    const [endH, endM] = todayConfig.endTime.split(":").map(Number);
+
+    const startMinutes = startH * 60 + startM;
+    const endMinutes = endH * 60 + endM;
+
+    if (nowMinutes < startMinutes || nowMinutes > endMinutes) {
+      return res.json({
+        success: false,
+        message: `Withdraw allowed between ${moment(todayConfig.startTime, "HH:mm").format("hh:mm A")} to ${moment(todayConfig.endTime, "HH:mm").format("hh:mm A")}`,
+      });
+    }
+    const oldBalance = user.wallet;
+    const newBalance = oldBalance - amount;
+
+    user.wallet = newBalance;
+    await user.save();
+
+    await WalletTransaction.create({
+      user: user._id,
+      type: "debit",
+      source: "withdraw",
+      receiveMethod: method,
+      mobileNoOrUpiId,
+      amount,
+      oldBalance,
+      newBalance,
+      status: "pending",
+      remark: "Withdraw request by user",
+    });
+
+    res.json({
+      success: true,
+      message: "Withdraw request submitted successfully",
+    });
+  } catch (err) {
+    console.error(err);
+    res.json({ success: false, message: "Something went wrong" });
   }
 };
 

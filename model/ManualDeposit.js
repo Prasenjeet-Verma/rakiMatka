@@ -4,6 +4,10 @@ const manualDepositSchema = new mongoose.Schema({
   qrImage: String,
   upiId: String,
   bankDetails: String,
+  isActive: {
+    type: Boolean,
+    default: true, // by default active rahega
+  },
   createdAt: {
     type: Date,
     default: Date.now,

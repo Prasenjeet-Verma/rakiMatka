@@ -482,7 +482,7 @@
           </div>
 
 
-<!-- Start -->
+          <!-- Start -->
           <!-- AUTO DEPOSIT SECTION -->
           <section id="autoSection" class="space-y-6">
             <div>
@@ -545,7 +545,11 @@
                 .addEventListener("click", function (e) {
 
                   e.preventDefault();
-
+// ❌ Direct UPI Disabled Check
+if (directUpiStatus !== "Enable") {
+  showMessage("Direct UPI payment is currently disabled");
+  return;
+}
                   const amount = Number(inputField.value);
 
                   if (!amount || amount < minDeposit) {
@@ -572,7 +576,7 @@
                   }
                 });
             </script>
-<!-- End -->
+            <!-- End -->
 
 
             <div class="px-2">
@@ -612,12 +616,15 @@
                     </div>
                   </div>
 
-                  <a href="https://wa.me/91"
+                  <a href="https://wa.me/<%= contactDetails?.whatsappNumber %>" target="_blank"
                     class="mt-4 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-bold transition-all shadow-md">
                     <i class="fa-brands fa-whatsapp text-xl"></i>
                     Contact Admin Now
                   </a>
                 </div>
+
+
+
               </div>
             </div>
           </section>
@@ -681,7 +688,7 @@
                     Minimum Deposit
                   </p>
                   <p class="text-2xl font-black text-teal-800">
-                    ₹ 200 <span class="text-sm font-normal">Rupees</span>
+                    ₹ <%= minDeposit %> <span class="text-sm font-normal">Rupees</span>
                   </p>
                 </div>
               </div>
@@ -721,9 +728,18 @@
       <!-- INFO CARD -->
       <div class="bg-gray-100 rounded-xl p-4 text-center shadow-sm">
         <p class="text-gray-700">
-          You can withdraw only between
-          <span class="font-semibold">08:00 AM</span> to
-          <span class="font-semibold">02:00 PM</span>
+          <% if (todayWithdrawTime) { %>
+            You can withdraw only between
+            <span class="font-semibold">
+              <%= todayWithdrawTime.startTime %>
+            </span>
+            to
+            <span class="font-semibold">
+              <%= todayWithdrawTime.endTime %>
+            </span>
+            <% } else { %>
+              Withdraw is closed today.
+              <% } %>
         </p>
 
         <p class="mt-3 font-semibold text-lg">
@@ -741,13 +757,13 @@
             Click Here to Update
           </button></a>
       </div>
-
+      <div id="withdrawMessage"></div>
       <!-- WITHDRAW FORM -->
       <div class="space-y-5">
         <!-- Withdraw Points -->
         <div>
           <label class="font-semibold text-gray-800">Withdraw points</label>
-          <input type="number" placeholder="Enter withdrawal points"
+          <input type="number" id="withdrawAmount" placeholder="Enter withdrawal points"
             class="mt-2 w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-600" />
         </div>
 
@@ -759,17 +775,17 @@
 
           <div class="space-y-3">
             <label class="flex items-center gap-3">
-              <input type="radio" name="method" class="w-5 h-5 accent-teal-700" />
+              <input type="radio" name="method" value="paytm" class="w-5 h-5 accent-teal-700" />
               <span class="text-lg">Paytm</span>
             </label>
 
             <label class="flex items-center gap-3">
-              <input type="radio" name="method" class="w-5 h-5 accent-teal-700" />
+              <input type="radio" name="method" value="phonepe" class="w-5 h-5 accent-teal-700" />
               <span class="text-lg">PhonePe</span>
             </label>
 
             <label class="flex items-center gap-3">
-              <input type="radio" name="method" class="w-5 h-5 accent-teal-700" />
+              <input type="radio" name="method" value="gpay" class="w-5 h-5 accent-teal-700" />
               <span class="text-lg">Google Pay</span>
             </label>
           </div>
@@ -777,16 +793,57 @@
 
         <!-- Withdraw Number -->
         <div>
-          <label class="font-semibold text-gray-800">Withdraw Number</label>
-          <input type="text" placeholder="Enter Withdrawal Number"
+          <label class="font-semibold text-gray-800">Withdraw Number & Upi Id</label>
+          <input type="text" id="withdrawInput" placeholder="Enter Withdrawal Number"
             class="mt-2 w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-600" />
         </div>
 
         <!-- SUBMIT BUTTON -->
-        <button class="w-full bg-teal-800 text-white py-4 rounded-full text-lg font-semibold shadow-lg">
+        <button id="withdrawBtn"
+          class="w-full bg-teal-800 text-white py-4 rounded-full text-lg font-semibold shadow-lg">
           Submit
         </button>
+
       </div>
+      <script>
+        const withdrawBtn = document.getElementById("withdrawBtn");
+        const messageBoxx = document.getElementById("withdrawMessage");
+
+        function showMessage(message, type = "error") {
+          messageBoxx.innerHTML = "";
+          const div = document.createElement("div");
+          div.className = "p-3 rounded mt-3 text-white " +
+            (type === "error" ? "bg-red-500" : "bg-green-500");
+          div.innerText = message;
+          messageBoxx.appendChild(div);
+          setTimeout(() => div.remove(), 3000);
+        }
+
+        withdrawBtn.addEventListener("click", async function (e) {
+          e.preventDefault();
+
+          const amount = Number(document.getElementById("withdrawAmount").value);
+          const method = document.querySelector("input[name='method']:checked")?.value;
+          const mobileNoOrUpiId = document.getElementById("withdrawInput").value;
+
+          const res = await fetch("/withdraw-request", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ amount, method, mobileNoOrUpiId })
+          });
+
+          const data = await res.json();
+
+          if (!data.success) {
+            showMessage(data.message);
+          } else {
+            showMessage(data.message, "success");
+            document.getElementById("withdrawAmount").value = "";
+            document.getElementById("withdrawInput").value = "";
+          }
+        });
+      </script>
+
     </main>
   </main>
   <!-- ============================================= Sidebar is Here ==================================== -->

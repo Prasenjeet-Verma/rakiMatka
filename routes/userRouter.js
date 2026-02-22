@@ -50,6 +50,7 @@ userRouter.get("/userGameChart", userController.getUserGameChartPage);
 // User Notifications Route
 userRouter.get("/bell-notifications", userController.getUserBellNotificationsPage);
 userRouter.post('/user/save-fcm-token', userController.saveFcmToken);
-
+// User withdraw req
+userRouter.post("/withdraw-request", userController.postWithdrawRequest);
 
 module.exports = userRouter;
