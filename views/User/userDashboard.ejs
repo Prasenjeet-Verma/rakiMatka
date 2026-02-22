@@ -507,7 +507,6 @@
               <label class="flex gap-4"><input type="radio" name="pay" /> Paytm</label>
               <label class="flex gap-4"><input type="radio" name="pay" /> Google Pay</label>
               <label class="flex gap-4"><input type="radio" name="pay" /> PhonePe</label>
-              <label class="flex gap-4"><input type="radio" name="pay" /> Other</label>
             </div>
 
             <button class="w-full bg-teal-800 text-white py-4 rounded-full text-xl">
@@ -545,11 +544,11 @@
                 .addEventListener("click", function (e) {
 
                   e.preventDefault();
-// ❌ Direct UPI Disabled Check
-if (directUpiStatus !== "Enable") {
-  showMessage("Direct UPI payment is currently disabled");
-  return;
-}
+                  // ❌ Direct UPI Disabled Check
+                  // if (directUpiStatus !== "Enable") {
+                  //   showMessage("Direct UPI payment is currently disabled");
+                  //   return;
+                  // }
                   const amount = Number(inputField.value);
 
                   if (!amount || amount < minDeposit) {

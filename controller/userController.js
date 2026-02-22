@@ -279,7 +279,7 @@ const manualDeposit = await ManualDeposit.findOne({ isActive: true })
       directPhonepeId: paymentSettings?.directPhonepeId || "",
       directPaytmId: paymentSettings?.directPaytmId || "",
       todayWithdrawTime,
-      directUpiStatus: paymentSettings?.directUpi || "Disable",
+      // directUpiStatus: paymentSettings?.directUpi || "Disable",
       isLoggedIn: req.session.isLoggedIn,
     });
   } catch (err) {
