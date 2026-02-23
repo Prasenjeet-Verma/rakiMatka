@@ -241,4 +241,7 @@ adminRouter.post(
 );
 
 adminRouter.get("/admin/DepositRequests", adminController.depositRequest);
+adminRouter.post("/admin/deposit/accept/:id", adminController.acceptDeposit);
+adminRouter.post("/admin/deposit/reject/:id", adminController.rejectDeposit);
+
 module.exports = adminRouter;

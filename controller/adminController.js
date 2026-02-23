@@ -6573,9 +6573,9 @@ exports.deleteSliderImage = async (req, res) => {
   }
 };
 
-// exports.sendImageAndMessageNotification = async (req, res) => { <-- bro ismai sirf notification send wla system remove krdo  
+// exports.sendImageAndMessageNotification = async (req, res) => { <-- bro ismai sirf notification send wla system remove krdo
 //   try {
-//     // 🔐 Admin Authentication              <-- bsdk yeh wla function ko remove mt krna 
+//     // 🔐 Admin Authentication              <-- bsdk yeh wla function ko remove mt krna
 //     if (
 //       !req.session.isLoggedIn ||
 //       !req.session.admin ||
@@ -6708,7 +6708,6 @@ exports.sendImageAndMessageNotification = async (req, res) => {
     console.log("✅ Image & Message saved successfully");
 
     return res.redirect("/admin/image-slider");
-
   } catch (error) {
     console.error("🚨 Error:", error);
     res.status(500).send("Server Error");
@@ -6755,10 +6754,9 @@ exports.deleteNotification = async (req, res) => {
   }
 };
 
-exports.depositRequest = async (req,res,next) => {
+exports.depositRequest = async (req, res) => {
   try {
-       
-     if (
+    if (
       !req.session.isLoggedIn ||
       !req.session.admin ||
       req.session.admin.role !== "admin"
@@ -6777,16 +6775,175 @@ exports.depositRequest = async (req,res,next) => {
       return res.redirect("/admin/login");
     }
 
-      res.render("Admin/adminDepositRequests", {
+    // 🔍 Filters
+    const { from, to, status, username, page = 1 } = req.query;
+
+    const limit = 10;
+    const skip = (page - 1) * limit;
+
+    let filter = { source: "deposit" };
+
+    // ✅ Date Filter
+    if (from && to) {
+      filter.createdAt = {
+        $gte: new Date(from),
+        $lte: new Date(new Date(to).setHours(23, 59, 59, 999)),
+      };
+    }
+
+    // ✅ Status Filter
+if (status) {
+  filter.status = status;
+}
+
+    // ✅ Username Search
+    if (username) {
+      const user = await User.findOne({
+        username: { $regex: username, $options: "i" },
+      });
+
+      if (user) {
+        filter.user = user._id;
+      } else {
+        filter.user = null; // no result
+      }
+    }
+
+    const total = await WalletTransaction.countDocuments(filter);
+
+    const transactions = await WalletTransaction.find(filter)
+      .populate("user")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    res.render("Admin/adminDepositRequests", {
       pageTitle: "Admin Deposit Req",
       adminUser,
       isLoggedIn: req.session.isLoggedIn,
+      transactions,
+      currentPage: Number(page),
+      totalPages: Math.ceil(total / limit),
+      totalEntries: total,
+      query: req.query,
     });
-
-
   } catch (error) {
     console.error("🚨 Deposit req Error:", error);
     res.status(500).send("Server Error");
   }
-  
-}
+};
+
+exports.acceptDeposit = async (req, res) => {
+  try {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const adminUser = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    });
+
+    if (!adminUser) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    const deposit = await WalletTransaction.findById(req.params.id).populate(
+      "user",
+    );
+
+    if (!deposit || deposit.status !== "pending") {
+      return res.redirect("/admin/DepositRequests");
+    }
+
+    const admin = await User.findById(req.session.admin._id);
+
+    if (admin.wallet < deposit.amount) {
+      return res.send("Admin wallet balance low");
+    }
+
+    // USER WALLET UPDATE
+    const userOldBalance = deposit.user.wallet;
+    const userNewBalance = userOldBalance + deposit.amount;
+
+    deposit.user.wallet = userNewBalance;
+    await deposit.user.save();
+
+    // ADMIN WALLET UPDATE
+    const adminOldBalance = admin.wallet;
+    const adminNewBalance = adminOldBalance - deposit.amount;
+
+    admin.wallet = adminNewBalance;
+    await admin.save();
+
+    // UPDATE ORIGINAL DEPOSIT
+    deposit.status = "success";
+    deposit.admin = admin._id;
+    deposit.oldBalance = userOldBalance;
+    deposit.newBalance = userNewBalance;
+    deposit.adminOldBalance = adminOldBalance;
+    deposit.adminNewBalance = adminNewBalance;
+    await deposit.save();
+
+    // ADMIN TRANSACTION HISTORY ENTRY
+    await WalletTransaction.create({
+      user: admin._id,
+      admin: admin._id,
+      type: "debit",
+      source: "admin_debit",
+      amount: deposit.amount,
+      oldBalance: adminOldBalance,
+      newBalance: adminNewBalance,
+      status: "success",
+      remark: `Deposit approved for ${deposit.user.username}`,
+    });
+
+    res.redirect("/admin/DepositRequests");
+  } catch (err) {
+    console.error(err);
+    res.send("Error accepting deposit");
+  }
+};
+
+exports.rejectDeposit = async (req, res) => {
+  try {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const adminUser = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    });
+
+    if (!adminUser) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+    const deposit = await WalletTransaction.findById(req.params.id);
+
+    if (!deposit || deposit.status !== "pending") {
+      return res.redirect("/admin/DepositRequests");
+    }
+
+    deposit.status = "rejected";
+    deposit.remark = "Rejected by admin";
+    await deposit.save();
+
+    res.redirect("/admin/DepositRequests");
+  } catch (err) {
+    console.error(err);
+    res.send("Error rejecting deposit");
+  }
+};
