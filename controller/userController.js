@@ -315,8 +315,8 @@ exports.createDeposit = async (req, res) => {
       source: "deposit",
       amount,
       payMethod,
-      oldBalance: user.walletBalance,
-      newBalance: user.walletBalance,
+      oldBalance: user.wallet,
+      newBalance: user.wallet,
       status: "pending",
     });
 

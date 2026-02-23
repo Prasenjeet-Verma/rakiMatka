@@ -151,29 +151,29 @@
 
     <nav class="fixed bottom-0 left-0 right-0 bg-white shadow-xl flex justify-around items-center py-2 z-10">
       <a href="/user-bid-history">
-      <div class="flex flex-col items-center text-xs">
-        <i class="fas fa-gavel text-lg"></i> Bids
-      </div>
+        <div class="flex flex-col items-center text-xs">
+          <i class="fas fa-gavel text-lg"></i> Bids
+        </div>
       </a>
       <a href="/user-GameRates">
-      <div class="flex flex-col items-center text-xs">
-        <i class="fas fa-chart-line text-lg"></i> Rates
-      </div>
+        <div class="flex flex-col items-center text-xs">
+          <i class="fas fa-chart-line text-lg"></i> Rates
+        </div>
       </a>
       <a href="/userdashboard">
-      <div class="bg-emerald-700 text-white p-4 rounded-full -mt-8 shadow-lg">
-        <i class="fas fa-home text-xl"></i>
-      </div>
+        <div class="bg-emerald-700 text-white p-4 rounded-full -mt-8 shadow-lg">
+          <i class="fas fa-home text-xl"></i>
+        </div>
       </a>
       <a href="/userbankdetails">
-      <div class="flex flex-col items-center text-xs">
-        <i class="fas fa-wallet text-lg"></i> Funds
-      </div>
+        <div class="flex flex-col items-center text-xs">
+          <i class="fas fa-wallet text-lg"></i> Funds
+        </div>
       </a>
       <a href="/usercontactadmin">
-      <div class="flex flex-col items-center text-xs">
-        <i class="fas fa-headset text-lg"></i> Support
-      </div>
+        <div class="flex flex-col items-center text-xs">
+          <i class="fas fa-headset text-lg"></i> Support
+        </div>
       </a>
     </nav>
   </div>
@@ -523,120 +523,120 @@
               Proceed
             </button>
 
-       <script>
-const directUpiStatus = "<%= directUpiStatus %>";
-const directGpayId = "<%= directGpayId %>";
-const directPhonepeId = "<%= directPhonepeId %>";
-const directPaytmId = "<%= directPaytmId %>";
+            <script>
+              const directUpiStatus = "<%= directUpiStatus %>";
+              const directGpayId = "<%= directGpayId %>";
+              const directPhonepeId = "<%= directPhonepeId %>";
+              const directPaytmId = "<%= directPaytmId %>";
 
-const inputField = document.getElementById("depositAmount");
-const quickButtons = document.querySelectorAll(".quick-btn");
-const messageBox = document.getElementById("messageBox");
-const minDeposit = <%= minDeposit %>;
+              const inputField = document.getElementById("depositAmount");
+              const quickButtons = document.querySelectorAll(".quick-btn");
+              const messageBox = document.getElementById("messageBox");
+              const minDeposit = <%= minDeposit %>;
 
-// Quick amount buttons
-quickButtons.forEach(btn => {
-  btn.addEventListener("click", function () {
-    inputField.value = this.dataset.amount;
-  });
-});
+              // Quick amount buttons
+              quickButtons.forEach(btn => {
+                btn.addEventListener("click", function () {
+                  inputField.value = this.dataset.amount;
+                });
+              });
 
-// Message function
-function showMessage(message, type = "error") {
-  messageBox.innerHTML = "";
-  const div = document.createElement("div");
-  div.className = "p-3 rounded mt-3 text-white " +
-    (type === "error" ? "bg-red-500" : "bg-green-500");
-  div.innerText = message;
-  messageBox.appendChild(div);
-  setTimeout(() => div.remove(), 3000);
-}
+              // Message function
+              function showMessage(message, type = "error") {
+                messageBox.innerHTML = "";
+                const div = document.createElement("div");
+                div.className = "p-3 rounded mt-3 text-white " +
+                  (type === "error" ? "bg-red-500" : "bg-green-500");
+                div.innerText = message;
+                messageBox.appendChild(div);
+                setTimeout(() => div.remove(), 3000);
+              }
 
-// Proceed button
-document.querySelector("button.w-full.bg-teal-800")
-.addEventListener("click", async function (e) {
+              // Proceed button
+              document.querySelector("button.w-full.bg-teal-800")
+                .addEventListener("click", async function (e) {
 
-  e.preventDefault();
+                  e.preventDefault();
 
-  // 🔐 Direct UPI status check
-  if (directUpiStatus !== "Enable") {
-    showMessage("Direct UPI payment is currently disabled");
-    return;
-  }
+                  // 🔐 Direct UPI status check
+                  if (directUpiStatus !== "Enable") {
+                    showMessage("Direct UPI payment is currently disabled");
+                    return;
+                  }
 
-  const amount = Number(inputField.value);
+                  const amount = Number(inputField.value);
 
-  if (!amount || amount < minDeposit) {
-    showMessage("Minimum deposit ₹" + minDeposit + " hai");
-    return;
-  }
+                  if (!amount || amount < minDeposit) {
+                    showMessage("Minimum deposit ₹" + minDeposit + " hai");
+                    return;
+                  }
 
-  const selectedPay = document.querySelector("input[name='pay']:checked");
+                  const selectedPay = document.querySelector("input[name='pay']:checked");
 
-  if (!selectedPay) {
-    showMessage("Payment method select karo");
-    return;
-  }
+                  if (!selectedPay) {
+                    showMessage("Payment method select karo");
+                    return;
+                  }
 
-  let payMethod = "";
-let upiId = "";
+                  let payMethod = "";
+                  let upiId = "";
 
-if (selectedPay.parentElement.innerText.includes("Google")) {
-  payMethod = "gpay";
-  upiId = "<%= directGpayId %>";
-} 
-else if (selectedPay.parentElement.innerText.includes("PhonePe")) {
-  payMethod = "phonepe";
-  upiId = "<%= directPhonepeId %>";
-} 
-else {
-  payMethod = "paytm";
-  upiId = "<%= directPaytmId %>";
-}
+                  if (selectedPay.parentElement.innerText.includes("Google")) {
+                    payMethod = "gpay";
+                    upiId = "<%= directGpayId %>";
+                  }
+                  else if (selectedPay.parentElement.innerText.includes("PhonePe")) {
+                    payMethod = "phonepe";
+                    upiId = "<%= directPhonepeId %>";
+                  }
+                  else {
+                    payMethod = "paytm";
+                    upiId = "<%= directPaytmId %>";
+                  }
 
-  if (!upiId) {
-    showMessage("UPI ID not configured by admin");
-    return;
-  }
+                  if (!upiId) {
+                    showMessage("UPI ID not configured by admin");
+                    return;
+                  }
 
-  try {
+                  try {
 
-    // 1️⃣ Create pending deposit in DB
-    const response = await fetch("/user/create-deposit", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ amount, payMethod })
-    });
+                    // 1️⃣ Create pending deposit in DB
+                    const response = await fetch("/user/create-deposit", {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json"
+                      },
+                      body: JSON.stringify({ amount, payMethod })
+                    });
 
-    const data = await response.json();
+                    const data = await response.json();
 
-    if (!data.success) {
-      showMessage("Something went wrong");
-      return;
-    }
+                    if (!data.success) {
+                      showMessage("Something went wrong");
+                      return;
+                    }
 
-    const depositId = data.depositId;
+                    const depositId = data.depositId;
 
-    // 2️⃣ Redirect to wait page
-    window.location.href = `/user/payment-wait/${depositId}`;
+                    // 2️⃣ Redirect to wait page
+                    window.location.href = `/user/payment-wait/${depositId}`;
 
-    // 3️⃣ Universal UPI deep link (WORKING FORMAT)
-    const upiLink = `upi://pay?pa=${upiId}&pn=MyApp&am=${amount}&cu=INR`;
+                    // 3️⃣ Universal UPI deep link (WORKING FORMAT)
+                    const upiLink = `upi://pay?pa=${upiId}&pn=MyApp&am=${amount}&cu=INR`;
 
-    // 4️⃣ Open UPI App
-setTimeout(() => {
-  window.location.href = upiLink;
-}, 800);
+                    // 4️⃣ Open UPI App
+                    setTimeout(() => {
+                      window.location.href = upiLink;
+                    }, 800);
 
-  } catch (error) {
-    console.error(error);
-    showMessage("Server error");
-  }
+                  } catch (error) {
+                    console.error(error);
+                    showMessage("Server error");
+                  }
 
-});
-</script>
+                });
+            </script>
             <!-- End -->
 
 
@@ -1103,14 +1103,13 @@ setTimeout(() => {
   <script src="/js/user.js"></script>
 <% if (allNotifications && allNotifications.length > 0) { %>
 
-<div id="announcementModal"
-     style="position:fixed; inset:0; background:rgba(0,0,0,0.6);
-            display:flex; align-items:center; justify-content:center; z-index:9999;">
+<div id="announcementModal" style="position:fixed; inset:0; background:rgba(0,0,0,0.6);
+        display:flex; align-items:center; justify-content:center; z-index:9999;">
 
   <div style="background:white; width:90%; max-width:400px; border-radius:10px; padding:20px; position:relative;">
 
-    <button onclick="nextAnnouncement()"
-            style="position:absolute; top:10px; right:10px; font-size:20px; border:none; background:none; cursor:pointer;">
+    <button id="closeAnnouncementBtn"
+      style="position:absolute; top:10px; right:10px; font-size:20px; border:none; background:none; cursor:pointer;">
       ✖
     </button>
 
@@ -1123,21 +1122,23 @@ setTimeout(() => {
   const announcements = <%- JSON.stringify(allNotifications) %>;
   let currentIndex = 0;
 
-  function showAnnouncement(index) {
-    const container = document.getElementById("announcementContent");
-    const data = announcements[index];
+  const modal = document.getElementById("announcementModal");
+  const container = document.getElementById("announcementContent");
+  const closeBtn = document.getElementById("closeAnnouncementBtn");
 
+  function showAnnouncement(index) {
+    const data = announcements[index];
     let html = "";
 
     if (data.sendImage) {
       html += `<img src="${data.sendImage}" 
-                     style="width:100%; border-radius:8px; margin-bottom:15px;">`;
+                 style="width:100%; border-radius:8px; margin-bottom:15px;">`;
     }
 
     if (data.sendMessage) {
       html += `<p style="text-align:center; font-weight:500;">
-                  ${data.sendMessage}
-               </p>`;
+              ${data.sendMessage}
+           </p>`;
     }
 
     container.innerHTML = html;
@@ -1147,15 +1148,19 @@ setTimeout(() => {
     currentIndex++;
 
     if (currentIndex >= announcements.length) {
-      document.getElementById("announcementModal").style.display = "none";
+      modal.style.display = "none";
       return;
     }
 
     showAnnouncement(currentIndex);
   }
 
-  // Show first one automatically
+  // ✅ Event Listener instead of inline onclick
+  closeBtn.addEventListener("click", nextAnnouncement);
+
+  // Show first announcement
   showAnnouncement(currentIndex);
+
 </script>
 
 <% } %>
