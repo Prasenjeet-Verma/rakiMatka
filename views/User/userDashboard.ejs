@@ -523,19 +523,25 @@
               Proceed
             </button>
 
-           <script>
+       <script>
 const directUpiStatus = "<%= directUpiStatus %>";
+const directGpayId = "<%= directGpayId %>";
+const directPhonepeId = "<%= directPhonepeId %>";
+const directPaytmId = "<%= directPaytmId %>";
+
 const inputField = document.getElementById("depositAmount");
 const quickButtons = document.querySelectorAll(".quick-btn");
 const messageBox = document.getElementById("messageBox");
 const minDeposit = <%= minDeposit %>;
 
+// Quick amount buttons
 quickButtons.forEach(btn => {
   btn.addEventListener("click", function () {
     inputField.value = this.dataset.amount;
   });
 });
 
+// Message function
 function showMessage(message, type = "error") {
   messageBox.innerHTML = "";
   const div = document.createElement("div");
@@ -546,11 +552,13 @@ function showMessage(message, type = "error") {
   setTimeout(() => div.remove(), 3000);
 }
 
+// Proceed button
 document.querySelector("button.w-full.bg-teal-800")
 .addEventListener("click", async function (e) {
 
   e.preventDefault();
 
+  // 🔐 Direct UPI status check
   if (directUpiStatus !== "Enable") {
     showMessage("Direct UPI payment is currently disabled");
     return;
@@ -564,50 +572,68 @@ document.querySelector("button.w-full.bg-teal-800")
   }
 
   const selectedPay = document.querySelector("input[name='pay']:checked");
+
   if (!selectedPay) {
     showMessage("Payment method select karo");
     return;
   }
 
   let payMethod = "";
-  let upiUrl = "";
+let upiId = "";
 
-  if (selectedPay.parentElement.innerText.includes("Google")) {
-    payMethod = "gpay";
-    upiUrl = "gpay://upi/pay";
-  } 
-  else if (selectedPay.parentElement.innerText.includes("PhonePe")) {
-    payMethod = "phonepe";
-    upiUrl = "phonepe://upi/pay";
-  } 
-  else {
-    payMethod = "paytm";
-    upiUrl = "paytmmp://upi/pay";
-  }
+if (selectedPay.parentElement.innerText.includes("Google")) {
+  payMethod = "gpay";
+  upiId = "<%= directGpayId %>";
+} 
+else if (selectedPay.parentElement.innerText.includes("PhonePe")) {
+  payMethod = "phonepe";
+  upiId = "<%= directPhonepeId %>";
+} 
+else {
+  payMethod = "paytm";
+  upiId = "<%= directPaytmId %>";
+}
 
-  // 1️⃣ Create pending deposit
-  const res = await fetch("/user/create-deposit", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ amount, payMethod })
-  });
-
-  const data = await res.json();
-  if (!data.success) {
-    showMessage("Something went wrong");
+  if (!upiId) {
+    showMessage("UPI ID not configured by admin");
     return;
   }
 
-  const depositId = data.depositId;
+  try {
 
-  // 2️⃣ Open payment wait page first
-  window.location.href = `/user/payment-wait/${depositId}`;
+    // 1️⃣ Create pending deposit in DB
+    const response = await fetch("/user/create-deposit", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ amount, payMethod })
+    });
 
-  // 3️⃣ Open UPI with amount prefilled
-  setTimeout(() => {
-    window.location.href =
-      `${upiUrl}?pa=<%= directGpayId %>&pn=MyApp&am=${amount}&cu=INR`;
-  }, 800);
+    const data = await response.json();
+
+    if (!data.success) {
+      showMessage("Something went wrong");
+      return;
+    }
+
+    const depositId = data.depositId;
+
+    // 2️⃣ Redirect to wait page
+    window.location.href = `/user/payment-wait/${depositId}`;
+
+    // 3️⃣ Universal UPI deep link (WORKING FORMAT)
+    const upiLink = `upi://pay?pa=${upiId}&pn=MyApp&am=${amount}&cu=INR`;
+
+    // 4️⃣ Open UPI App
+setTimeout(() => {
+  window.location.href = upiLink;
+}, 800);
+
+  } catch (error) {
+    console.error(error);
+    showMessage("Server error");
+  }
 
 });
 </script>
