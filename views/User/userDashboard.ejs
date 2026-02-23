@@ -583,15 +583,15 @@
 
                   if (selectedPay.parentElement.innerText.includes("Google")) {
                     payMethod = "gpay";
-                    upiId = "<%= directGpayId %>";
+                    upiId = directGpayId;
                   }
                   else if (selectedPay.parentElement.innerText.includes("PhonePe")) {
                     payMethod = "phonepe";
-                    upiId = "<%= directPhonepeId %>";
+                    upiId = directPhonepeId;
                   }
                   else {
                     payMethod = "paytm";
-                    upiId = "<%= directPaytmId %>";
+                    upiId = directPaytmId;
                   }
 
                   if (!upiId) {
@@ -619,16 +619,26 @@
 
                     const depositId = data.depositId;
 
-                    // 2️⃣ Create UPI deep link
-                    const upiLink = `upi://pay?pa=${upiId}&pn=MyApp&am=${amount}&cu=INR`;
+                    // 2️⃣ Create APP-SPECIFIC UPI deep link
+                    let upiLink = "";
 
-                    // 3️⃣ Open UPI App FIRST
+                    if (payMethod === "gpay") {
+                      upiLink = `gpay://upi/pay?pa=${upiId}&pn=MyApp&am=${amount}&cu=INR`;
+                    }
+                    else if (payMethod === "phonepe") {
+                      upiLink = `phonepe://upi/pay?pa=${upiId}&pn=MyApp&am=${amount}&cu=INR`;
+                    }
+                    else {
+                      upiLink = `paytmmp://upi/pay?pa=${upiId}&pn=MyApp&am=${amount}&cu=INR`;
+                    }
+
+                    // 3️⃣ Open UPI App
                     window.location.href = upiLink;
 
-                    // 4️⃣ After 1.5 sec go to wait page
+                    // 4️⃣ Redirect to wait page after 2 sec
                     setTimeout(() => {
                       window.location.href = `/user/payment-wait/${depositId}`;
-                    }, 1500);
+                    }, 2000);
 
                   } catch (error) {
                     console.error(error);
