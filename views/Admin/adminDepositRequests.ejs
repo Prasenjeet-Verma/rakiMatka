@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="/css/adminDashbord.css">
+
+     <style>
+        /* Custom scrollbar for the table wrapper */
+        .custom-scrollbar::-webkit-scrollbar { height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+     </style>
+
+  </head>
+  <body class="flex min-h-screen">
+    <aside
+      id="sidebar"
+      class="sidebar border-r border-gray-200 fixed inset-y-0 left-0 z-50 lg:relative lg:translate-x-0 transform -translate-x-full lg:block"
+    >
+      <div class="p-4">
+        <div class="relative mb-4">
+          <input
+            type="text"
+            placeholder="Search"
+            class="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
+          <button
+            class="absolute right-0 top-0 bottom-0 px-3 bg-neutral-800 text-white rounded-r"
+          >
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
+      </div>
+
+       <!-- ============================= Nav is here ============================ -->
+
+      <%- include('../partials/adminNav') %>
+    </aside>
+
+    <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+      <!-- ============================= Header is here ============================ -->
+     <%- include('../partials/adminHeader') %>
+
+      <header
+        class="bg-white h-14 flex items-center justify-between px-4 border-b border-gray-200"
+      >
+      </header>    <!-- header overflow done -->
+
+     <!-- ==================================== Body Start Here ========================================= -->
+
+<main class="bg-gray-100 p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto bg-white rounded-lg shadow-sm border border-gray-200">
+        
+        <div class="p-4 border-b border-gray-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex flex-wrap items-center gap-3">
+                <h1 class="text-gray-700 font-medium">Deposit Requests</h1>
+                                   <div class="flex flex-col">
+                        <div class="flex items-center border border-gray-200 rounded-md p-1.5 bg-[#f8faff] h-[42px]">
+                            <div class="relative flex items-center flex-1">
+                                <span class="text-[9px] font-bold text-blue-400 uppercase mr-2">From</span>
+                                <input type="date" class="w-full text-xs bg-transparent outline-none text-gray-600 cursor-pointer">
+                                <svg class="w-3.5 h-3.5 text-gray-800 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            </div>
+                            <div class="h-4 w-[1px] bg-gray-300 mx-2"></div>
+                            <div class="relative flex items-center flex-1">
+                                <span class="text-[9px] font-bold text-blue-400 uppercase mr-2">To</span>
+                                <input type="date" class="w-full text-xs bg-transparent outline-none text-gray-600 cursor-pointer">
+                                <svg class="w-3.5 h-3.5 text-gray-800 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            </div>
+                        </div>
+                    </div>
+                <select class="border rounded px-2 py-1 text-sm text-gray-600">
+                    <option value="">All</option>
+                    <option value="">Pending</option>
+                    <option value="">Success</option>
+                    <option value="">Rejected</option>
+                    <option value="">failed</option>
+                </select>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-sm text-gray-600">Search:</span>
+                <input type="text" class="border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse min-w-[1000px]">
+                <thead>
+                    <tr class="bg-white border-b border-t border-gray-200 text-gray-700 text-sm uppercase tracking-wider">
+                        <th class="p-3 border-r">ID</th>
+                        <th class="p-3 border-r">Mobile Number</th>
+                        <th class="p-3 border-r">User name</th>
+                        <th class="p-3 border-r">Amount</th>
+                        <th class="p-3 border-r">Deposit Mode</th>
+                        <th class="p-3 border-r w-1/4">Transaction ID</th>
+                        <th class="p-3 border-r">Image</th>
+                        <th class="p-3 border-r">Note</th>
+                        <th class="p-3 border-r">Status</th>
+                        <th class="p-3 border-r">Date</th>
+                        <th class="p-3">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="text-sm text-gray-700">
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="p-3 border-r font-bold text-center">1</td>
+                        <td class="p-3 border-r">9672005747</td>
+                        <td class="p-3 border-r font-semibold">ISHAN THAKUR</td>
+                        <td class="p-3 border-r font-bold text-center text-lg">1</td>
+                        <td class="p-3 border-r">paytm</td>
+                        <td class="p-3 border-r break-all text-xs font-mono text-gray-500">$2y$12$BcegKV2sEsKGP/OPagdaM.B4YV2ScJsVC9yJWWs.ZvNDQ/zCdRPQi</td>
+                        <td class="p-3 border-r italic text-gray-400">No Image</td>
+                        <td class="p-3 border-r text-xs font-bold">DIRECT UPI PAYMENT</td>
+                        <td class="p-3 border-r text-center">
+                            <span class="bg-green-500 text-white px-2 py-0.5 rounded text-[10px] font-bold">Accepted</span>
+                        </td>
+                        <td class="p-3 border-r text-xs">01/29/2026, 10:43:15 AM</td>
+                        <td class="p-3 text-center"></td>
+                    </tr>
+                    
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="p-3 border-r font-bold text-center">3</td>
+                        <td class="p-3 border-r">9302360147</td>
+                        <td class="p-3 border-r font-semibold">vvvvv</td>
+                        <td class="p-3 border-r font-bold text-center text-lg">1</td>
+                        <td class="p-3 border-r">paytm</td>
+                        <td class="p-3 border-r break-all text-xs font-mono text-gray-500">$2y$12$bkUZ6lfr4fLGzWJFX5p5t.xPIdlCCAOI/uUOpsnlD5K0NUk4Oz8yi</td>
+                        <td class="p-3 border-r italic text-gray-400">No Image</td>
+                        <td class="p-3 border-r text-xs font-bold">DIRECT UPI PAYMENT</td>
+                        <td class="p-3 border-r text-center">
+                            <span class="bg-orange-400 text-white px-2 py-0.5 rounded text-[10px] font-bold">Pending</span>
+                        </td>
+                        <td class="p-3 border-r text-xs">02/09/2026, 03:54:21 PM</td>
+                        <td class="p-3">
+                            <div class="flex flex-col gap-1 items-center">
+                                <button class="bg-orange-400 text-white p-1 rounded w-6 h-6 flex items-center justify-center hover:bg-orange-500"><i class="fas fa-check text-xs"></i></button>
+                                <button class="bg-red-500 text-white p-1 rounded w-6 h-6 flex items-center justify-center hover:bg-red-600"><i class="fas fa-times text-xs"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="p-4 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-600">
+            <div>Showing 1 to 5 of 5 entries</div>
+            <div class="flex items-center gap-1">
+                <button class="px-3 py-1 border rounded hover:bg-gray-50 disabled:opacity-50">Previous</button>
+                <button class="px-3 py-1 bg-white border border-gray-300 rounded text-black font-bold">1</button>
+                <button class="px-3 py-1 border rounded hover:bg-gray-50 disabled:opacity-50">Next</button>
+            </div>
+        </div>
+    </div>
+
+  </main>
+      <!-- ==================================== Body End Here ========================================= -->
+  </main>
+    <script src="js/sidebar.js"></script>
+    <script src="js/adminResult.js"></script>
+    <script src="js/adminResultDOM.js"></script>
+  </body>
+</html>

@@ -1,7 +1,25 @@
 const express = require('express');
 const userRouter = express.Router();
 const userController = require('../controller/userController');
+const multer = require("multer");
+const path = require("path");
 
+const upload = multer({
+  dest: "temp/",
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png/;
+    const ext = allowedTypes.test(
+      path.extname(file.originalname).toLowerCase()
+    );
+    const mime = allowedTypes.test(file.mimetype);
+
+    if (ext && mime) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only JPG, JPEG, PNG allowed"));
+    }
+  },
+});
 userRouter.get('/', userController.UserHomePage);
 userRouter.get('/userdashboard', userController.getUserDashboardPage);
 userRouter.get('/userprofile', userController.getUserProfilePage);
@@ -53,4 +71,16 @@ userRouter.post('/user/save-fcm-token', userController.saveFcmToken);
 // User withdraw req
 userRouter.post("/withdraw-request", userController.postWithdrawRequest);
 
+
+
+// Deposit transtions routes
+userRouter.post("/user/create-deposit", userController.createDeposit);
+userRouter.get("/user/payment-wait/:id", userController.paymentWaitPage);
+userRouter.get("/user/submit-transaction/:id", userController.submitTransactionPage);
+
+userRouter.post(
+  "/user/submit-transaction/:id",
+  upload.single("screenshot"),
+  userController.submitTransaction
+);
 module.exports = userRouter;

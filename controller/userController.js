@@ -1,7 +1,9 @@
 const moment = require("moment-timezone");
 const bcrypt = require("bcryptjs");
 const User = require("../model/userSchema");
+
 const WalletTransaction = require("../model/WalletTransaction");
+
 const UserBankDetails = require("../model/UserBankDetails");
 const Game = require("../model/Game");
 const GameRate = require("../model/GameRate");
@@ -12,6 +14,10 @@ const MainSettings = require("../model/MainSettings");
 const payment = require("../model/PaymentGatewaySettings");
 const ManualDeposit = require("../model/ManualDeposit");
 const WithdrawTime = require("../model/WithdrawTime");
+const HomeSliderImage = require("../model/HomeSliderImage");
+
+const SendImageMessage = require("../model/SendImageMessage");
+
 const SingleDigitBet = require("../model/SingleDigitBet");
 const SingleBulkDigitBet = require("../model/SingleBulkDigitBet");
 const JodiDigitBet = require("../model/JodiDigitBet");
@@ -37,22 +43,25 @@ const LeftDigitBet = require("../model/JackpotLeftDigitBet");
 const RightDigitBet = require("../model/JackpotRightDigitBet");
 const JackpotCentreJodiDigitBet = require("../model/JackpotCentreJodiDigitBet");
 const JackpotGameResult = require("../model/jackpotGameDeclareResuult");
+
 exports.UserHomePage = async (req, res, next) => {
   try {
-    // This will be either the user object or undefined
     const user = req.session.user || null;
-
-    // isLoggedIn will be true or false
     const isLoggedIn = !!req.session.isLoggedIn;
 
-    // Render your home page and pass the session info
+    // ✅ Get latest slider images
+    const slider = await HomeSliderImage.findOne()
+      .sort({ createdAt: -1 })
+      .lean();
+
     res.render("User/UserHomePage", {
       user: user,
-      isLoggedIn: false,
+      isLoggedIn: isLoggedIn,
+      slider: slider, // 👈 pass to EJS
     });
   } catch (err) {
     console.error("Error in UserHomePage:", err);
-    next(err); // pass error to Express error handler
+    next(err);
   }
 };
 
@@ -260,6 +269,10 @@ exports.getUserDashboardPage = async (req, res, next) => {
       }
     }
 
+// ===================== 🎯 FETCH ALL IMAGE MESSAGES =====================
+const allNotifications = await SendImageMessage.find({})
+  .sort({ createdAt: -1 })
+  .lean();
     // ===================== 🎯 RENDER DASHBOARD =====================
     res.render("User/userDashboard", {
       user,
@@ -280,6 +293,7 @@ exports.getUserDashboardPage = async (req, res, next) => {
       directPaytmId: paymentSettings?.directPaytmId || "",
       todayWithdrawTime,
       directUpiStatus: paymentSettings?.directUpi || "Disable",
+      allNotifications, // ✅ NEW
       isLoggedIn: req.session.isLoggedIn,
     });
   } catch (err) {
@@ -287,6 +301,93 @@ exports.getUserDashboardPage = async (req, res, next) => {
     next(err);
   }
 };
+
+
+exports.createDeposit = async (req, res) => {
+  try {
+    const { amount, payMethod } = req.body;
+
+    const user = await User.findById(req.session.user._id);
+
+    const deposit = await WalletTransaction.create({
+      user: user._id,
+      type: "credit",
+      source: "deposit",
+      amount,
+      payMethod,
+      oldBalance: user.walletBalance,
+      newBalance: user.walletBalance,
+      status: "pending",
+    });
+
+    res.json({ success: true, depositId: deposit._id });
+
+  } catch (err) {
+    console.error(err);
+    res.json({ success: false });
+  }
+};
+
+exports.paymentWaitPage = async (req, res) => {
+  res.render("User/paymentWait", {
+    depositId: req.params.id
+  });
+};
+
+exports.submitTransactionPage = async (req, res) => {
+
+  const deposit = await WalletTransaction.findById(req.params.id);
+
+  if (!deposit || deposit.status !== "pending") {
+    return res.redirect("/userdashboard");
+  }
+
+  res.render("User/submitTransaction", { deposit });
+};
+
+exports.submitTransaction = async (req, res) => {
+  try {
+
+    const { utr } = req.body;
+
+    // Duplicate UTR check
+    const existing = await WalletTransaction.findOne({ utr });
+    if (existing) {
+      return res.send("UTR already used");
+    }
+
+    let screenshotUrl = null;
+
+    if (req.file) {
+      screenshotUrl = await uploadToPhpServer(req.file.path);
+      fs.unlinkSync(req.file.path);
+    }
+
+    await WalletTransaction.findByIdAndUpdate(req.params.id, {
+      utr,
+      screenshot: screenshotUrl,
+      status: "submitted"
+    });
+
+    res.redirect("/userdashboard");
+
+  } catch (err) {
+    console.error(err);
+    res.send("Error submitting transaction");
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
 
 exports.postWithdrawRequest = async (req, res) => {
   try {

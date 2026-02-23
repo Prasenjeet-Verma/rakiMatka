@@ -6573,6 +6573,96 @@ exports.deleteSliderImage = async (req, res) => {
   }
 };
 
+// exports.sendImageAndMessageNotification = async (req, res) => { <-- bro ismai sirf notification send wla system remove krdo  
+//   try {
+//     // 🔐 Admin Authentication              <-- bsdk yeh wla function ko remove mt krna 
+//     if (
+//       !req.session.isLoggedIn ||
+//       !req.session.admin ||
+//       req.session.admin.role !== "admin"
+//     ) {
+//       return res.redirect("/admin/login");
+//     }
+
+//     const adminUser = await User.findOne({
+//       _id: req.session.admin._id,
+//       role: "admin",
+//       userStatus: "active",
+//     });
+
+//     if (!adminUser) {
+//       req.session.destroy();
+//       return res.redirect("/admin/login");
+//     }
+
+//     const { sendMessage } = req.body;
+
+//     if (!sendMessage) {
+//       return res.redirect("/admin/image-slider");
+//     }
+
+//     let imageUrl = "";
+
+//     // 📂 Upload Image If Exists
+//     if (req.file) {
+//       imageUrl = await uploadToPhpServer(req.file.path);
+//       fs.unlinkSync(req.file.path);
+//     }
+
+//     // 💾 Save to DB (History)
+//     await SendImageMsg.create({
+//       sendImage: imageUrl,
+//       sendMessage,
+//     });
+
+//     // 🌍 GET ALL ACTIVE USERS WITH TOKEN
+//     const users = await User.find({
+//       role: "user",
+//       userStatus: "active",
+//       fcmToken: { $exists: true, $ne: null },
+//     });
+
+//     const tokens = users.map((u) => u.fcmToken);
+
+//     if (tokens.length === 0) {
+//       console.log("❌ No users with FCM token found");
+//       return res.redirect("/admin/image-slider");
+//     }
+
+//     // 🚀 SEND MULTICAST NOTIFICATION
+//     const response = await firebaseAdmin.messaging().sendEachForMulticast({
+//       tokens,
+//       notification: {
+//         title: "New Notification",
+//         body: sendMessage,
+//         imageUrl: imageUrl || undefined,
+//       },
+//       android: {
+//         notification: {
+//           imageUrl: imageUrl || undefined,
+//         },
+//       },
+//       apns: {
+//         payload: {
+//           aps: {
+//             "mutable-content": 1,
+//           },
+//         },
+//         fcm_options: {
+//           image: imageUrl || undefined,
+//         },
+//       },
+//     });
+
+//     console.log("✅ Multicast Success:", response.successCount);
+//     console.log("❌ Multicast Failed:", response.failureCount);
+
+//     return res.redirect("/admin/image-slider");
+//   } catch (error) {
+//     console.error("🚨 FCM Error:", error);
+//     res.status(500).send("Server Error");
+//   }
+// };
 exports.sendImageAndMessageNotification = async (req, res) => {
   try {
     // 🔐 Admin Authentication
@@ -6609,57 +6699,18 @@ exports.sendImageAndMessageNotification = async (req, res) => {
       fs.unlinkSync(req.file.path);
     }
 
-    // 💾 Save to DB (History)
+    // 💾 Save to DB (History Only)
     await SendImageMsg.create({
       sendImage: imageUrl,
       sendMessage,
     });
 
-    // 🌍 GET ALL ACTIVE USERS WITH TOKEN
-    const users = await User.find({
-      role: "user",
-      userStatus: "active",
-      fcmToken: { $exists: true, $ne: null },
-    });
-
-    const tokens = users.map((u) => u.fcmToken);
-
-    if (tokens.length === 0) {
-      console.log("❌ No users with FCM token found");
-      return res.redirect("/admin/image-slider");
-    }
-
-    // 🚀 SEND MULTICAST NOTIFICATION
-    const response = await firebaseAdmin.messaging().sendEachForMulticast({
-      tokens,
-      notification: {
-        title: "New Notification",
-        body: sendMessage,
-        imageUrl: imageUrl || undefined,
-      },
-      android: {
-        notification: {
-          imageUrl: imageUrl || undefined,
-        },
-      },
-      apns: {
-        payload: {
-          aps: {
-            "mutable-content": 1,
-          },
-        },
-        fcm_options: {
-          image: imageUrl || undefined,
-        },
-      },
-    });
-
-    console.log("✅ Multicast Success:", response.successCount);
-    console.log("❌ Multicast Failed:", response.failureCount);
+    console.log("✅ Image & Message saved successfully");
 
     return res.redirect("/admin/image-slider");
+
   } catch (error) {
-    console.error("🚨 FCM Error:", error);
+    console.error("🚨 Error:", error);
     res.status(500).send("Server Error");
   }
 };
@@ -6703,3 +6754,39 @@ exports.deleteNotification = async (req, res) => {
     res.status(500).send("Server Error");
   }
 };
+
+exports.depositRequest = async (req,res,next) => {
+  try {
+       
+     if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const adminUser = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    });
+
+    if (!adminUser) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+      res.render("Admin/adminDepositRequests", {
+      pageTitle: "Admin Deposit Req",
+      adminUser,
+      isLoggedIn: req.session.isLoggedIn,
+    });
+
+
+  } catch (error) {
+    console.error("🚨 Deposit req Error:", error);
+    res.status(500).send("Server Error");
+  }
+  
+}

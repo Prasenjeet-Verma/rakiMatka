@@ -21,7 +21,7 @@ module.exports = multer({
   fileFilter,
   limits: {
     files: 4,                 // max 4 images
-    fileSize: 2 * 1024 * 1024 // 🔥 max 2MB per image
+    fileSize: 10 * 1024 * 1024   // 🔥 10MB per image
   },
 });
 

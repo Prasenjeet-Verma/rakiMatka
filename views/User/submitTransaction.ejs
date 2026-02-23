@@ -1,0 +1,18 @@
+<h2>Submit Transaction Details</h2>
+
+<form action="/user/submit-transaction/<%= deposit._id %>" 
+      method="POST" 
+      enctype="multipart/form-data">
+
+  <label>Transaction ID (UTR)</label>
+  <input type="text" name="utr" required />
+
+  <br><br>
+
+  <label>Upload Screenshot</label>
+  <input type="file" name="screenshot" required />
+
+  <br><br>
+
+  <button type="submit">Submit</button>
+</form>

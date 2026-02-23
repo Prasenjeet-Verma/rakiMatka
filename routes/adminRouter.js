@@ -239,4 +239,6 @@ adminRouter.post(
   "/admin/delete-notification/:id",
   adminController.deleteNotification
 );
+
+adminRouter.get("/admin/DepositRequests", adminController.depositRequest);
 module.exports = adminRouter;
