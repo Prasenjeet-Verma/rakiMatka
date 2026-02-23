@@ -619,16 +619,16 @@
 
                     const depositId = data.depositId;
 
-                    // 2️⃣ Redirect to wait page
-                    window.location.href = `/user/payment-wait/${depositId}`;
-
-                    // 3️⃣ Universal UPI deep link (WORKING FORMAT)
+                    // 2️⃣ Create UPI deep link
                     const upiLink = `upi://pay?pa=${upiId}&pn=MyApp&am=${amount}&cu=INR`;
 
-                    // 4️⃣ Open UPI App
+                    // 3️⃣ Open UPI App FIRST
+                    window.location.href = upiLink;
+
+                    // 4️⃣ After 1.5 sec go to wait page
                     setTimeout(() => {
-                      window.location.href = upiLink;
-                    }, 800);
+                      window.location.href = `/user/payment-wait/${depositId}`;
+                    }, 1500);
 
                   } catch (error) {
                     console.error(error);
@@ -1101,69 +1101,69 @@
     });
   </script>
   <script src="/js/user.js"></script>
-<% if (allNotifications && allNotifications.length > 0) { %>
+  <% if (allNotifications && allNotifications.length> 0) { %>
 
-<div id="announcementModal" style="position:fixed; inset:0; background:rgba(0,0,0,0.6);
+    <div id="announcementModal" style="position:fixed; inset:0; background:rgba(0,0,0,0.6);
         display:flex; align-items:center; justify-content:center; z-index:9999;">
 
-  <div style="background:white; width:90%; max-width:400px; border-radius:10px; padding:20px; position:relative;">
+      <div style="background:white; width:90%; max-width:400px; border-radius:10px; padding:20px; position:relative;">
 
-    <button id="closeAnnouncementBtn"
-      style="position:absolute; top:10px; right:10px; font-size:20px; border:none; background:none; cursor:pointer;">
-      ✖
-    </button>
+        <button id="closeAnnouncementBtn"
+          style="position:absolute; top:10px; right:10px; font-size:20px; border:none; background:none; cursor:pointer;">
+          ✖
+        </button>
 
-    <div id="announcementContent"></div>
+        <div id="announcementContent"></div>
 
-  </div>
-</div>
+      </div>
+    </div>
 
-<script>
-  const announcements = <%- JSON.stringify(allNotifications) %>;
-  let currentIndex = 0;
+    <script>
+      const announcements = <% - JSON.stringify(allNotifications) %>;
+      let currentIndex = 0;
 
-  const modal = document.getElementById("announcementModal");
-  const container = document.getElementById("announcementContent");
-  const closeBtn = document.getElementById("closeAnnouncementBtn");
+      const modal = document.getElementById("announcementModal");
+      const container = document.getElementById("announcementContent");
+      const closeBtn = document.getElementById("closeAnnouncementBtn");
 
-  function showAnnouncement(index) {
-    const data = announcements[index];
-    let html = "";
+      function showAnnouncement(index) {
+        const data = announcements[index];
+        let html = "";
 
-    if (data.sendImage) {
-      html += `<img src="${data.sendImage}" 
+        if (data.sendImage) {
+          html += `<img src="${data.sendImage}" 
                  style="width:100%; border-radius:8px; margin-bottom:15px;">`;
-    }
+        }
 
-    if (data.sendMessage) {
-      html += `<p style="text-align:center; font-weight:500;">
+        if (data.sendMessage) {
+          html += `<p style="text-align:center; font-weight:500;">
               ${data.sendMessage}
            </p>`;
-    }
+        }
 
-    container.innerHTML = html;
-  }
+        container.innerHTML = html;
+      }
 
-  function nextAnnouncement() {
-    currentIndex++;
+      function nextAnnouncement() {
+        currentIndex++;
 
-    if (currentIndex >= announcements.length) {
-      modal.style.display = "none";
-      return;
-    }
+        if (currentIndex >= announcements.length) {
+          modal.style.display = "none";
+          return;
+        }
 
-    showAnnouncement(currentIndex);
-  }
+        showAnnouncement(currentIndex);
+      }
 
-  // ✅ Event Listener instead of inline onclick
-  closeBtn.addEventListener("click", nextAnnouncement);
+      // ✅ Event Listener instead of inline onclick
+      closeBtn.addEventListener("click", nextAnnouncement);
 
-  // Show first announcement
-  showAnnouncement(currentIndex);
+      // Show first announcement
+      showAnnouncement(currentIndex);
 
-</script>
+    </script>
 
-<% } %>
+    <% } %>
 </body>
 
 </html>
