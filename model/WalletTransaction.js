@@ -3,19 +3,22 @@ const mongoose = require("mongoose");
 const walletTransactionSchema = new mongoose.Schema(
   {
     // The primary user whose wallet is affected
-    user: {//(whose wallet changed)
+    user: {
+      //(whose wallet changed)
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
 
     // Admin involved in the transaction (null if system/payment gateway)
-    admin: {//(who performed action)
+    admin: {
+      //(who performed action)
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       default: null,
     },
-    relatedUser: {//actual deposit user
+    relatedUser: {
+      //actual deposit user
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       default: null,
@@ -23,7 +26,7 @@ const walletTransactionSchema = new mongoose.Schema(
     // credit = wallet increases, debit = wallet decreases
     type: {
       type: String,
-      enum: ["credit", "debit"],
+      enum: ["credit", "debit","deposit_rejected","withdraw_rejected"],
       required: true,
     },
 
@@ -38,6 +41,8 @@ const walletTransactionSchema = new mongoose.Schema(
         "admin_credit", // Admin adds money to user wallet
         "admin_debit", // Admin removes money from user wallet
         "refund", // Refunds
+        "withdraw_rejected",
+        "deposit_rejected"
       ],
       required: true,
     },
@@ -53,13 +58,13 @@ const walletTransactionSchema = new mongoose.Schema(
       default: null,
     },
     // 🔥 NEW FIELD 1 – UTR / Transaction ID
- utr: {
-  type: String,
-  default: null,
-  unique: true,
-  sparse: true,
-  trim: true
-},
+    utr: {
+      type: String,
+      default: null,
+      unique: true,
+      sparse: true,
+      trim: true,
+    },
 
     // 🔥 NEW FIELD 2 – Screenshot path
     screenshot: {
@@ -78,8 +83,8 @@ const walletTransactionSchema = new mongoose.Schema(
     },
 
     // Wallet balances before/after the transaction
-    oldBalance: { type: Number, required: true },
-    newBalance: { type: Number, required: true },
+    oldBalance: { type: Number },
+    newBalance: { type: Number },
 
     // Optional admin wallet snapshot if admin is involved
     adminOldBalance: { type: Number },

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  <link rel="stylesheet" href="/css/adminDashbord.css">
+
+  <style>
+    /* Custom scrollbar for the table wrapper */
+    .custom-scrollbar::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 10px;
+    }
+  </style>
+
+</head>
+
+<body class="flex min-h-screen">
+  <aside id="sidebar"
+    class="sidebar border-r border-gray-200 fixed inset-y-0 left-0 z-50 lg:relative lg:translate-x-0 transform -translate-x-full lg:block">
+    <div class="p-4">
+      <div class="relative mb-4">
+        <input type="text" placeholder="Search"
+          class="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
+        <button class="absolute right-0 top-0 bottom-0 px-3 bg-neutral-800 text-white rounded-r">
+          <i class="fas fa-search"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- ============================= Nav is here ============================ -->
+
+    <%- include('../partials/adminNav') %>
+  </aside>
+
+  <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+    <!-- ============================= Header is here ============================ -->
+    <%- include('../partials/adminHeader') %>
+
+      <header class="bg-white h-14 flex items-center justify-between px-4 border-b border-gray-200">
+      </header> <!-- header overflow done -->
+
+      <!-- ==================================== Body Start Here ========================================= -->
+      <div class="p-6 bg-gray-100 min-h-screen">
+        <div class="max-w-7xl mx-auto bg-white shadow-sm border border-gray-200 rounded-sm">
+
+          <div class="p-4 border-b border-gray-100">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <h2 class="text-lg font-medium text-gray-700">Withdraw Points Requests</h2>
+<form method="GET" action="/admin/WithdrawPointsRequestReport">
+              <div class="flex flex-wrap items-center gap-2">
+                <div class="flex flex-col">
+                  <div class="flex items-center border border-gray-200 rounded-md p-1.5 bg-[#f8faff] h-[42px]">
+                    <div class="relative flex items-center flex-1">
+                      <span class="text-[9px] font-bold text-blue-400 uppercase mr-2">From</span>
+                      <input type="date" name="from" value="<%= query.from || '' %>"
+                        class="w-full text-xs bg-transparent outline-none text-gray-600 cursor-pointer">
+                      <svg class="w-3.5 h-3.5 text-gray-800 pointer-events-none" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                        </path>
+                      </svg>
+                    </div>
+                    <div class="h-4 w-[1px] bg-gray-300 mx-2"></div>
+                    <div class="relative flex items-center flex-1">
+                      <span class="text-[9px] font-bold text-blue-400 uppercase mr-2">To</span>
+                      <input type="date" name="to" value="<%= query.to || '' %>"
+                        class="w-full text-xs bg-transparent outline-none text-gray-600 cursor-pointer">
+                      <svg class="w-3.5 h-3.5 text-gray-800 pointer-events-none" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                        </path>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+                <select name="status"
+                  class="border border-gray-300 rounded px-3 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
+                  <option value="">All</option>
+
+                  <option value="pending" <%=query.status==="pending" ? "selected" : "" %>>
+                    Pending
+                  </option>
+
+                  <option value="success" <%=query.status==="success" ? "selected" : "" %>>
+                    Success
+                  </option>
+
+                  <option value="rejected" <%=query.status==="rejected" ? "selected" : "" %>>
+                    Rejected
+                  </option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex items-center gap-2 text-sm text-gray-600">
+              <span>Show</span>
+              <select class="border border-gray-300 rounded px-1 py-0.5">
+                <option>10</option>
+              </select>
+              <span>entries</span>
+            </div>
+
+            <div class="flex items-center gap-2 text-sm">
+              <label class="text-gray-600">Search Username</label>
+              <input type="text"  name="username" value="<%= query.username || '' %>" class="border border-gray-300 rounded px-2 py-1 focus:outline-none">
+              <button type="submit" class="px-3 py-1 bg-blue-500 text-white rounded text-sm">
+                Filter
+              </button>
+              <a href="/admin/WithdrawPointsRequestReport" class="px-3 py-1 bg-gray-400 text-white rounded text-sm">
+                Reset
+              </a>
+            </div>
+          </div>
+</form>
+          <div class="overflow-x-auto">
+            <table class="w-full border-collapse border-y border-gray-200 text-sm text-left">
+              <thead class="bg-white border-b-2 border-gray-200">
+                <tr class="text-gray-700 font-bold">
+                  <th class="p-3 border-r border-gray-200">S.No <span
+                      class="float-right text-gray-400 text-[10px]">▲▼</span></th>
+                  <th class="p-3 border-r border-gray-200">Mobile <span
+                      class="float-right text-gray-400 text-[10px]">▲▼</span></th>
+                  <th class="p-3 border-r border-gray-200">Name <span
+                      class="float-right text-gray-400 text-[10px]">▲▼</span></th>
+                  <th class="p-3 border-r border-gray-200">Amount <span
+                      class="float-right text-gray-400 text-[10px]">▲▼</span></th>
+                  <th class="p-3 border-r border-gray-200">Status <span
+                      class="float-right text-gray-400 text-[10px]">▲▼</span></th>
+                  <th class="p-3 border-r border-gray-200">Created at <span
+                      class="float-right text-gray-400 text-[10px]">▲▼</span></th>
+                  <th class="p-3 border-r border-gray-200">Details</th>
+                  <th class="p-3">Action</th>
+                </tr>
+              </thead>
+             <tbody class="divide-y divide-gray-200">
+  <% if (withdrawRequests.length === 0) { %>
+    <tr>
+      <td colspan="8" class="p-4 text-center text-gray-500">No Data Found</td>
+    </tr>
+  <% } %>
+
+  <% withdrawRequests.forEach((item, index) => { %>
+    <tr class="hover:bg-gray-50">
+      <td class="p-3 border-r font-bold">
+        <%= (currentPage - 1) * 10 + index + 1 %>
+      </td>
+
+      <td class="p-3 border-r font-bold">
+        <%= item.user?.phoneNo %>
+      </td>
+
+      <td class="p-3 border-r font-bold">
+        <%= item.user?.username %>
+      </td>
+
+      <td class="p-3 border-r font-bold">
+        ₹ <%= item.amount %>
+      </td>
+
+      <td class="p-3 border-r">
+        <span class="px-2 py-1 text-xs text-white rounded
+          <%= item.status === 'success' ? 'bg-green-500' :
+              item.status === 'pending' ? 'bg-yellow-500' :
+              item.status === 'rejected' ? 'bg-red-500' :
+              'bg-gray-500' %>">
+          <%= item.status %>
+        </span>
+      </td>
+
+      <td class="p-3 border-r font-bold">
+        <%= new Date(item.createdAt).toLocaleString() %>
+      </td>
+
+      <td class="p-3 border-r">
+        <button onclick='openUserModal(<%- JSON.stringify(item) %>)'
+          class="bg-yellow-500 text-white p-1.5 rounded">
+          View
+        </button>
+      </td>
+
+      <td class="p-3">
+  <% if(item.status === "pending") { %>
+    
+    <a href="/admin/withdraw/approve/<%= item._id %>" 
+       class="bg-green-500 text-white px-2 py-1 rounded text-xs">
+       ✔
+    </a>
+
+    <a href="/admin/withdraw/reject/<%= item._id %>" 
+       class="bg-red-500 text-white px-2 py-1 rounded text-xs">
+       ❌
+    </a>
+
+  <% } else { %>
+    ---
+  <% } %>
+</td>
+    </tr>
+  <% }) %>
+</tbody>
+            </table>
+          </div>
+
+          <div class="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <p class="text-sm text-gray-600 italic">Showing 1 to 1 of 1 entries</p>
+
+            <div class="flex items-center gap-2 text-sm">
+  <% for(let i = 1; i <= totalPages; i++) { %>
+    <a href="?page=<%= i %>&status=<%= query.status || '' %>&username=<%= query.username || '' %>&from=<%= query.from || '' %>&to=<%= query.to || '' %>"
+       class="px-3 py-1 border
+       <%= currentPage === i ? 'bg-blue-500 text-white' : 'bg-white' %>">
+       <%= i %>
+    </a>
+  <% } %>
+</div>
+          </div>
+        </div>
+      </div>
+      <!-- ==================================== Modal Here ========================================= -->
+
+<div id="userModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+  <div class="bg-white rounded shadow-xl w-full max-w-md p-5">
+    <div id="modalContent"></div>
+  </div>
+</div>
+      </div>
+
+      <script>
+        function toggleModal(show) {
+          const modal = document.getElementById('userModal');
+          if (show) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+          } else {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+          }
+        }
+      </script>
+  </main>
+  <script>
+function openUserModal(data) {
+  const modal = document.getElementById('userModal');
+  const content = document.getElementById('modalContent');
+
+  let paymentField = "";
+
+  // 🔹 Selected Method + Entered Value
+  if (data.receiveMethod === "bank") {
+    paymentField = `<p><b>Selected Method:</b> Bank</p>
+                    <p><b>Account No / Input:</b> ${data.mobileNoOrUpiId || "-"}</p>`;
+  } 
+  else if (data.receiveMethod === "phonepe") {
+    paymentField = `<p><b>Selected Method:</b> PhonePe</p>
+                    <p><b>PhonePe No / UPI:</b> ${data.mobileNoOrUpiId || "-"}</p>`;
+  } 
+  else if (data.receiveMethod === "gpay") {
+    paymentField = `<p><b>Selected Method:</b> GPay</p>
+                    <p><b>GPay UPI:</b> ${data.mobileNoOrUpiId || "-"}</p>`;
+  } 
+  else if (data.receiveMethod === "paytm") {
+    paymentField = `<p><b>Selected Method:</b> Paytm</p>
+                    <p><b>Paytm No:</b> ${data.mobileNoOrUpiId || "-"}</p>`;
+  }
+
+  // 🔹 Always Show Bank Details
+  const bank = data.bankDetails || {};
+
+  content.innerHTML = `
+    <h3 class="text-lg font-bold mb-3">User Info</h3>
+
+    <p><b>Name:</b> ${data.user.username}</p>
+    <p><b>Mobile:</b> ${data.user.phoneNo}</p>
+
+    <hr class="my-2"/>
+
+    ${paymentField}
+
+    <hr class="my-2"/>
+
+    <h4 class="font-semibold mt-2">Bank Details (Saved)</h4>
+    <p><b>Bank Name:</b> ${bank.bankName || "-"}</p>
+    <p><b>Account Holder:</b> ${bank.accountHolderName || "-"}</p>
+    <p><b>Account Number:</b> ${bank.accountNumber || "-"}</p>
+    <p><b>IFSC:</b> ${bank.ifscCode || "-"}</p>
+
+    <hr class="my-2"/>
+
+    <p><b>Amount:</b> ₹${data.amount}</p>
+    <p><b>Status:</b> ${data.status}</p>
+
+    <button onclick="toggleModal(false)"
+      class="mt-3 bg-red-500 text-white px-4 py-1 rounded">
+      Close
+    </button>
+  `;
+
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+}
+
+function toggleModal(show) {
+  const modal = document.getElementById('userModal');
+  if (show) {
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  } else {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }
+}
+</script>
+  <script src="/js/sidebar.js"></script>
+</body>
+
+</html>

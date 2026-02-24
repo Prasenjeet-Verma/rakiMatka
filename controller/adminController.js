@@ -7015,6 +7015,83 @@ exports.acceptDeposit = async (req, res) => {
 };
 
 exports.rejectDeposit = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    }).session(session);
+
+    if (!admin) {
+      await session.abortTransaction();
+      session.endSession();
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    const deposit = await WalletTransaction.findById(req.params.id)
+      .populate("user")
+      .session(session);
+
+    if (!deposit || deposit.status !== "pending") {
+      await session.abortTransaction();
+      session.endSession();
+      return res.redirect("/admin/DepositRequests");
+    }
+
+    // =========================
+    // 1️⃣ Update Deposit Entry
+    // =========================
+    deposit.status = "rejected";
+    deposit.admin = admin._id;
+    deposit.remark = `Deposit rejected by ${admin.username}`;
+
+    await deposit.save({ session });
+
+    // =========================
+    // 2️⃣ Admin Activity History Entry
+    // (No wallet balance change)
+    // =========================
+    await WalletTransaction.create(
+      [
+        {
+          user: admin._id,
+          relatedUser: deposit.user._id,
+          type: "deposit_rejected", // ⚠ ensure enum has this
+          source: "deposit_rejected", // ⚠ add in enum
+          amount: deposit.amount,
+          status: "success",
+          remark: `Rejected deposit of ${deposit.user.username}`,
+        },
+      ],
+      { session }
+    );
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.redirect("/admin/DepositRequests");
+
+  } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
+    console.error(err);
+    res.send("Error rejecting deposit");
+  }
+};
+
+exports.withdrawRequest = async (req, res, next) => {
   try {
     if (
       !req.session.isLoggedIn ||
@@ -7034,19 +7111,277 @@ exports.rejectDeposit = async (req, res) => {
       req.session.destroy();
       return res.redirect("/admin/login");
     }
-    const deposit = await WalletTransaction.findById(req.params.id);
 
-    if (!deposit || deposit.status !== "pending") {
-      return res.redirect("/admin/DepositRequests");
+    // ================= FILTER LOGIC =================
+    const { page = 1, status, username, from, to } = req.query;
+
+    const limit = 10;
+    const skip = (page - 1) * limit;
+
+    let filter = {
+      source: "withdraw",
+      type: "debit",
+    };
+
+    if (status) filter.status = status;
+
+ if (from || to) {
+  filter.createdAt = {};
+
+  if (from) {
+    filter.createdAt.$gte = new Date(from + "T00:00:00");
+  }
+
+  if (to) {
+    filter.createdAt.$lte = new Date(to + "T23:59:59");
+  }
+}
+
+   if (username) {
+  const users = await User.find({
+    username: { $regex: username, $options: "i" },
+  }).select("_id");
+
+  const userIds = users.map(u => u._id);
+
+  filter.user = { $in: userIds };
+}
+
+    const total = await WalletTransaction.countDocuments(filter);
+
+    const withdrawRequests = await WalletTransaction.find(filter)
+      .populate("user")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    // 🔥 attach bank details to each request
+    const updatedRequests = await Promise.all(
+      withdrawRequests.map(async (item) => {
+        const bankDetails = await UserBankDetails.findOne({
+          user: item.user._id,
+        });
+
+        return {
+          ...item.toObject(),
+          bankDetails,
+        };
+      }),
+    );
+
+    res.render("Admin/adminWithdrawPointsRequest", {
+      pageTitle: "Admin withdraw Req",
+      adminUser,
+      isLoggedIn: req.session.isLoggedIn,
+      withdrawRequests: updatedRequests,
+      // withdrawRequests,
+      currentPage: Number(page),
+      totalPages: Math.ceil(total / limit),
+      total,
+      query: req.query,
+    });
+  } catch (err) {
+    console.log(err);
+    res.send("Error withdraw");
+  }
+};
+
+exports.approveWithdraw = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
     }
 
-    deposit.status = "rejected";
-    deposit.remark = "Rejected by admin";
-    await deposit.save();
+    // 🔹 Admin Fetch
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    }).session(session);
 
-    res.redirect("/admin/DepositRequests");
+    if (!admin) {
+      await session.abortTransaction();
+      session.endSession();
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    // 🔹 Withdraw Transaction Fetch
+    const withdraw = await WalletTransaction.findById(req.params.id)
+      .populate("user")
+      .session(session);
+
+    if (!withdraw || withdraw.status !== "pending") {
+      await session.abortTransaction();
+      session.endSession();
+      return res.redirect("/admin/WithdrawPointsRequestReport");
+    }
+
+    // 🔹 Check Admin Balance
+    if (admin.wallet < withdraw.amount) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.send("Admin wallet balance low");
+    }
+
+    // ===============================
+    // 1️⃣ USER WALLET ALREADY DEDUCTED?
+    // (Assuming withdraw request ke time pe user wallet se amount minus ho chuka hai)
+    // Agar nahi hua hai, toh yaha minus karna padega.
+    // ===============================
+
+    const userOldBalance = withdraw.user.wallet;
+    const userNewBalance = userOldBalance; 
+    // 👆 If already deducted at request time
+
+    // ===============================
+    // 2️⃣ ADMIN WALLET UPDATE
+    // ===============================
+
+    const adminOldBalance = admin.wallet;
+    const adminNewBalance = adminOldBalance - withdraw.amount;
+
+    admin.wallet = adminNewBalance;
+    await admin.save({ session });
+
+    // ===============================
+    // 3️⃣ UPDATE ORIGINAL WITHDRAW
+    // ===============================
+
+    withdraw.status = "success";
+    withdraw.admin = admin._id;
+    withdraw.oldBalance = userOldBalance;
+    withdraw.newBalance = userNewBalance;
+    withdraw.adminOldBalance = adminOldBalance;
+    withdraw.adminNewBalance = adminNewBalance;
+
+    await withdraw.save({ session });
+
+    // ===============================
+    // 4️⃣ ADMIN DEBIT HISTORY ENTRY
+    // ===============================
+
+    await WalletTransaction.create(
+      [
+        {
+          user: admin._id,
+          admin: admin._id,
+          relatedUser: withdraw.user._id,
+          type: "debit",
+          source: "admin_debit",
+          amount: withdraw.amount,
+          adminOldBalance: adminOldBalance,
+          adminNewBalance: adminNewBalance,
+          status: "success",
+          remark: `Withdraw approved for ${withdraw.user.username}`,
+        },
+      ],
+      { session }
+    );
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.redirect("/admin/WithdrawPointsRequestReport");
   } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
     console.error(err);
-    res.send("Error rejecting deposit");
+    res.send("Error approving withdraw");
+  }
+};
+
+exports.rejectWithdraw = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    }).session(session);
+
+    if (!admin) {
+      await session.abortTransaction();
+      session.endSession();
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    const withdraw = await WalletTransaction.findById(req.params.id)
+      .populate("user")
+      .session(session);
+
+    if (!withdraw || withdraw.status !== "pending") {
+      await session.abortTransaction();
+      session.endSession();
+      return res.redirect("/admin/WithdrawPointsRequestReport");
+    }
+
+    // =========================
+    // 1️⃣ Refund User Wallet
+    // =========================
+    const userOldBalance = withdraw.user.wallet;
+    const userNewBalance = userOldBalance + withdraw.amount;
+
+    withdraw.user.wallet = userNewBalance;
+    await withdraw.user.save({ session });
+
+    // =========================
+    // 2️⃣ Update Withdraw Entry
+    // =========================
+    withdraw.status = "rejected";
+    withdraw.admin = admin._id;
+    withdraw.oldBalance = userOldBalance;
+    withdraw.newBalance = userNewBalance;
+    withdraw.remark = `Rejected by ${admin.username}`;
+
+    await withdraw.save({ session });
+
+    // =========================
+    // 3️⃣ Admin Reject History Entry
+    // (No wallet change)
+    // =========================
+    await WalletTransaction.create(
+      [
+        {
+          user: admin._id, // admin history
+          relatedUser: withdraw.user._id,
+          type: "withdraw_rejected", // ⚠ add this in enum
+          source: "withdraw_rejected", // ⚠ add in enum
+          amount: withdraw.amount,
+          status: "success",
+          remark: `Rejected withdraw of ${withdraw.user.username}`,
+        },
+      ],
+      { session }
+    );
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.redirect("/admin/WithdrawPointsRequestReport");
+
+  } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
+    console.error(err);
+    res.redirect("back");
   }
 };

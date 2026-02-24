@@ -204,45 +204,55 @@
             </div>
 
             <div>
+<% if (signupRewards && signupRewards.length > 0) { %>
+  <% signupRewards.forEach((reward) => { %>
               <p class="font-semibold text-gray-800">User Welcome Bonus</p>
-              <p class="text-sm text-gray-500">11 Jan 2026 10:21:23 PM</p>
+              <p class="text-sm text-gray-500"><%= reward.formattedDate %></p>
+
             </div>
           </div>
 
-          <p class="text-green-600 font-bold text-lg">+3</p>
-        </div>
-        <!-- Transaction Card End -->
-        <% if (transactions.length===0) { %>
-          <p class="text-center text-gray-500 mt-6">
-            No transactions found
-          </p>
-          <% } %>
+          <p class="text-green-600 font-bold text-lg">+<%= reward.rewardAmount %></p>
+  <% }); %>
+<% } %>
+</div>
 
-            <% transactions.forEach(tx=> { %>
-              <div class="mt-6 bg-white rounded-xl shadow flex items-center justify-between p-4">
-                <div class="flex items-center gap-4">
-                  <div class="w-12 h-12 rounded-full 
+
+<!-- Transaction Card End -->
+<% if (transactions.length === 0) { %>
+  <p class="text-center text-gray-500 mt-6">
+    No transactions found
+  </p>
+<% } %>
+
+<% transactions.forEach(tx => { %>
+  <div class="mt-6 bg-white rounded-xl shadow flex items-center justify-between p-4">
+    <div class="flex items-center gap-4">
+      <div class="w-12 h-12 rounded-full 
         <%= tx.displayType === 'deposit' ? 'bg-green-500' : 'bg-red-500' %>
         flex items-center justify-center">
-                    <i class="fa-solid fa-wallet text-white text-xl"></i>
-                  </div>
-
-                  <div>
-                    <p class="font-semibold text-gray-800">
-                      <%= tx.title %>
-                    </p>
-                    <p class="text-sm text-gray-500">
-                      <%= tx.createdAt %>
-                    </p>
-                  </div>
-                </div>
-
-                <p class="<%= tx.amountColor %> font-bold text-lg">
-                  <%= tx.amountText %>
-                </p>
-              </div>
-              <% }) %>
+        <i class="fa-solid fa-wallet text-white text-xl"></i>
       </div>
+
+      <div>
+        <p class="font-semibold text-gray-800">
+          <%= tx.title %> 
+          <% if (tx.status === 'pending') { %>
+            <span class="text-yellow-500 text-sm font-normal">(Pending)</span>
+          <% } %>
+        </p>
+        <p class="text-sm text-gray-500">
+          <%= tx.createdAt %>
+        </p>
+      </div>
+    </div>
+
+    <p class="<%= tx.amountColor %> font-bold text-lg">
+      <%= tx.amountText %>
+    </p>
+  </div>
+<% }) %>
+</div>
 
 
     </section>

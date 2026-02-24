@@ -239,9 +239,14 @@ adminRouter.post(
   "/admin/delete-notification/:id",
   adminController.deleteNotification
 );
-
+// Admin Deposit route
 adminRouter.get("/admin/DepositRequests", adminController.depositRequest);
 adminRouter.post("/admin/deposit/accept/:id", adminController.acceptDeposit);
 adminRouter.post("/admin/deposit/reject/:id", adminController.rejectDeposit);
 
+
+// Admin withdraw Routes
+adminRouter.get("/admin/WithdrawPointsRequestReport", adminController.withdrawRequest)
+adminRouter.get("/admin/withdraw/approve/:id", adminController.approveWithdraw);
+adminRouter.get("/admin/withdraw/reject/:id", adminController.rejectWithdraw);
 module.exports = adminRouter;

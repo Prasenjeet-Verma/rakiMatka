@@ -4,7 +4,7 @@ const User = require("../model/userSchema");
 const fs = require("fs");
 const uploadToPhpServer = require("../utils/uploadToPhpServer");
 const WalletTransaction = require("../model/WalletTransaction");
-
+const Reward = require("../model/Reward");
 const UserBankDetails = require("../model/UserBankDetails");
 const Game = require("../model/Game");
 const GameRate = require("../model/GameRate");
@@ -87,7 +87,7 @@ exports.getUserDashboardPage = async (req, res, next) => {
       req.session.destroy();
       return res.redirect("/login");
     }
-
+    // const moment = require("moment-timezone"); // make sure you have this at the top
     const admin = await User.findOne({ role: "admin" }).select(
       "username phoneNo profilePhoto",
     );
@@ -186,7 +186,7 @@ exports.getUserDashboardPage = async (req, res, next) => {
     // ===================== 🎯 FETCH TRANSACTIONS =====================
     const transactions = await WalletTransaction.find({
       user: user._id,
-      status: "success",
+      status: { $in: ["success", "pending"] },
     })
       .sort({ createdAt: -1 })
       .limit(20)
@@ -217,8 +217,10 @@ exports.getUserDashboardPage = async (req, res, next) => {
         createdAt: moment(tx.createdAt)
           .tz("Asia/Kolkata")
           .format("DD MMM YYYY hh:mm:ss A"),
+        status: tx.status, // ✅ Add this line
       };
     });
+
     // ===================== 🎯 FETCH STARLINE GAME RATES =====================
     const starlineRates = await GameRate.find({
       isStarline: true,
@@ -274,6 +276,22 @@ exports.getUserDashboardPage = async (req, res, next) => {
     const allNotifications = await SendImageMessage.find({})
       .sort({ createdAt: -1 })
       .lean();
+
+    // ===================== 🎯 FETCH SIGNUP REWARDS =====================
+    const signupRewards = await Reward.find({
+      user: user._id,
+      rewardType: "signup",
+    })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    // Format dates for EJS
+    const formattedSignupRewards = signupRewards.map((r) => ({
+      ...r,
+      formattedDate: moment(r.createdAt)
+        .tz("Asia/Kolkata")
+        .format("DD MMM YYYY hh:mm:ss A"),
+    }));
     // ===================== 🎯 RENDER DASHBOARD =====================
     res.render("User/userDashboard", {
       user,
@@ -295,6 +313,7 @@ exports.getUserDashboardPage = async (req, res, next) => {
       todayWithdrawTime,
       directUpiStatus: paymentSettings?.directUpi || "Disable",
       allNotifications, // ✅ NEW
+      signupRewards: formattedSignupRewards, // ✅ use formatted dates
       isLoggedIn: req.session.isLoggedIn,
     });
   } catch (err) {
@@ -336,7 +355,7 @@ exports.createDeposit = async (req, res) => {
       payMethod,
       oldBalance: user.wallet,
       newBalance: user.wallet,
-      status: "pending",
+      status: "failed",
     });
 
     res.json({ success: true, depositId: deposit._id });
@@ -393,7 +412,7 @@ exports.submitTransactionPage = async (req, res) => {
 
   const deposit = await WalletTransaction.findById(req.params.id);
 
-  if (!deposit || deposit.status !== "pending") {
+  if (!deposit || deposit.status !== "failed") {
     return res.redirect("/userdashboard");
   }
 
@@ -423,10 +442,18 @@ exports.submitTransaction = async (req, res) => {
 
     const { utr } = req.body;
 
+    // Check: Either UTR or file is required
+    if (!utr && !req.file) {
+      return res.send("Either UTR or screenshot file is required");
+    }
+
     // Duplicate UTR check
-    const existing = await WalletTransaction.findOne({ utr });
-    if (existing) {
-      return res.send("UTR already used");
+     // Duplicate UTR check (only if UTR is provided)
+    if (utr) {
+      const existing = await WalletTransaction.findOne({ utr });
+      if (existing) {
+        return res.send("UTR already used");
+      }
     }
 
     let screenshotUrl = null;
@@ -475,7 +502,7 @@ exports.cancelDeposit = async (req, res) => {
     // ✅ SAFE DELETE CHECK
     if (
       deposit &&
-      deposit.status === "pending" &&
+      deposit.status === "failed" &&
       deposit.user.toString() === req.session.user._id.toString()
     ) {
       await WalletTransaction.findByIdAndDelete(req.params.id);
@@ -5092,3 +5119,5 @@ exports.saveFcmToken = async (req, res) => {
     res.status(500).json({ success: false });
   }
 };
+
+
