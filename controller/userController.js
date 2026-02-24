@@ -1,7 +1,8 @@
 const moment = require("moment-timezone");
 const bcrypt = require("bcryptjs");
 const User = require("../model/userSchema");
-
+const fs = require("fs");
+const uploadToPhpServer = require("../utils/uploadToPhpServer");
 const WalletTransaction = require("../model/WalletTransaction");
 
 const UserBankDetails = require("../model/UserBankDetails");
@@ -269,10 +270,10 @@ exports.getUserDashboardPage = async (req, res, next) => {
       }
     }
 
-// ===================== 🎯 FETCH ALL IMAGE MESSAGES =====================
-const allNotifications = await SendImageMessage.find({})
-  .sort({ createdAt: -1 })
-  .lean();
+    // ===================== 🎯 FETCH ALL IMAGE MESSAGES =====================
+    const allNotifications = await SendImageMessage.find({})
+      .sort({ createdAt: -1 })
+      .lean();
     // ===================== 🎯 RENDER DASHBOARD =====================
     res.render("User/userDashboard", {
       user,
@@ -302,9 +303,27 @@ const allNotifications = await SendImageMessage.find({})
   }
 };
 
-
 exports.createDeposit = async (req, res) => {
   try {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.user ||
+      req.session.user.role !== "user"
+    ) {
+      return res.redirect("/login");
+    }
+
+    const userCheck = await User.findOne({
+      _id: req.session.user._id,
+      role: "user",
+      userStatus: "active",
+    }).select("-password");
+
+    if (!userCheck) {
+      req.session.destroy();
+      return res.redirect("/login");
+    }
+
     const { amount, payMethod } = req.body;
 
     const user = await User.findById(req.session.user._id);
@@ -321,7 +340,6 @@ exports.createDeposit = async (req, res) => {
     });
 
     res.json({ success: true, depositId: deposit._id });
-
   } catch (err) {
     console.error(err);
     res.json({ success: false });
@@ -329,12 +347,49 @@ exports.createDeposit = async (req, res) => {
 };
 
 exports.paymentWaitPage = async (req, res) => {
+  if (
+    !req.session.isLoggedIn ||
+    !req.session.user ||
+    req.session.user.role !== "user"
+  ) {
+    return res.redirect("/login");
+  }
+
+  const userCheck = await User.findOne({
+    _id: req.session.user._id,
+    role: "user",
+    userStatus: "active",
+  }).select("-password");
+
+  if (!userCheck) {
+    req.session.destroy();
+    return res.redirect("/login");
+  }
+
   res.render("User/paymentWait", {
-    depositId: req.params.id
+    depositId: req.params.id,
   });
 };
 
 exports.submitTransactionPage = async (req, res) => {
+  if (
+    !req.session.isLoggedIn ||
+    !req.session.user ||
+    req.session.user.role !== "user"
+  ) {
+    return res.redirect("/login");
+  }
+
+  const userCheck = await User.findOne({
+    _id: req.session.user._id,
+    role: "user",
+    userStatus: "active",
+  }).select("-password");
+
+  if (!userCheck) {
+    req.session.destroy();
+    return res.redirect("/login");
+  }
 
   const deposit = await WalletTransaction.findById(req.params.id);
 
@@ -347,6 +402,24 @@ exports.submitTransactionPage = async (req, res) => {
 
 exports.submitTransaction = async (req, res) => {
   try {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.user ||
+      req.session.user.role !== "user"
+    ) {
+      return res.redirect("/login");
+    }
+
+    const userCheck = await User.findOne({
+      _id: req.session.user._id,
+      role: "user",
+      userStatus: "active",
+    }).select("-password");
+
+    if (!userCheck) {
+      req.session.destroy();
+      return res.redirect("/login");
+    }
 
     const { utr } = req.body;
 
@@ -366,33 +439,74 @@ exports.submitTransaction = async (req, res) => {
     await WalletTransaction.findByIdAndUpdate(req.params.id, {
       utr,
       screenshot: screenshotUrl,
-      status: "submitted"
+      status: "pending",
     });
 
     res.redirect("/userdashboard");
-
   } catch (err) {
     console.error(err);
     res.send("Error submitting transaction");
   }
 };
 
+exports.cancelDeposit = async (req, res) => {
+  try {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.user ||
+      req.session.user.role !== "user"
+    ) {
+      return res.redirect("/login");
+    }
 
+    const userCheck = await User.findOne({
+      _id: req.session.user._id,
+      role: "user",
+      userStatus: "active",
+    }).select("-password");
 
+    if (!userCheck) {
+      req.session.destroy();
+      return res.redirect("/login");
+    }
 
+    const deposit = await WalletTransaction.findById(req.params.id);
 
+    // ✅ SAFE DELETE CHECK
+    if (
+      deposit &&
+      deposit.status === "pending" &&
+      deposit.user.toString() === req.session.user._id.toString()
+    ) {
+      await WalletTransaction.findByIdAndDelete(req.params.id);
+    }
 
-
-
-
-
-
-
+    res.redirect("/userdashboard");
+  } catch (err) {
+    console.error(err);
+    res.redirect("/userdashboard");
+  }
+};
 
 exports.postWithdrawRequest = async (req, res) => {
   try {
-    if (!req.session.isLoggedIn || !req.session.user) {
-      return res.json({ success: false, message: "Unauthorized" });
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.user ||
+      req.session.user.role !== "user"
+    ) {
+      return res.redirect("/login");
+    }
+
+    const userCheck = await User.findOne({
+      _id: req.session.user._id,
+      role: "user",
+      userStatus: "active",
+    }).select("-password");
+
+    if (!userCheck) {
+      req.session.destroy();
+      return res.redirect("/login");
     }
 
     const { amount, method, mobileNoOrUpiId } = req.body;

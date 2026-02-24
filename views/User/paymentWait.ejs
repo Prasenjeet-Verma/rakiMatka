@@ -1,21 +1,148 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
+  <title>Complete Payment</title>
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background: #f4f6fb;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      background: #ffffff;
+      padding: 15px 20px;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .back-arrow {
+      font-size: 20px;
+      text-decoration: none;
+      color: #333;
+      margin-right: 10px;
+    }
+
+    .header-title {
+      font-weight: 600;
+      font-size: 16px;
+      color: #333;
+    }
+
+    /* Main Container */
+    .container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .card {
+      background: #fff;
+      width: 100%;
+      max-width: 420px;
+      padding: 30px 25px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+      text-align: center;
+    }
+
+    .card h2 {
+      margin-bottom: 15px;
+      font-size: 20px;
+      color: #222;
+    }
+
+    .card p {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 25px;
+      line-height: 1.6;
+    }
+
+    .btn {
+      display: inline-block;
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 12px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: 0.3s ease;
+    }
+
+    .btn-primary {
+      background: #4f46e5;
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: #4338ca;
+    }
+
+    .btn-secondary {
+      background: #e5e7eb;
+      color: #333;
+    }
+
+    .btn-secondary:hover {
+      background: #d1d5db;
+    }
+
+    @media (max-width: 480px) {
+      .card {
+        padding: 25px 18px;
+      }
+    }
+  </style>
 </head>
+
 <body>
-  <h2>Complete Your Payment</h2>
 
-<p>
-After completing payment in UPI app,
-click below to submit transaction details.
-</p>
+  <!-- Header -->
+  <div class="header">
+   <a href="/user/cancel-deposit/<%= depositId %>" class="back-arrow">&#8592;</a>
+    <div class="header-title">Complete Payment</div>
+  </div>
 
-<a href="/user/submit-transaction/<%= depositId %>">
-  <button style="padding:10px 20px;">I Have Completed Payment</button>
+  <!-- Main Content -->
+  <div class="container">
+    <div class="card">
+      <h2>Complete Your Payment</h2>
+
+      <p>
+        After completing payment in your UPI app,
+        click below to submit transaction details.
+      </p>
+
+      <a href="/user/submit-transaction/<%= depositId %>" class="btn btn-primary">
+        I Have Completed Payment
+      </a>
+
+    <a href="/user/cancel-deposit/<%= depositId %>" class="btn btn-secondary">
+  Back to Home
 </a>
+
+    </div>
+  </div>
+
 </body>
 </html>

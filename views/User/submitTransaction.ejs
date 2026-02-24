@@ -1,18 +1,141 @@
-<h2>Submit Transaction Details</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Submit Transaction</title>
 
-<form action="/user/submit-transaction/<%= deposit._id %>" 
-      method="POST" 
-      enctype="multipart/form-data">
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+    }
 
-  <label>Transaction ID (UTR)</label>
-  <input type="text" name="utr" required />
+    .header {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      background: #0f766e;
+      color: white;
+    }
 
-  <br><br>
+    .back-arrow {
+      font-size: 22px;
+      color: white;
+      text-decoration: none;
+      margin-right: 15px;
+    }
 
-  <label>Upload Screenshot</label>
-  <input type="file" name="screenshot" required />
+    .header-title {
+      font-size: 18px;
+      font-weight: bold;
+    }
 
-  <br><br>
+    .container {
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+    }
 
-  <button type="submit">Submit</button>
-</form>
+    .card {
+      background: white;
+      padding: 25px;
+      width: 100%;
+      max-width: 400px;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    label {
+      font-weight: 600;
+      display: block;
+      margin-top: 15px;
+      margin-bottom: 5px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      margin-top: 20px;
+      font-size: 16px;
+      text-align: center;
+      display: block;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: #0f766e;
+      color: white;
+    }
+
+    .btn-secondary {
+      background: #e5e7eb;
+      color: #333;
+    }
+
+    .btn:hover {
+      opacity: 0.9;
+    }
+
+    @media (max-width: 480px) {
+      .card {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <a href="/user/cancel-deposit/<%= deposit._id %>" class="back-arrow">&#8592;</a>
+    <div class="header-title">Submit Transaction</div>
+  </div>
+
+  <div class="container">
+    <div class="card">
+
+      <h2>Submit Transaction Details</h2>
+
+      <form action="/user/submit-transaction/<%= deposit._id %>" 
+            method="POST" 
+            enctype="multipart/form-data">
+
+        <label>Transaction ID (UTR)</label>
+        <input type="text" name="utr" required />
+
+        <label>Upload Screenshot</label>
+        <input type="file" name="screenshot" />
+
+        <button type="submit" class="btn btn-primary">
+          Submit
+        </button>
+      </form>
+
+      <!-- Bottom Back Button -->
+      <a href="/user/cancel-deposit/<%= deposit._id %>" 
+         class="btn btn-secondary">
+        Back to Home
+      </a>
+
+    </div>
+  </div>
+
+</body>
+</html>

@@ -3,19 +3,23 @@ const mongoose = require("mongoose");
 const walletTransactionSchema = new mongoose.Schema(
   {
     // The primary user whose wallet is affected
-    user: {
+    user: {//(whose wallet changed)
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
 
     // Admin involved in the transaction (null if system/payment gateway)
-    admin: {
+    admin: {//(who performed action)
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       default: null,
     },
-
+    relatedUser: {//actual deposit user
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
     // credit = wallet increases, debit = wallet decreases
     type: {
       type: String,
@@ -49,11 +53,13 @@ const walletTransactionSchema = new mongoose.Schema(
       default: null,
     },
     // 🔥 NEW FIELD 1 – UTR / Transaction ID
-    utr: {
-      type: String,
-      default: null,
-      index: true, // faster duplicate check
-    },
+ utr: {
+  type: String,
+  default: null,
+  unique: true,
+  sparse: true,
+  trim: true
+},
 
     // 🔥 NEW FIELD 2 – Screenshot path
     screenshot: {

@@ -6792,9 +6792,9 @@ exports.depositRequest = async (req, res) => {
     }
 
     // ✅ Status Filter
-if (status) {
-  filter.status = status;
-}
+    if (status) {
+      filter.status = status;
+    }
 
     // ✅ Username Search
     if (username) {
@@ -6833,7 +6833,93 @@ if (status) {
   }
 };
 
+// exports.acceptDeposit = async (req, res) => {
+//   try {
+//     if (
+//       !req.session.isLoggedIn ||
+//       !req.session.admin ||
+//       req.session.admin.role !== "admin"
+//     ) {
+//       return res.redirect("/admin/login");
+//     }
+
+//     const adminUser = await User.findOne({
+//       _id: req.session.admin._id,
+//       role: "admin",
+//       userStatus: "active",
+//     });
+
+//     if (!adminUser) {
+//       req.session.destroy();
+//       return res.redirect("/admin/login");
+//     }
+
+//     const deposit = await WalletTransaction.findById(req.params.id).populate(
+//       "user",
+//     );
+
+//     if (!deposit || deposit.status !== "pending") {
+//       return res.redirect("/admin/DepositRequests");
+//     }
+
+//     const admin = await User.findById(req.session.admin._id);
+
+//     if (admin.wallet < deposit.amount) {
+//       return res.send("Admin wallet balance low");
+//     }
+
+//     // USER WALLET UPDATE
+//     const userOldBalance = deposit.user.wallet;
+//     const userNewBalance = userOldBalance + deposit.amount;
+
+//     deposit.user.wallet = userNewBalance;
+//     await deposit.user.save();
+
+//     // ADMIN WALLET UPDATE
+//     const adminOldBalance = admin.wallet;
+//     const adminNewBalance = adminOldBalance - deposit.amount;
+
+//     admin.wallet = adminNewBalance;
+//     await admin.save();
+
+//     // UPDATE ORIGINAL DEPOSIT
+//     deposit.status = "success";
+//     deposit.admin = admin._id;
+//     deposit.oldBalance = userOldBalance;
+//     deposit.newBalance = userNewBalance;
+//     deposit.adminOldBalance = adminOldBalance;
+//     deposit.adminNewBalance = adminNewBalance;
+//     await deposit.save();
+
+//     // ADMIN TRANSACTION HISTORY ENTRY
+// await WalletTransaction.create({
+//   user: admin._id, // admin wallet affected
+//   admin: admin._id,
+//   type: "debit",
+//   source: "admin_debit",
+//   amount: deposit.amount,
+
+//   oldBalance: adminOldBalance,
+//   newBalance: adminNewBalance,
+
+//   status: "success",
+//   remark: `Deposit approved for ${deposit.user.username}`,
+
+//   // 👇 extra reference store karo
+//   relatedUser: deposit.user._id
+// });
+
+//     res.redirect("/admin/DepositRequests");
+//   } catch (err) {
+//     console.error(err);
+//     res.send("Error accepting deposit");
+//   }
+// };
+
 exports.acceptDeposit = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     if (
       !req.session.isLoggedIn ||
@@ -6843,28 +6929,32 @@ exports.acceptDeposit = async (req, res) => {
       return res.redirect("/admin/login");
     }
 
-    const adminUser = await User.findOne({
+    const admin = await User.findOne({
       _id: req.session.admin._id,
       role: "admin",
       userStatus: "active",
-    });
+    }).session(session);
 
-    if (!adminUser) {
+    if (!admin) {
+      await session.abortTransaction();
+      session.endSession();
       req.session.destroy();
       return res.redirect("/admin/login");
     }
 
-    const deposit = await WalletTransaction.findById(req.params.id).populate(
-      "user",
-    );
+    const deposit = await WalletTransaction.findById(req.params.id)
+      .populate("user")
+      .session(session);
 
     if (!deposit || deposit.status !== "pending") {
+      await session.abortTransaction();
+      session.endSession();
       return res.redirect("/admin/DepositRequests");
     }
 
-    const admin = await User.findById(req.session.admin._id);
-
     if (admin.wallet < deposit.amount) {
+      await session.abortTransaction();
+      session.endSession();
       return res.send("Admin wallet balance low");
     }
 
@@ -6873,14 +6963,14 @@ exports.acceptDeposit = async (req, res) => {
     const userNewBalance = userOldBalance + deposit.amount;
 
     deposit.user.wallet = userNewBalance;
-    await deposit.user.save();
+    await deposit.user.save({ session });
 
     // ADMIN WALLET UPDATE
     const adminOldBalance = admin.wallet;
     const adminNewBalance = adminOldBalance - deposit.amount;
 
     admin.wallet = adminNewBalance;
-    await admin.save();
+    await admin.save({ session });
 
     // UPDATE ORIGINAL DEPOSIT
     deposit.status = "success";
@@ -6889,23 +6979,36 @@ exports.acceptDeposit = async (req, res) => {
     deposit.newBalance = userNewBalance;
     deposit.adminOldBalance = adminOldBalance;
     deposit.adminNewBalance = adminNewBalance;
-    await deposit.save();
+
+    await deposit.save({ session });
 
     // ADMIN TRANSACTION HISTORY ENTRY
-    await WalletTransaction.create({
-      user: admin._id,
-      admin: admin._id,
-      type: "debit",
-      source: "admin_debit",
-      amount: deposit.amount,
-      oldBalance: adminOldBalance,
-      newBalance: adminNewBalance,
-      status: "success",
-      remark: `Deposit approved for ${deposit.user.username}`,
-    });
+    await WalletTransaction.create(
+      [
+        {
+          user: admin._id, // admin wallet affected
+          admin: admin._id,
+          type: "debit",
+          source: "admin_debit",
+          amount: deposit.amount,
+          // ✅ USE THESE
+          adminOldBalance: adminOldBalance,
+          adminNewBalance: adminNewBalance,
+          status: "success",
+          remark: `Deposit approved for ${deposit.user.username}`,
+          relatedUser: deposit.user._id, // optional (if added in schema)
+        },
+      ],
+      { session },
+    );
+
+    await session.commitTransaction();
+    session.endSession();
 
     res.redirect("/admin/DepositRequests");
   } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
     console.error(err);
     res.send("Error accepting deposit");
   }

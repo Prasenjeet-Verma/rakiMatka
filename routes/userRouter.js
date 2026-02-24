@@ -83,6 +83,6 @@ userRouter.post(
   upload.single("screenshot"),
   userController.submitTransaction
 );
-
+userRouter.get("/user/cancel-deposit/:id", userController.cancelDeposit);
 
 module.exports = userRouter;
