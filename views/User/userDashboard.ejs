@@ -629,7 +629,7 @@
                       upiLink = `phonepe://upi/pay?pa=${upiId}&pn=MyApp&am=${amount}&cu=INR`;
                     }
                     else {
-                      upiLink = `paytmmp://upi/pay?pa=${upiId}&pn=MyApp&am=${amount}&cu=INR`;
+                      upiLink = `upi/pay?pa=${upiId}&pn=MyApp&am=${amount}&cu=INR`;
                     }
 
                     // 3️⃣ Open UPI App
@@ -1030,6 +1030,9 @@
       animation-play-state: paused;
     }
   </style>
+
+
+
   <!-- Firebase Scripts -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js"></script>
@@ -1083,6 +1086,11 @@
 
     initFCM();
   </script>
+
+
+
+
+
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       const copyBtn = document.getElementById("copyUpiBtn");
@@ -1110,70 +1118,73 @@
       }
     });
   </script>
+
+
   <script src="/js/user.js"></script>
-  <!-- <% if (allNotifications && allNotifications.length> 0) { %>
 
-    <div id="announcementModal" style="position:fixed; inset:0; background:rgba(0,0,0,0.6);
-        display:flex; align-items:center; justify-content:center; z-index:9999;">
 
-      <div style="background:white; width:90%; max-width:400px; border-radius:10px; padding:20px; position:relative;">
+<% if (allNotifications && allNotifications.length > 0) { %>
 
-        <button id="closeAnnouncementBtn"
-          style="position:absolute; top:10px; right:10px; font-size:20px; border:none; background:none; cursor:pointer;">
-          ✖
-        </button>
+<div id="announcementModal" style="position:fixed; inset:0; background:rgba(0,0,0,0.6);
+display:flex; align-items:center; justify-content:center; z-index:9999;">
 
-        <div id="announcementContent"></div>
+  <div style="background:white; width:90%; max-width:400px; border-radius:10px; padding:20px; position:relative;">
 
-      </div>
-    </div>
+    <button id="closeAnnouncementBtn"
+      style="position:absolute; top:10px; right:10px; font-size:20px; border:none; background:none; cursor:pointer;">
+      ✖
+    </button>
 
-    <script>
-      const announcements = <% - JSON.stringify(allNotifications) %>;
-      let currentIndex = 0;
+    <div id="announcementContent"></div>
 
-      const modal = document.getElementById("announcementModal");
-      const container = document.getElementById("announcementContent");
-      const closeBtn = document.getElementById("closeAnnouncementBtn");
+  </div>
+</div>
 
-      function showAnnouncement(index) {
-        const data = announcements[index];
-        let html = "";
+<script>
+  const announcements = <%- JSON.stringify(allNotifications || []) %>;
+  let currentIndex = 0;
 
-        if (data.sendImage) {
-          html += `<img src="${data.sendImage}" 
-                 style="width:100%; border-radius:8px; margin-bottom:15px;">`;
-        }
+  const modal = document.getElementById("announcementModal");
+  const container = document.getElementById("announcementContent");
+  const closeBtn = document.getElementById("closeAnnouncementBtn");
 
-        if (data.sendMessage) {
-          html += `<p style="text-align:center; font-weight:500;">
-              ${data.sendMessage}
-           </p>`;
-        }
+  function showAnnouncement(index) {
+    const data = announcements[index];
+    if (!data) return;
 
-        container.innerHTML = html;
-      }
+    let html = "";
 
-      function nextAnnouncement() {
-        currentIndex++;
+    if (data.sendImage) {
+      html += `<img src="${data.sendImage}" 
+              style="width:100%; border-radius:8px; margin-bottom:15px;">`;
+    }
 
-        if (currentIndex >= announcements.length) {
-          modal.style.display = "none";
-          return;
-        }
+    if (data.sendMessage) {
+      html += `<p style="text-align:center; font-weight:500;">
+                ${data.sendMessage}
+              </p>`;
+    }
 
-        showAnnouncement(currentIndex);
-      }
+    container.innerHTML = html;
+  }
 
-      // ✅ Event Listener instead of inline onclick
-      closeBtn.addEventListener("click", nextAnnouncement);
+  function nextAnnouncement() {
+    currentIndex++;
 
-      // Show first announcement
-      showAnnouncement(currentIndex);
+    if (currentIndex >= announcements.length) {
+      modal.style.display = "none";
+      return;
+    }
 
-    </script>
+    showAnnouncement(currentIndex);
+  }
 
-    <% } %> -->
+  closeBtn.addEventListener("click", nextAnnouncement);
+
+  showAnnouncement(currentIndex);
+</script>
+
+<% } %>
 </body>
 
 </html>
