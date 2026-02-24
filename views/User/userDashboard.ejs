@@ -623,10 +623,10 @@
                     let upiLink = "";
 
                     if (payMethod === "gpay") {
-                      upiLink = `gpay://upi/pay?pa=${upiId}&pn=MyApp&am=${amount}&cu=INR`;
+                      upiLink = `upi://pay?pa=${upiId}&pn=MyApp&am=${amount}&cu=INR`;
                     }
                     else if (payMethod === "phonepe") {
-                      upiLink = `phonepe://upi/pay?pa=${upiId}&pn=MyApp&am=${amount}&cu=INR`;
+                      upiLink = `upi://pay?pa=${upiId}&pn=MyApp&am=${amount}&cu=INR`;
                     }
                     else {
                       upiLink = `upi://pay?pa=${upiId}&pn=MyApp&am=${amount}&cu=INR`;
