@@ -184,42 +184,55 @@ exports.getUserDashboardPage = async (req, res, next) => {
     const jackpotGames = processedGames.filter((g) => g.isJackpot);
 
     // ===================== 🎯 FETCH TRANSACTIONS =====================
-    const transactions = await WalletTransaction.find({
-      user: user._id,
-      status: { $in: ["success", "pending"] },
-    })
-      .sort({ createdAt: -1 })
-      .limit(20)
-      .lean();
+const transactions = await WalletTransaction.find({
+  user: user._id,
+})
+  .sort({ createdAt: -1 })
+  .limit(20)
+  .lean();
 
-    const formattedTransactions = transactions.map((tx) => {
-      let title, displayType, amountSign, amountColor;
+const formattedTransactions = transactions.map((tx) => {
+  let title, displayType, amountSign, amountColor;
 
-      if (tx.type === "credit") {
-        amountSign = "+";
-        amountColor = "text-green-600";
-        displayType = "deposit";
-        title = tx.source === "game_win" ? "Game Win" : "Deposit";
-      }
+  amountSign = tx.type === "credit" ? "+" : "-";
 
-      if (tx.type === "debit") {
-        amountSign = "-";
-        amountColor = "text-red-600";
-        displayType = "withdraw";
-        title = tx.source === "game_loss" ? "Game Loss" : "Withdrawal";
-      }
+  // 🎨 STATUS BASED COLOR
+  if (tx.status === "pending") {
+    amountColor = "text-yellow-500";
+  } 
+  else if (tx.status === "failed" || tx.status === "rejected") {
+    amountColor = "text-red-600";
+  } 
+  else if (tx.status === "success") {
+    amountColor = tx.type === "credit" 
+      ? "text-green-600" 
+      : "text-red-600";
+  } 
+  else {
+    amountColor = "text-gray-600";
+  }
 
-      return {
-        title,
-        displayType,
-        amountText: `${amountSign}${tx.amount}`,
-        amountColor,
-        createdAt: moment(tx.createdAt)
-          .tz("Asia/Kolkata")
-          .format("DD MMM YYYY hh:mm:ss A"),
-        status: tx.status, // ✅ Add this line
-      };
-    });
+  if (tx.type === "credit") {
+    displayType = "deposit";
+    title = tx.source === "game_win" ? "Game Win" : "Deposit";
+  }
+
+  if (tx.type === "debit") {
+    displayType = "withdraw";
+    title = tx.source === "game_loss" ? "Game Loss" : "Withdrawal";
+  }
+
+  return {
+    title,
+    displayType,
+    amountText: `${amountSign}${tx.amount}`,
+    amountColor,
+    createdAt: moment(tx.createdAt)
+      .tz("Asia/Kolkata")
+      .format("DD MMM YYYY hh:mm:ss A"),
+    status: tx.status,
+  };
+});
 
     // ===================== 🎯 FETCH STARLINE GAME RATES =====================
     const starlineRates = await GameRate.find({
@@ -390,36 +403,8 @@ exports.paymentWaitPage = async (req, res) => {
   });
 };
 
-exports.submitTransactionPage = async (req, res) => {
-  if (
-    !req.session.isLoggedIn ||
-    !req.session.user ||
-    req.session.user.role !== "user"
-  ) {
-    return res.redirect("/login");
-  }
 
-  const userCheck = await User.findOne({
-    _id: req.session.user._id,
-    role: "user",
-    userStatus: "active",
-  }).select("-password");
-
-  if (!userCheck) {
-    req.session.destroy();
-    return res.redirect("/login");
-  }
-
-  const deposit = await WalletTransaction.findById(req.params.id);
-
-  if (!deposit || deposit.status !== "failed") {
-    return res.redirect("/userdashboard");
-  }
-
-  res.render("User/submitTransaction", { deposit });
-};
-
-exports.submitTransaction = async (req, res) => {
+exports.markDepositPending = async (req, res) => {
   try {
     if (
       !req.session.isLoggedIn ||
@@ -433,48 +418,117 @@ exports.submitTransaction = async (req, res) => {
       _id: req.session.user._id,
       role: "user",
       userStatus: "active",
-    }).select("-password");
+    });
 
     if (!userCheck) {
       req.session.destroy();
       return res.redirect("/login");
     }
 
-    const { utr } = req.body;
+    const deposit = await WalletTransaction.findById(req.params.id);
 
-    // Check: Either UTR or file is required
-    if (!utr && !req.file) {
-      return res.send("Either UTR or screenshot file is required");
+    if (
+      deposit &&
+      deposit.status === "failed" &&
+      deposit.user.toString() === req.session.user._id.toString()
+    ) {
+      deposit.status = "pending";
+      await deposit.save();
     }
 
-    // Duplicate UTR check
-     // Duplicate UTR check (only if UTR is provided)
-    if (utr) {
-      const existing = await WalletTransaction.findOne({ utr });
-      if (existing) {
-        return res.send("UTR already used");
-      }
-    }
+    return res.redirect("/userdashboard");
 
-    let screenshotUrl = null;
-
-    if (req.file) {
-      screenshotUrl = await uploadToPhpServer(req.file.path);
-      fs.unlinkSync(req.file.path);
-    }
-
-    await WalletTransaction.findByIdAndUpdate(req.params.id, {
-      utr,
-      screenshot: screenshotUrl,
-      status: "pending",
-    });
-
-    res.redirect("/userdashboard");
   } catch (err) {
     console.error(err);
-    res.send("Error submitting transaction");
+    return res.redirect("/userdashboard");
   }
 };
+
+// exports.submitTransactionPage = async (req, res) => {
+//   if (
+//     !req.session.isLoggedIn ||
+//     !req.session.user ||
+//     req.session.user.role !== "user"
+//   ) {
+//     return res.redirect("/login");
+//   }
+
+//   const userCheck = await User.findOne({
+//     _id: req.session.user._id,
+//     role: "user",
+//     userStatus: "active",
+//   }).select("-password");
+
+//   if (!userCheck) {
+//     req.session.destroy();
+//     return res.redirect("/login");
+//   }
+
+//   const deposit = await WalletTransaction.findById(req.params.id);
+
+//   if (!deposit || deposit.status !== "failed") {
+//     return res.redirect("/userdashboard");
+//   }
+
+//   res.render("User/submitTransaction", { deposit });
+// };
+
+// exports.submitTransaction = async (req, res) => {
+//   try {
+//     if (
+//       !req.session.isLoggedIn ||
+//       !req.session.user ||
+//       req.session.user.role !== "user"
+//     ) {
+//       return res.redirect("/login");
+//     }
+
+//     const userCheck = await User.findOne({
+//       _id: req.session.user._id,
+//       role: "user",
+//       userStatus: "active",
+//     }).select("-password");
+
+//     if (!userCheck) {
+//       req.session.destroy();
+//       return res.redirect("/login");
+//     }
+
+//     const { utr } = req.body;
+
+//     // Check: Either UTR or file is required
+//     if (!utr && !req.file) {
+//       return res.send("Either UTR or screenshot file is required");
+//     }
+
+//     // Duplicate UTR check
+//      // Duplicate UTR check (only if UTR is provided)
+//     if (utr) {
+//       const existing = await WalletTransaction.findOne({ utr });
+//       if (existing) {
+//         return res.send("UTR already used");
+//       }
+//     }
+
+//     let screenshotUrl = null;
+
+//     if (req.file) {
+//       screenshotUrl = await uploadToPhpServer(req.file.path);
+//       fs.unlinkSync(req.file.path);
+//     }
+
+//     await WalletTransaction.findByIdAndUpdate(req.params.id, {
+//       utr,
+//       screenshot: screenshotUrl,
+//       status: "pending",
+//     });
+
+//     res.redirect("/userdashboard");
+//   } catch (err) {
+//     console.error(err);
+//     res.send("Error submitting transaction");
+//   }
+// };
 
 exports.cancelDeposit = async (req, res) => {
   try {

@@ -229,7 +229,7 @@ adminRouter.post("/admin/main-settings", adminController.postMainSettings);
 adminRouter.get("/admin/payment-gateway-settings", adminController.getPaymentGatewaySettingsPage);
 adminRouter.post("/admin/payment-gateway-settings", adminController.postPaymentGatewaySettings);
 
-// Admin routes for image slider
+// Admin routes for image slider in home page view after login
 adminRouter.get("/admin/image-slider", adminController.getImageSliderPage);
 adminRouter.post("/admin/upload-home-slider-image", upload.single("sliderImage"), adminController.uploadHomeSliderImage);
 adminRouter.get("/admin/delete-home-slider-image/:fieldName", adminController.deleteSliderImage);
@@ -249,4 +249,9 @@ adminRouter.post("/admin/deposit/reject/:id", adminController.rejectDeposit);
 adminRouter.get("/admin/WithdrawPointsRequestReport", adminController.withdrawRequest)
 adminRouter.get("/admin/withdraw/approve/:id", adminController.approveWithdraw);
 adminRouter.get("/admin/withdraw/reject/:id", adminController.rejectWithdraw);
+
+// Admin Deposit tranction history route 
+adminRouter.get("/adminDepositTransactions", adminController.adminDepositHistory);
+
+
 module.exports = adminRouter;

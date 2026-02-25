@@ -57,20 +57,7 @@ const walletTransactionSchema = new mongoose.Schema(
       enum: ["phonepe", "gpay", "paytm", "bank", null],
       default: null,
     },
-    // 🔥 NEW FIELD 1 – UTR / Transaction ID
-    utr: {
-      type: String,
-      default: null,
-      unique: true,
-      sparse: true,
-      trim: true,
-    },
 
-    // 🔥 NEW FIELD 2 – Screenshot path
-    screenshot: {
-      type: String,
-      default: null,
-    },
     // User entered mobile number or UPI ID for withdraw
     mobileNoOrUpiId: {
       type: String,

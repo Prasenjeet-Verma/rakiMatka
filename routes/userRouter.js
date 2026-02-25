@@ -76,13 +76,16 @@ userRouter.post("/withdraw-request", userController.postWithdrawRequest);
 // Deposit transtions routes
 userRouter.post("/user/create-deposit", userController.createDeposit);
 userRouter.get("/user/payment-wait/:id", userController.paymentWaitPage);
-userRouter.get("/user/submit-transaction/:id", userController.submitTransactionPage);
+// userRouter.get("/user/submit-transaction/:id", userController.submitTransactionPage);
+userRouter.get("/user/mark-pending/:id", userController.markDepositPending);
 
-userRouter.post(
-  "/user/submit-transaction/:id",
-  upload.single("screenshot"),
-  userController.submitTransaction
-);
+
+
+// userRouter.post(
+//   "/user/submit-transaction/:id",
+//   upload.single("screenshot"),
+//   userController.submitTransaction
+// );
 userRouter.get("/user/cancel-deposit/:id", userController.cancelDeposit);
 
 module.exports = userRouter;

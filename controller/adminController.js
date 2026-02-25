@@ -7075,14 +7075,13 @@ exports.rejectDeposit = async (req, res) => {
           remark: `Rejected deposit of ${deposit.user.username}`,
         },
       ],
-      { session }
+      { session },
     );
 
     await session.commitTransaction();
     session.endSession();
 
     res.redirect("/admin/DepositRequests");
-
   } catch (err) {
     await session.abortTransaction();
     session.endSession();
@@ -7125,27 +7124,27 @@ exports.withdrawRequest = async (req, res, next) => {
 
     if (status) filter.status = status;
 
- if (from || to) {
-  filter.createdAt = {};
+    if (from || to) {
+      filter.createdAt = {};
 
-  if (from) {
-    filter.createdAt.$gte = new Date(from + "T00:00:00");
-  }
+      if (from) {
+        filter.createdAt.$gte = new Date(from + "T00:00:00");
+      }
 
-  if (to) {
-    filter.createdAt.$lte = new Date(to + "T23:59:59");
-  }
-}
+      if (to) {
+        filter.createdAt.$lte = new Date(to + "T23:59:59");
+      }
+    }
 
-   if (username) {
-  const users = await User.find({
-    username: { $regex: username, $options: "i" },
-  }).select("_id");
+    if (username) {
+      const users = await User.find({
+        username: { $regex: username, $options: "i" },
+      }).select("_id");
 
-  const userIds = users.map(u => u._id);
+      const userIds = users.map((u) => u._id);
 
-  filter.user = { $in: userIds };
-}
+      filter.user = { $in: userIds };
+    }
 
     const total = await WalletTransaction.countDocuments(filter);
 
@@ -7238,7 +7237,7 @@ exports.approveWithdraw = async (req, res) => {
     // ===============================
 
     const userOldBalance = withdraw.user.wallet;
-    const userNewBalance = userOldBalance; 
+    const userNewBalance = userOldBalance;
     // 👆 If already deducted at request time
 
     // ===============================
@@ -7283,7 +7282,7 @@ exports.approveWithdraw = async (req, res) => {
           remark: `Withdraw approved for ${withdraw.user.username}`,
         },
       ],
-      { session }
+      { session },
     );
 
     await session.commitTransaction();
@@ -7370,18 +7369,189 @@ exports.rejectWithdraw = async (req, res) => {
           remark: `Rejected withdraw of ${withdraw.user.username}`,
         },
       ],
-      { session }
+      { session },
     );
 
     await session.commitTransaction();
     session.endSession();
 
     res.redirect("/admin/WithdrawPointsRequestReport");
-
   } catch (err) {
     await session.abortTransaction();
     session.endSession();
     console.error(err);
     res.redirect("back");
+  }
+};
+
+exports.adminDepositHistory = async (req, res, next) => {
+  try {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    });
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    /* =========================
+       FILTER VALUES
+    ========================== */
+
+    const { from, to, search, page = 1, limit = 10 } = req.query;
+
+    const currentPage = parseInt(page);
+    const perPage = parseInt(limit);
+
+    let filter = {
+      type: "credit",
+      source: "deposit",
+      status: "success",
+    };
+
+    /* =========================
+       DATE FILTER
+    ========================== */
+
+    if (from && to) {
+      filter.createdAt = {
+        $gte: new Date(from + "T00:00:00.000Z"),
+        $lte: new Date(to + "T23:59:59.999Z"),
+      };
+    }
+
+    /* =========================
+       USERNAME SEARCH
+    ========================== */
+
+    // let userFilter = {};
+  if (search && search.trim() !== "") {
+  const users = await User.find({
+    username: { $regex: search.trim(), $options: "i" },
+  }).select("_id");
+
+  const userIds = users.map((u) => u._id);
+
+  if (userIds.length > 0) {
+    filter.user = { $in: userIds };
+  } else {
+    // Force no results
+    filter.user = null;
+  }
+}
+
+    /* =========================
+       TOTAL COUNT (Date wise)
+    ========================== */
+
+    const totalDepositCount = await WalletTransaction.countDocuments(filter);
+
+    /* =========================
+       TOTAL AMOUNT (Date wise)
+    ========================== */
+
+    const totalAmountAgg = await WalletTransaction.aggregate([
+      { $match: filter },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$amount" },
+        },
+      },
+    ]);
+
+    const totalDepositAmount =
+      totalAmountAgg.length > 0 ? totalAmountAgg[0].total : 0;
+
+    /* =========================
+       PAYMETHOD WISE (Date wise)
+    ========================== */
+
+    const payMethodStats = await WalletTransaction.aggregate([
+      { $match: filter },
+      {
+        $group: {
+          _id: "$payMethod",
+          totalAmount: { $sum: "$amount" },
+          totalCount: { $sum: 1 },
+        },
+      },
+    ]);
+
+    let gpayTotal = 0,
+      gpayCount = 0,
+      paytmTotal = 0,
+      paytmCount = 0,
+      phonepeTotal = 0,
+      phonepeCount = 0;
+
+    payMethodStats.forEach((item) => {
+      if (item._id === "gpay") {
+        gpayTotal = item.totalAmount;
+        gpayCount = item.totalCount;
+      }
+      if (item._id === "paytm") {
+        paytmTotal = item.totalAmount;
+        paytmCount = item.totalCount;
+      }
+      if (item._id === "phonepe") {
+        phonepeTotal = item.totalAmount;
+        phonepeCount = item.totalCount;
+      }
+    });
+
+    /* =========================
+       PAGINATED DATA
+    ========================== */
+
+    const deposits = await WalletTransaction.find(filter)
+      .populate("user", "username phoneNo")
+      .sort({ createdAt: -1 })
+      .skip((currentPage - 1) * perPage)
+      .limit(perPage);
+
+    const totalPages = Math.ceil(totalDepositCount / perPage);
+
+    /* =========================
+       RENDER
+    ========================== */
+
+    res.render("Admin/adminDepositTransactions", {
+      pageTitle: "Admin Deposit Req",
+      admin,
+      deposits,
+
+      totalDepositAmount,
+      totalDepositCount,
+
+      gpayTotal,
+      gpayCount,
+      paytmTotal,
+      paytmCount,
+      phonepeTotal,
+      phonepeCount,
+
+      currentPage,
+      totalPages,
+      perPage,
+      search: search || "",
+      from: from || "",
+      to: to || "",
+
+      isLoggedIn: req.session.isLoggedIn,
+    });
+  } catch (err) {
+    console.log(err);
   }
 };
