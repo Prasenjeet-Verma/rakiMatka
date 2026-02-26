@@ -1,10 +1,10 @@
 /* --- 1. Custom Color Variables & Global Styles (Inherited) --- */
 :root {
   --color-white: #ffffff;
-  --color-brand-light: #f3e8ff;
-  --color-brand-default: #8176f9;
-  --color-brand-dark: #3712dd;
-  --color-brand-accent: #3712dd;
+  --color-brand-light: #e8ffeb;
+  --color-brand-default: #51dd51;
+  --color-brand-dark: rgb(2, 92, 2);
+  --color-brand-accent: rgb(2, 92, 2);
   --color-gray-600: #4b5563;
 }
 
@@ -109,7 +109,9 @@ body {
   border-radius: 0.5rem;
   background-color: var(--color-white);
   font-size: 1rem;
-  transition: border-color 0.3s, box-shadow 0.3s;
+  transition:
+    border-color 0.3s,
+    box-shadow 0.3s;
 }
 
 .input-group input:focus {
@@ -151,7 +153,9 @@ body {
   border: none;
   border-radius: 0.5rem;
   cursor: pointer;
-  transition: background-color 0.3s, transform 0.3s;
+  transition:
+    background-color 0.3s,
+    transform 0.3s;
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-top: 1rem;

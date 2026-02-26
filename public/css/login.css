@@ -1,10 +1,10 @@
  /* --- 1. Custom Color Variables & Global Styles --- */
         :root {
             --color-white: #ffffff;
-            --color-brand-light: #F3E8FF;
-            --color-brand-default: #8176f9;
-            --color-brand-dark: #3712dd;
-            --color-brand-accent: #3712dd;
+            --color-brand-light: #e8ffeb;
+            --color-brand-default: #51dd51;
+            --color-brand-dark: rgb(2, 92, 2);
+            --color-brand-accent: rgb(2, 92, 2);
             --color-gray-600: #4b5563; 
         }
 
@@ -18,7 +18,7 @@
             padding: 1rem;
             font-family: ui-sans-serif, system-ui, sans-serif;
         }
-        
+          
         /* Glassmorphism Card Effect */
         .glass-card {
             background: rgba(255, 255, 255, 0.7);
