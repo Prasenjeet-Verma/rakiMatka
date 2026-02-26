@@ -57,7 +57,7 @@
     </div>
     <!-- =================================== 2nd heading ============ -->
 
-    <div class="fixed w-full z-[200] bg-gradient-to-r from-[#047857] to-white p-3 rounded mt-[7.5rem]">
+    <div class="fixed w-full z-[10] bg-gradient-to-r from-[#047857] to-white p-3 rounded mt-[7.5rem]">
       <div class="p-4 flex gap-4">
         <button id="starlineTrigger"
           class="flex-1 bg-white rounded-full py-3 flex items-center justify-center gap-3 shadow">
@@ -85,6 +85,27 @@
         </button>
       </div>
     </div>
+
+<div class="flex justify-center items-center">
+  <div onclick="document.getElementById('how-to-modal').classList.remove('hidden')" class="relative top-[18.5rem] flex h-12 w-[90%] items-center justify-center rounded-[25px] border-[1.5px] border-yellow-400 bg-green-700 text-lg text-white transition-all duration-300 hover:scale-105 hover:bg-green-800 active:scale-95 cursor-pointer select-none font-semibold">
+    How To Play
+  </div>
+</div>
+
+<div id="how-to-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm  mt-6">
+  <div class="bg-white p-6 rounded-2xl w-[95%] max-w-md border-2 border-yellow-400 shadow-2xl transform transition-all">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-2xl font-bold text-green-800">Instructions</h2>
+      <button onclick="document.getElementById('how-to-modal').classList.add('hidden')" class="text-gray-500 hover:text-black text-2xl">&times;</button>
+    </div>
+    <div class="space-y-3 text-gray-700 flex flex-col items-center justify-center">
+
+  <iframe width="340" height="200" src="https://www.youtube.com/embed/afHc6fUEF-g?si=xm8xuMnPsTLDKHoo" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+    </div>
+    <button onclick="document.getElementById('how-to-modal').classList.add('hidden')" class="mt-6 w-full py-2 bg-green-700 text-white rounded-xl font-bold hover:bg-green-800">Got it!</button>
+  </div>
+</div>
     <!--  =========== cary section  =========================-->
     <!-- GAME CARDS -->
     <div class="p-4 grid grid-cols-2 sm:grid-cols-2 gap-4 pt-[19rem]">
