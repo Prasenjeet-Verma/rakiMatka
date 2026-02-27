@@ -315,7 +315,7 @@ exports.updateWallet = async (req, res) => {
         admin: admin._id,
         type: "credit",
         source: "withdraw",
-        payMethod:null,
+        payMethod: null,
         receiveMethod: "manual",
         mobileNoOrUpiId: null,
         amount: amt,
@@ -634,6 +634,48 @@ exports.getSingleUserDetails = async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(50);
 
+
+
+
+
+      // ================= NEW TRANSACTION SYSTEM =================
+
+const newTPage = parseInt(req.query.newTPage) || 1;
+const newTLimit =
+  req.query.newTLimit === "all"
+    ? null
+    : parseInt(req.query.newTLimit) || 10;
+
+const newTType = req.query.newTType || "all";
+
+// filter object
+let newTransactionMatch = { user: user._id };
+
+if (newTType !== "all") {
+  newTransactionMatch.type = newTType;
+}
+
+// total count
+const newTTotalRecords = await WalletTransaction.countDocuments(
+  newTransactionMatch
+);
+
+const newTTotalPages = newTLimit
+  ? Math.ceil(newTTotalRecords / newTLimit)
+  : 1;
+
+// query
+let newTransactionQuery = WalletTransaction.find(newTransactionMatch)
+  .populate("admin", "username phoneNo")
+  .sort({ createdAt: -1 });
+
+if (newTLimit) {
+  newTransactionQuery = newTransactionQuery
+    .skip((newTPage - 1) * newTLimit)
+    .limit(newTLimit);
+}
+
+const newTransactions = await newTransactionQuery;
     // ===================== WITHDRAW LIST PAGINATION =====================
 
     // query params
@@ -709,7 +751,6 @@ exports.getSingleUserDetails = async (req, res) => {
 
     // ====================================================================End
 
-
     // ===================== USER BID HISTORY (NEW - SAFE ADD) =====================
 
     const userBidPage = parseInt(req.query.userBidPage) || 1;
@@ -756,16 +797,16 @@ exports.getSingleUserDetails = async (req, res) => {
             b.perUnderNosPoints ??
             0;
 
-         if (userBidSearch) {
-  const search = userBidSearch.toLowerCase();
+          if (userBidSearch) {
+            const search = userBidSearch.toLowerCase();
 
-  const text = `
+            const text = `
     ${bet.gameName || ""}
     ${bet.gameType || ""}
   `.toLowerCase();
 
-  if (!text.includes(search)) return;
-}
+            if (!text.includes(search)) return;
+          }
 
           let marketLabel = "Main Market";
           if (jackpotBetModels.includes(Model)) marketLabel = "Jackpot";
@@ -806,14 +847,17 @@ exports.getSingleUserDetails = async (req, res) => {
     const userPaginatedBids = userBidLimit
       ? userAllBids.slice(
           (userBidPage - 1) * userBidLimit,
-          userBidPage * userBidLimit
+          userBidPage * userBidLimit,
         )
       : userAllBids;
 
+
+
+
+
+
+      
     // ===================== END USER BID HISTORY =====================
-
-
-
 
     // 📤 Send to page
     res.render("Admin/singleUserDetails", {
@@ -833,7 +877,7 @@ exports.getSingleUserDetails = async (req, res) => {
       withdrawTotalPages,
       withdrawTotalRecords,
       withdrawStatus,
-            // 🔽 NEW (user bid table only)
+      // 🔽 NEW (user bid table only)
       userBidHistory: userPaginatedBids || [],
       userBidPage,
       userBidLimit: userBidLimit || "all",
@@ -841,6 +885,15 @@ exports.getSingleUserDetails = async (req, res) => {
       userBidMarket,
       userBidTotalPages,
       userBidTotalRecords,
+
+
+
+      newTransactions,
+newTPage,
+newTLimit: newTLimit || "all",
+newTType,
+newTTotalPages,
+newTTotalRecords,
       isLoggedIn: req.session.isLoggedIn,
     });
   } catch (error) {
