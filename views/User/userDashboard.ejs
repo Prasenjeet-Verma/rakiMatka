@@ -624,19 +624,19 @@
                     return;
                   }
 
-                  let payMethod = "";
+                  let depositUpi = "";
                   let upiId = "";
 
                   if (selectedPay.parentElement.innerText.includes("Google")) {
-                    payMethod = "gpay";
+                    depositUpi = "gpay";
                     upiId = directGpayId;
                   }
                   else if (selectedPay.parentElement.innerText.includes("PhonePe")) {
-                    payMethod = "phonepe";
+                    depositUpi = "phonepe";
                     upiId = directPhonepeId;
                   }
                   else {
-                    payMethod = "paytm";
+                    depositUpi = "paytm";
                     upiId = directPaytmId;
                   }
 
@@ -653,7 +653,7 @@
                       headers: {
                         "Content-Type": "application/json"
                       },
-                      body: JSON.stringify({ amount, payMethod })
+                      body: JSON.stringify({ amount, depositUpi })
                     });
 
                     const data = await response.json();
@@ -668,10 +668,10 @@
                     // 2️⃣ Create APP-SPECIFIC UPI deep link
                     let upiLink = "";
 
-                    if (payMethod === "gpay") {
+                    if (depositUpi === "gpay") {
                       upiLink = `upi://pay?pa=${upiId}&pn=MyApp&am=${amount}&cu=INR`;
                     }
-                    else if (payMethod === "phonepe") {
+                    else if (depositUpi === "phonepe") {
                       upiLink = `upi://pay?pa=${upiId}&pn=MyApp&am=${amount}&cu=INR`;
                     }
                     else {

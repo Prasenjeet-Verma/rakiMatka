@@ -35,8 +35,8 @@ submitBtn.addEventListener("click", async () => {
   // 🔥 THIS WAS MISSING
   // Convert type into backend action
   let action;
-  if (type === "credit") action = "admin_credit";
-  else action = "admin_debit";
+  if (type === "credit") action = "admin_debit";
+  else action = "admin_credit";
 
   submitBtn.disabled = true;
   submitBtn.innerText = "Processing...";

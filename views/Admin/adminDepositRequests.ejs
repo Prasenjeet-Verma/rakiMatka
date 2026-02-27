@@ -136,8 +136,6 @@
                                     <th class="p-3 border-r">User name</th>
                                     <th class="p-3 border-r">Amount</th>
                                     <th class="p-3 border-r">Deposit Mode</th>
-                                    <th class="p-3 border-r w-1/4">Transaction ID</th>
-                                    <th class="p-3 border-r">Image</th>
                                     <th class="p-3 border-r">Note</th>
                                     <th class="p-3 border-r">Status</th>
                                     <th class="p-3 border-r">Date</th>
@@ -161,17 +159,7 @@
                                                 <%= t.amount %>
                                             </td>
                                             <td class="p-3 border-r">
-                                                <%= t.payMethod %>
-                                            </td>
-                                            <td class="p-3 border-r break-all text-xs font-mono text-gray-500">
-                                                <%= t.utr || "-" %>
-                                            </td>
-                                            <td class="p-3 border-r italic text-gray-400">
-                                                <% if (t.screenshot) { %>
-                                                    <a href="<%= t.screenshot %>" target="_blank">View</a>
-                                                    <% } else { %>
-                                                        No Image
-                                                        <% } %>
+                                                <%= t.depositUpi %>
                                             </td>
                                             <td class="p-3 border-r text-xs font-bold">
                                                 <%= t.remark || "DIRECT UPI PAYMENT" %>

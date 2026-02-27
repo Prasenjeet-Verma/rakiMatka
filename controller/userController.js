@@ -3,7 +3,10 @@ const bcrypt = require("bcryptjs");
 const User = require("../model/userSchema");
 const fs = require("fs");
 const uploadToPhpServer = require("../utils/uploadToPhpServer");
-const WalletTransaction = require("../model/WalletTransaction");
+// const WalletTransaction = require("../model/WalletTransaction");
+const mongoose = require("mongoose");
+const UserWalletTransaction = require("../model/UserWalletTransaction");
+const AdminWalletTransaction = require("../model/AdminWalletTransaction");
 const Reward = require("../model/Reward");
 const UserBankDetails = require("../model/UserBankDetails");
 const Game = require("../model/Game");
@@ -184,55 +187,51 @@ exports.getUserDashboardPage = async (req, res, next) => {
     const jackpotGames = processedGames.filter((g) => g.isJackpot);
 
     // ===================== 🎯 FETCH TRANSACTIONS =====================
-const transactions = await WalletTransaction.find({
-  user: user._id,
-})
-  .sort({ createdAt: -1 })
-  .limit(20)
-  .lean();
+    const transactions = await UserWalletTransaction.find({
+      user: user._id,
+    })
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .lean();
 
-const formattedTransactions = transactions.map((tx) => {
-  let title, displayType, amountSign, amountColor;
+    const formattedTransactions = transactions.map((tx) => {
+      let title, displayType, amountSign, amountColor;
 
-  amountSign = tx.type === "credit" ? "+" : "-";
+      amountSign = tx.type === "credit" ? "+" : "-";
 
-  // 🎨 STATUS BASED COLOR
-  if (tx.status === "pending") {
-    amountColor = "text-yellow-500";
-  } 
-  else if (tx.status === "failed" || tx.status === "rejected") {
-    amountColor = "text-red-600";
-  } 
-  else if (tx.status === "success") {
-    amountColor = tx.type === "credit" 
-      ? "text-green-600" 
-      : "text-red-600";
-  } 
-  else {
-    amountColor = "text-gray-600";
-  }
+      // 🎨 STATUS BASED COLOR
+      if (tx.status === "pending") {
+        amountColor = "text-yellow-500";
+      } else if (tx.status === "failed" || tx.status === "rejected") {
+        amountColor = "text-red-600";
+      } else if (tx.status === "success") {
+        amountColor = tx.type === "credit" ? "text-green-600" : "text-red-600";
+      } else {
+        amountColor = "text-gray-600";
+      }
 
-  if (tx.type === "credit") {
-    displayType = "deposit";
-    title = tx.source === "game_win" ? "Game Win" : "Deposit";
-  }
+      // ✅ CORRECT TITLE LOGIC
+      if (tx.source === "deposit") {
+        displayType = "deposit";
+        title = "Deposit";
+      }
 
-  if (tx.type === "debit") {
-    displayType = "withdraw";
-    title = tx.source === "game_loss" ? "Game Loss" : "Withdrawal";
-  }
+      if (tx.source === "withdraw") {
+        displayType = "withdraw";
+        title = "Withdrawal";
+      }
 
-  return {
-    title,
-    displayType,
-    amountText: `${amountSign}${tx.amount}`,
-    amountColor,
-    createdAt: moment(tx.createdAt)
-      .tz("Asia/Kolkata")
-      .format("DD MMM YYYY hh:mm:ss A"),
-    status: tx.status,
-  };
-});
+      return {
+        title,
+        displayType,
+        amountText: `${amountSign}${tx.amount}`,
+        amountColor,
+        createdAt: moment(tx.createdAt)
+          .tz("Asia/Kolkata")
+          .format("DD MMM YYYY hh:mm:ss A"),
+        status: tx.status,
+      };
+    });
 
     // ===================== 🎯 FETCH STARLINE GAME RATES =====================
     const starlineRates = await GameRate.find({
@@ -337,6 +336,7 @@ const formattedTransactions = transactions.map((tx) => {
 
 exports.createDeposit = async (req, res) => {
   try {
+    // 1️⃣ Auth check
     if (
       !req.session.isLoggedIn ||
       !req.session.user ||
@@ -345,36 +345,46 @@ exports.createDeposit = async (req, res) => {
       return res.redirect("/login");
     }
 
-    const userCheck = await User.findOne({
+    // 2️⃣ Validate active user
+    const user = await User.findOne({
       _id: req.session.user._id,
       role: "user",
       userStatus: "active",
-    }).select("-password");
+    });
 
-    if (!userCheck) {
+    if (!user) {
       req.session.destroy();
       return res.redirect("/login");
     }
 
-    const { amount, payMethod } = req.body;
+    // 3️⃣ Validate input
+    const { amount, depositUpi } = req.body;
 
-    const user = await User.findById(req.session.user._id);
+    if (!amount || amount <= 0) {
+      return res.json({ success: false, message: "Invalid amount" });
+    }
 
-    const deposit = await WalletTransaction.create({
+    // 4️⃣ Create deposit transaction (PENDING)
+    const deposit = await UserWalletTransaction.create({
       user: user._id,
-      type: "debit",
+      type: "credit",
       source: "deposit",
-      amount,
-      payMethod,
+      amount: Number(amount),
       oldBalance: user.wallet,
-      newBalance: user.wallet,
-      status: "failed",
+      newBalance: user.wallet, // will update after admin approval
+      depositUpi: depositUpi || null,
+      status: "failed", // IMPORTANT
+      remark: "Deposit request created",
     });
 
-    res.json({ success: true, depositId: deposit._id });
+    return res.json({
+      success: true,
+      message: "Deposit request created successfully",
+      depositId: deposit._id,
+    });
   } catch (err) {
     console.error(err);
-    res.json({ success: false });
+    return res.json({ success: false, message: "Something went wrong" });
   }
 };
 
@@ -403,9 +413,9 @@ exports.paymentWaitPage = async (req, res) => {
   });
 };
 
-
 exports.markDepositPending = async (req, res) => {
   try {
+    // 1️⃣ Auth check
     if (
       !req.session.isLoggedIn ||
       !req.session.user ||
@@ -414,30 +424,37 @@ exports.markDepositPending = async (req, res) => {
       return res.redirect("/login");
     }
 
-    const userCheck = await User.findOne({
+    // 2️⃣ Validate active user
+    const user = await User.findOne({
       _id: req.session.user._id,
       role: "user",
       userStatus: "active",
     });
 
-    if (!userCheck) {
+    if (!user) {
       req.session.destroy();
       return res.redirect("/login");
     }
 
-    const deposit = await WalletTransaction.findById(req.params.id);
+    // 3️⃣ Find deposit transaction
+    const deposit = await UserWalletTransaction.findOne({
+      _id: req.params.id,
+      user: user._id,
+      source: "deposit",
+    });
 
-    if (
-      deposit &&
-      deposit.status === "failed" &&
-      deposit.user.toString() === req.session.user._id.toString()
-    ) {
+    if (!deposit) {
+      return res.redirect("/userdashboard");
+    }
+
+    // 4️⃣ Only allow status change if currently failed
+    if (deposit.status === "failed") {
       deposit.status = "pending";
+      deposit.remark = "User confirmed payment, waiting for admin approval";
       await deposit.save();
     }
 
     return res.redirect("/userdashboard");
-
   } catch (err) {
     console.error(err);
     return res.redirect("/userdashboard");
@@ -530,8 +547,10 @@ exports.markDepositPending = async (req, res) => {
 //   }
 // };
 
+
 exports.cancelDeposit = async (req, res) => {
   try {
+    // 1️⃣ Auth check
     if (
       !req.session.isLoggedIn ||
       !req.session.user ||
@@ -540,32 +559,43 @@ exports.cancelDeposit = async (req, res) => {
       return res.redirect("/login");
     }
 
-    const userCheck = await User.findOne({
+    // 2️⃣ Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.redirect("/userdashboard");
+    }
+
+    // 3️⃣ Validate active user
+    const user = await User.findOne({
       _id: req.session.user._id,
       role: "user",
       userStatus: "active",
-    }).select("-password");
+    });
 
-    if (!userCheck) {
+    if (!user) {
       req.session.destroy();
       return res.redirect("/login");
     }
 
-    const deposit = await WalletTransaction.findById(req.params.id);
+    // 4️⃣ Find deposit belonging to user
+    const deposit = await UserWalletTransaction.findOne({
+      _id: req.params.id,
+      user: user._id,
+      source: "deposit",
+    });
 
-    // ✅ SAFE DELETE CHECK
-    if (
-      deposit &&
-      deposit.status === "failed" &&
-      deposit.user.toString() === req.session.user._id.toString()
-    ) {
-      await WalletTransaction.findByIdAndDelete(req.params.id);
+    if (!deposit) {
+      return res.redirect("/userdashboard");
     }
 
-    res.redirect("/userdashboard");
+    // 5️⃣ Only allow delete if still pending
+    if (deposit.status === "failed") {
+      await UserWalletTransaction.findByIdAndDelete(deposit._id);
+    }
+
+    return res.redirect("/userdashboard");
   } catch (err) {
     console.error(err);
-    res.redirect("/userdashboard");
+    return res.redirect("/userdashboard");
   }
 };
 
@@ -591,6 +621,7 @@ exports.postWithdrawRequest = async (req, res) => {
     }
 
     const { amount, method, mobileNoOrUpiId } = req.body;
+    const withdrawAmount = Number(amount);
 
     const user = await User.findById(req.session.user._id);
 
@@ -600,7 +631,6 @@ exports.postWithdrawRequest = async (req, res) => {
 
     const settings = await MainSettings.findOne();
 
-    // 🔒 GLOBAL WITHDRAW DISABLE CHECK
     if (settings?.withdrawDisabled) {
       return res.json({
         success: false,
@@ -611,21 +641,21 @@ exports.postWithdrawRequest = async (req, res) => {
     const minWithdraw = settings?.minWithdraw || 0;
     const maxWithdraw = settings?.maxWithdraw || 0;
 
-    if (!amount || amount < minWithdraw) {
+    if (!withdrawAmount || withdrawAmount < minWithdraw) {
       return res.json({
         success: false,
         message: `Minimum withdraw ₹${minWithdraw} hai`,
       });
     }
 
-    if (amount > maxWithdraw) {
+    if (withdrawAmount > maxWithdraw) {
       return res.json({
         success: false,
         message: `Maximum withdraw ₹${maxWithdraw} hai`,
       });
     }
 
-    if (amount > user.wallet) {
+    if (withdrawAmount > user.wallet) {
       return res.json({
         success: false,
         message: "Insufficient wallet balance",
@@ -645,9 +675,9 @@ exports.postWithdrawRequest = async (req, res) => {
         message: "Mobile number ya UPI ID enter karo",
       });
     }
-    // ⏰ WITHDRAW TIME CHECK (India Time)
-    const now = moment().tz("Asia/Kolkata");
 
+    // ⏰ Withdraw Time Check
+    const now = moment().tz("Asia/Kolkata");
     const days = [
       "sunday",
       "monday",
@@ -657,9 +687,7 @@ exports.postWithdrawRequest = async (req, res) => {
       "friday",
       "saturday",
     ];
-
     const todayKey = days[now.day()];
-
     const withdrawTimeSettings = await WithdrawTime.findOne().lean();
 
     if (!withdrawTimeSettings) {
@@ -679,7 +707,6 @@ exports.postWithdrawRequest = async (req, res) => {
     }
 
     const nowMinutes = now.hours() * 60 + now.minutes();
-
     const [startH, startM] = todayConfig.startTime.split(":").map(Number);
     const [endH, endM] = todayConfig.endTime.split(":").map(Number);
 
@@ -692,32 +719,29 @@ exports.postWithdrawRequest = async (req, res) => {
         message: `Withdraw allowed between ${moment(todayConfig.startTime, "HH:mm").format("hh:mm A")} to ${moment(todayConfig.endTime, "HH:mm").format("hh:mm A")}`,
       });
     }
-    const oldBalance = user.wallet;
-    const newBalance = oldBalance - amount;
 
-    user.wallet = newBalance;
-    await user.save();
+    // ✅ DO NOT DEDUCT WALLET HERE
 
-    await WalletTransaction.create({
+    await UserWalletTransaction.create({
       user: user._id,
-      type: "credit",
+      type: "debit",
       source: "withdraw",
-      receiveMethod: method,
-      mobileNoOrUpiId,
-      amount,
-      oldBalance,
-      newBalance,
+      withdrawUpi: method,
+      withdrawOnUpiIdOrMobileNo: mobileNoOrUpiId, // ✔ fixed field
+      amount: withdrawAmount,
+      oldBalance: user.wallet, // current balance
+      newBalance: user.wallet, // same (will update on approval)
       status: "pending",
       remark: "Withdraw request by user",
     });
 
-    res.json({
+    return res.json({
       success: true,
       message: "Withdraw request submitted successfully",
     });
   } catch (err) {
     console.error(err);
-    res.json({ success: false, message: "Something went wrong" });
+    return res.json({ success: false, message: "Something went wrong" });
   }
 };
 
@@ -5173,5 +5197,3 @@ exports.saveFcmToken = async (req, res) => {
     res.status(500).json({ success: false });
   }
 };
-
-

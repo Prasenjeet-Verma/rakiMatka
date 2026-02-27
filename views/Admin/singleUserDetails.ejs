@@ -234,11 +234,11 @@
                 </select>
             </div>
 
-            <div class="flex items-center gap-2">
+            <!-- <div class="flex items-center gap-2">
               <label class="text-sm">Search:</label>
               <input type="text" name="withdrawSearch" value="<%= withdrawSearch %>" placeholder="Username / Mobile"
                 class="border rounded px-2 py-1 text-sm w-40" />
-            </div>
+            </div> -->
           </div>
           </form>
           <!-- TABLE -->
@@ -263,10 +263,10 @@
                       <%= tx._id %>
                     </td>
                     <td class="border px-3 py-2">
-                      <%= tx.userData.phoneNo %>
+                      <%= user.phoneNo %>
                     </td>
                     <td class="border px-3 py-2">
-                      <%= tx.userData.username %>
+                      <%= user.username %>
                     </td>
                     <td class="border px-3 py-2 font-semibold text-red-600">
                       ₹ <%= tx.amount %>
@@ -323,60 +323,52 @@
       <record class="bg-gray-100 p-4">
         <div class="bg-white rounded-lg shadow p-4">
           <!-- HEADER -->
-<form method="GET" class="space-y-4">
+          <form method="GET" class="space-y-4">
 
-  <!-- HEADER -->
-  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-    <div class="flex items-center gap-2">
-      <h2 class="font-semibold">Bid History</h2>
+            <!-- HEADER -->
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div class="flex items-center gap-2">
+                <h2 class="font-semibold">Bid History</h2>
 
-      <!-- MARKET FILTER -->
-      <select name="userBidMarket"
-              onchange="this.form.submit()"
-              class="border rounded px-2 py-1 text-sm">
+                <!-- MARKET FILTER -->
+                <select name="userBidMarket" onchange="this.form.submit()" class="border rounded px-2 py-1 text-sm">
 
-        <option value="all" <%= userBidMarket==="all"?"selected":"" %>>All</option>
-        <option value="main" <%= userBidMarket==="main"?"selected":"" %>>Main Market</option>
-        <option value="starline" <%= userBidMarket==="starline"?"selected":"" %>>Starline</option>
-        <option value="jackpot" <%= userBidMarket==="jackpot"?"selected":"" %>>Jackpot</option>
-      </select>
-    </div>
-  </div>
+                  <option value="all" <%=userBidMarket==="all" ?"selected":"" %>>All</option>
+                  <option value="main" <%=userBidMarket==="main" ?"selected":"" %>>Main Market</option>
+                  <option value="starline" <%=userBidMarket==="starline" ?"selected":"" %>>Starline</option>
+                  <option value="jackpot" <%=userBidMarket==="jackpot" ?"selected":"" %>>Jackpot</option>
+                </select>
+              </div>
+            </div>
 
-  <!-- CONTROLS -->
-  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <!-- CONTROLS -->
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
 
-    <!-- SHOW LIMIT -->
-    <div class="flex items-center gap-2">
-      <span class="text-sm">Show</span>
-      <select name="userBidLimit"
-              onchange="this.form.submit()"
-              class="border rounded px-2 py-1 text-sm">
+              <!-- SHOW LIMIT -->
+              <div class="flex items-center gap-2">
+                <span class="text-sm">Show</span>
+                <select name="userBidLimit" onchange="this.form.submit()" class="border rounded px-2 py-1 text-sm">
 
-        <option value="10" <%= userBidLimit==10?"selected":"" %>>10</option>
-        <option value="25" <%= userBidLimit==25?"selected":"" %>>25</option>
-        <option value="50" <%= userBidLimit==50?"selected":"" %>>50</option>
-        <option value="all" <%= userBidLimit==="all"?"selected":"" %>>All</option>
-      </select>
-    </div>
+                  <option value="10" <%=userBidLimit==10?"selected":"" %>>10</option>
+                  <option value="25" <%=userBidLimit==25?"selected":"" %>>25</option>
+                  <option value="50" <%=userBidLimit==50?"selected":"" %>>50</option>
+                  <option value="all" <%=userBidLimit==="all" ?"selected":"" %>>All</option>
+                </select>
+              </div>
 
-    <!-- SEARCH -->
-    <div class="flex items-center gap-2">
-      <input type="text"
-             name="userBidSearch"
-             value="<%= userBidSearch || '' %>"
-             placeholder="Search game or user"
-             class="border rounded px-2 py-1 text-sm w-48" />
+              <!-- SEARCH -->
+              <div class="flex items-center gap-2">
+                <input type="text" name="userBidSearch" value="<%= userBidSearch || '' %>"
+                  placeholder="Search game or user" class="border rounded px-2 py-1 text-sm w-48" />
 
-      <button type="submit"
-              class="bg-gray-800 text-white px-3 py-1 rounded text-sm">
-        Search
-      </button>
-    </div>
+                <button type="submit" class="bg-gray-800 text-white px-3 py-1 rounded text-sm">
+                  Search
+                </button>
+              </div>
 
-  </div>
+            </div>
 
-</form>
+          </form>
 
           <!-- TABLE -->
           <div class="overflow-x-auto">
@@ -488,169 +480,189 @@
           </div>
 
           <!-- FOOTER -->
- <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-4 text-sm">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-4 text-sm">
 
-  <p>
-    Showing 
-    <%= userBidHistory.length > 0 
-        ? (userBidPage - 1) * (userBidLimit === "all" ? userBidHistory.length : userBidLimit) + 1 
-        : 0 %>
-    to 
-    <%= (userBidPage - 1) * (userBidLimit === "all" ? userBidHistory.length : userBidLimit) + userBidHistory.length %>
-    of <%= userBidTotalRecords %> entries
-  </p>
+            <p>
+              Showing
+              <%= userBidHistory.length> 0
+                ? (userBidPage - 1) * (userBidLimit === "all" ? userBidHistory.length : userBidLimit) + 1
+                : 0 %>
+                to
+                <%= (userBidPage - 1) * (userBidLimit==="all" ? userBidHistory.length : userBidLimit) +
+                  userBidHistory.length %>
+                  of <%= userBidTotalRecords %> entries
+            </p>
 
-  <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2">
 
-    <% if (userBidPage > 1) { %>
-      <a href="?userBidPage=<%= userBidPage - 1 %>&userBidLimit=<%= userBidLimit %>&userBidMarket=<%= userBidMarket %>&userBidSearch=<%= userBidSearch %>"
-         class="border px-3 py-1 rounded">
-        Previous
-      </a>
-    <% } %>
+              <% if (userBidPage> 1) { %>
+                <a href="?userBidPage=<%= userBidPage - 1 %>&userBidLimit=<%= userBidLimit %>&userBidMarket=<%= userBidMarket %>&userBidSearch=<%= userBidSearch %>"
+                  class="border px-3 py-1 rounded">
+                  Previous
+                </a>
+                <% } %>
 
-    <span class="px-3 py-1 bg-gray-200 rounded">
-      <%= userBidPage %>
-    </span>
+                  <span class="px-3 py-1 bg-gray-200 rounded">
+                    <%= userBidPage %>
+                  </span>
 
-    <% if (userBidPage < userBidTotalPages) { %>
-      <a href="?userBidPage=<%= userBidPage + 1 %>&userBidLimit=<%= userBidLimit %>&userBidMarket=<%= userBidMarket %>&userBidSearch=<%= userBidSearch %>"
-         class="border px-3 py-1 rounded">
-        Next
-      </a>
-    <% } %>
+                  <% if (userBidPage < userBidTotalPages) { %>
+                    <a href="?userBidPage=<%= userBidPage + 1 %>&userBidLimit=<%= userBidLimit %>&userBidMarket=<%= userBidMarket %>&userBidSearch=<%= userBidSearch %>"
+                      class="border px-3 py-1 rounded">
+                      Next
+                    </a>
+                    <% } %>
 
-  </div>
-</div>
+            </div>
+          </div>
         </div>
       </record>
 
       <!-- ======================== Transaction History ===================== -->
 
-<record class="bg-gray-100 p-4">
-  <div class="bg-white rounded-lg shadow p-4">
+      <record class="bg-gray-100 p-4">
+        <div class="bg-white rounded-lg shadow p-4">
 
-    <!-- HEADER -->
-    <form method="GET">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
-        <div class="flex items-center gap-2">
-          <h2 class="font-semibold">Transaction History</h2>
+          <!-- HEADER -->
+          <form method="GET">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+              <div class="flex items-center gap-2">
+                <h2 class="font-semibold">Transaction History</h2>
 
-          <select name="newTType"
-                  onchange="this.form.submit()"
-                  class="border rounded px-2 py-1 text-sm">
-            <option value="all" <%= newTType==="all"?"selected":"" %>>All</option>
-            <option value="credit" <%= newTType==="credit"?"selected":"" %>>Credit</option>
-            <option value="debit" <%= newTType==="debit"?"selected":"" %>>Debit</option>
-          </select>
+                <select name="newTType" onchange="this.form.submit()" class="border rounded px-2 py-1 text-sm">
+                  <option value="all" <%=newTType==="all" ?"selected":"" %>>All</option>
+                  <option value="credit" <%=newTType==="credit" ?"selected":"" %>>Credit</option>
+                  <option value="debit" <%=newTType==="debit" ?"selected":"" %>>Debit</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- CONTROLS -->
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+              <div class="flex items-center gap-2">
+                <span class="text-sm">Show</span>
+                <select name="newTLimit" onchange="this.form.submit()" class="border rounded px-2 py-1 text-sm">
+                  <option value="10" <%=newTLimit==10?"selected":"" %>>10</option>
+                  <option value="50" <%=newTLimit==50?"selected":"" %>>50</option>
+                  <option value="100" <%=newTLimit==100?"selected":"" %>>100</option>
+                  <option value="all" <%=newTLimit==="all" ?"selected":"" %>>All</option>
+                </select>
+              </div>
+            </div>
+          </form>
+
+          <!-- TABLE -->
+          <div class="overflow-x-auto">
+            <table class="min-w-full border text-sm">
+              <thead class="bg-gray-100">
+                <tr>
+                  <th class="border px-3 py-2 text-left">ID</th>
+                  <th class="border px-3 py-2 text-left">Mobile Number</th>
+                  <th class="border px-3 py-2 text-left">User Name</th>
+                  <th class="border px-3 py-2 text-left">Amount</th>
+                  <th class="border px-3 py-2 text-left">Remark</th>
+                  <th class="border px-3 py-2 text-left">Type</th>
+                  <th class="border px-3 py-2 text-left">Status</th>
+                  <th class="border px-3 py-2 text-left">Before Wallet</th>
+                  <th class="border px-3 py-2 text-left">After Wallet</th>
+                  <th class="border px-3 py-2 text-left">Date</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <% if (newTransactions.length> 0) { %>
+                  <% newTransactions.forEach((tx, index)=> { %>
+                    <tr class="<%= index % 2 === 0 ? 'bg-blue-50' : '' %>">
+                      <td class="border px-3 py-2">
+                        <%= (newTPage - 1) * (newTLimit==="all" ? newTTotalRecords : newTLimit) + index + 1 %>
+                      </td>
+
+                      <td class="border px-3 py-2">
+                        <%= user.phoneNo %>
+                      </td>
+                      <td class="border px-3 py-2">
+                        <%= user.username %>
+                      </td>
+                      <td class="border px-3 py-2">
+                        <%= tx.amount %>
+                      </td>
+                      <td class="border px-3 py-2">
+                        <%= tx.remark || tx.source %>
+                      </td>
+
+                      <td class="border px-3 py-2">
+                        <% if (tx.type==="credit" ) { %>
+                          <span class="bg-green-600 text-white text-xs px-2 py-1 rounded">Credit</span>
+                          <% } else { %>
+                            <span class="bg-red-600 text-white text-xs px-2 py-1 rounded">Debit</span>
+                            <% } %>
+                      </td>
+                      <td class="border px-3 py-2">
+                        <% let statusClass='' ; if (tx.status==='success' ) statusClass='bg-green-500' ; else if
+                          (tx.status==='failed' ) statusClass='bg-red-500' ; else if (tx.status==='rejected' )
+                          statusClass='bg-red-600' ; else if (tx.status==='pending' )
+                          statusClass='bg-yellow-500 text-black' ; %>
+
+                          <span class="px-2 py-1 rounded text-white text-xs font-semibold <%= statusClass %>">
+                            <%= tx.status %>
+                          </span>
+                      </td>
+                      <td class="border px-3 py-2">
+                        <%= tx.oldBalance %>
+                      </td>
+                      <td class="border px-3 py-2">
+                        <%= tx.newBalance %>
+                      </td>
+                      <td class="border px-3 py-2">
+                        <%= new Date(tx.createdAt).toLocaleString() %>
+                      </td>
+                    </tr>
+                    <% }) %>
+                      <% } else { %>
+                        <tr>
+                          <td colspan="9" class="text-center py-4">No transactions found</td>
+                        </tr>
+                        <% } %>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- FOOTER -->
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-4 text-sm">
+            <p>
+              Showing
+              <%= newTransactions.length> 0 ? ((newTPage - 1) * (newTLimit === "all" ? newTTotalRecords : newTLimit)) +
+                1 : 0 %>
+                to
+                <%= (newTPage - 1) * (newTLimit==="all" ? newTTotalRecords : newTLimit) + newTransactions.length %>
+                  of <%= newTTotalRecords %> entries
+            </p>
+
+            <div class="flex items-center gap-2">
+
+              <% if (newTPage> 1) { %>
+                <a href="?newTPage=<%= newTPage-1 %>&newTLimit=<%= newTLimit %>&newTType=<%= newTType %>"
+                  class="border px-3 py-1 rounded text-gray-600">
+                  Previous
+                </a>
+                <% } %>
+
+                  <button class="border px-3 py-1 rounded bg-gray-200">
+                    <%= newTPage %>
+                  </button>
+
+                  <% if (newTPage < newTTotalPages) { %>
+                    <a href="?newTPage=<%= newTPage+1 %>&newTLimit=<%= newTLimit %>&newTType=<%= newTType %>"
+                      class="border px-3 py-1 rounded text-gray-600">
+                      Next
+                    </a>
+                    <% } %>
+
+            </div>
+          </div>
+
         </div>
-      </div>
-
-      <!-- CONTROLS -->
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
-        <div class="flex items-center gap-2">
-          <span class="text-sm">Show</span>
-          <select name="newTLimit"
-                  onchange="this.form.submit()"
-                  class="border rounded px-2 py-1 text-sm">
-            <option value="10" <%= newTLimit==10?"selected":"" %>>10</option>
-            <option value="50" <%= newTLimit==50?"selected":"" %>>50</option>
-            <option value="100" <%= newTLimit==100?"selected":"" %>>100</option>
-            <option value="all" <%= newTLimit==="all"?"selected":"" %>>All</option>
-          </select>
-        </div>
-      </div>
-    </form>
-
-    <!-- TABLE -->
-    <div class="overflow-x-auto">
-      <table class="min-w-full border text-sm">
-        <thead class="bg-gray-100">
-          <tr>
-            <th class="border px-3 py-2 text-left">ID</th>
-            <th class="border px-3 py-2 text-left">Mobile Number</th>
-            <th class="border px-3 py-2 text-left">User Name</th>
-            <th class="border px-3 py-2 text-left">Amount</th>
-            <th class="border px-3 py-2 text-left">Remark</th>
-            <th class="border px-3 py-2 text-left">Type</th>
-            <th class="border px-3 py-2 text-left">Before Wallet</th>
-            <th class="border px-3 py-2 text-left">After Wallet</th>
-            <th class="border px-3 py-2 text-left">Date</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          <% if (newTransactions.length > 0) { %>
-            <% newTransactions.forEach((tx, index) => { %>
-              <tr class="bg-blue-50">
-                <td class="border px-3 py-2">
-                  <%= (newTPage - 1) * (newTLimit === "all" ? newTTotalRecords : newTLimit) + index + 1 %>
-                </td>
-
-                <td class="border px-3 py-2"><%= user.phoneNo %></td>
-                <td class="border px-3 py-2"><%= user.username %></td>
-                <td class="border px-3 py-2"><%= tx.amount %></td>
-                <td class="border px-3 py-2"><%= tx.source %></td>
-
-                <td class="border px-3 py-2">
-                  <% if (tx.type === "credit") { %>
-                    <span class="bg-green-600 text-white text-xs px-2 py-1 rounded">Credit</span>
-                  <% } else { %>
-                    <span class="bg-red-600 text-white text-xs px-2 py-1 rounded">Debit</span>
-                  <% } %>
-                </td>
-
-                <td class="border px-3 py-2"><%= tx.oldBalance %></td>
-                <td class="border px-3 py-2"><%= tx.newBalance %></td>
-                <td class="border px-3 py-2">
-                  <%= new Date(tx.createdAt).toLocaleString() %>
-                </td>
-              </tr>
-            <% }) %>
-          <% } else { %>
-            <tr>
-              <td colspan="9" class="text-center py-4">No transactions found</td>
-            </tr>
-          <% } %>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- FOOTER -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-4 text-sm">
-      <p>
-        Showing 
-        <%= newTransactions.length > 0 ? ((newTPage - 1) * (newTLimit === "all" ? newTTotalRecords : newTLimit)) + 1 : 0 %>
-        to 
-        <%= (newTPage - 1) * (newTLimit === "all" ? newTTotalRecords : newTLimit) + newTransactions.length %>
-        of <%= newTTotalRecords %> entries
-      </p>
-
-      <div class="flex items-center gap-2">
-
-        <% if (newTPage > 1) { %>
-          <a href="?newTPage=<%= newTPage-1 %>&newTLimit=<%= newTLimit %>&newTType=<%= newTType %>"
-             class="border px-3 py-1 rounded text-gray-600">
-            Previous
-          </a>
-        <% } %>
-
-        <button class="border px-3 py-1 rounded bg-gray-200">
-          <%= newTPage %>
-        </button>
-
-        <% if (newTPage < newTTotalPages) { %>
-          <a href="?newTPage=<%= newTPage+1 %>&newTLimit=<%= newTLimit %>&newTType=<%= newTType %>"
-             class="border px-3 py-1 rounded text-gray-600">
-            Next
-          </a>
-        <% } %>
-
-      </div>
-    </div>
-
-  </div>
-</record>
+      </record>
 
       <!-- ======================  Add and Withdrowl Modal Here ======================= -->
       <!-- POINTS MODAL -->

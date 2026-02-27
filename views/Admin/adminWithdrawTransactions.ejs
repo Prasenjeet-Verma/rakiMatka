@@ -8,23 +8,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
   <link rel="stylesheet" href="/css/adminDashbord.css">
-
-  <style>
-    /* Custom scrollbar for the table wrapper */
-    .custom-scrollbar::-webkit-scrollbar {
-      height: 6px;
-    }
-
-    .custom-scrollbar::-webkit-scrollbar-track {
-      background: #f1f1f1;
-    }
-
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #ccc;
-      border-radius: 10px;
-    }
-  </style>
-
 </head>
 
 <body class="flex min-h-screen">
@@ -40,240 +23,179 @@
       </div>
     </div>
 
-    <!-- ============================= Nav is here ============================ -->
     <%- include('../partials/adminNav') %>
   </aside>
 
   <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
-
-    <!-- ============================= Header is here ============================ -->
     <%- include('../partials/adminHeader') %>
 
-      <header class="bg-white h-14 flex items-center justify-between px-4 border-b border-gray-200">
-      </header> <!-- header overflow done -->
+    <main class="bg-gray-100 min-h-screen p-4 md:p-10">
+      <div class="max-w-6xl mx-auto bg-white rounded-lg shadow-sm border border-gray-200">
 
-      <!-- ==================================== Body Start Here ========================================= -->
+        <div class="p-6 border-b border-gray-100 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <h1 class="text-2xl font-semibold text-gray-800">Withdraw Summary</h1>
 
-      <main class="bg-gray-100 min-h-screen p-4 md:p-10">
-
-        <div class="max-w-6xl mx-auto bg-white rounded-lg shadow-sm border border-gray-200">
-
-          <div class="p-6 border-b border-gray-100 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <h1 class="text-2xl font-semibold text-gray-800">Withdraw Summary</h1>
-
-            <form method="GET">
-              <div class="flex flex-wrap items-center gap-3 bg-gray-50 p-3 rounded-lg border border-gray-200">
-                <div class="flex items-center gap-2">
-                  <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">From</label>
-                  <input type="date" name="from" value="<%= from %>"
-                    class="bg-white px-3 py-1.5 border border-gray-300 rounded text-gray-600 text-sm focus:ring-2 focus:ring-yellow-400 outline-none transition-all">
-                </div>
-
-                <span class="hidden sm:block text-gray-300 font-light">|</span>
-
-                <div class="flex items-center gap-2">
-                  <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">To</label>
-                  <input type="date" name="to" value="<%= to %>" class="bg-white px-3 py-1.5 border border-gray-300 rounded text-gray-600 text-sm focus:ring-2
-                  focus:ring-yellow-400 outline-none transition-all">
-                </div>
-
-                <button
-                  class="bg-yellow-500 text-white px-5 py-1.5 rounded text-sm font-semibold transition-colors shadow-sm active:scale-95">
-                  Update
-                </button>
-                <a href="/adminWithdrawTransactions"
-                  class="bg-yellow-500 text-white px-5 py-1.5 rounded text-sm font-semibold transition-colors shadow-sm active:scale-95">
-                  Reset
-                </a>
+          <form method="GET">
+            <div class="flex flex-wrap items-center gap-3 bg-gray-50 p-3 rounded-lg border border-gray-200">
+              <div class="flex items-center gap-2">
+                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">From</label>
+                <input type="date" name="from" value="<%= from %>"
+                  class="bg-white px-3 py-1.5 border border-gray-300 rounded text-gray-600 text-sm">
               </div>
 
-          </div>
-
-          <div class="p-6 space-y-6">
-
-            <div
-              class=" bg-yellow-600 rounded-md p-6 w-[100%] rounded-md p-8 text-white shadow-sm relative overflow-hidden">
-              <div class="absolute -right-10 -top-10 w-40 h-40 bg-white opacity-10 rounded-full"></div>
-
-              <div class="relative z-10">
-                <div class="flex flex-col md:flex-row md:items-baseline gap-2">
-                  <span class="text-lg opacity-90 font-medium tex">Total Withdraw</span>
-                  <span class="text-4xl md:text-5xl font-bold tracking-tight"> ₹<%=
-                      totalDepositAmount.toLocaleString("en-IN") %></span>
-                </div>
-                <p class="text-sm mt-2 opacity-90 font-medium tracking-wide">Total Transactions: <%= totalDepositCount
-                    %>
-                </p>
+              <div class="flex items-center gap-2">
+                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">To</label>
+                <input type="date" name="to" value="<%= to %>"
+                  class="bg-white px-3 py-1.5 border border-gray-300 rounded text-gray-600 text-sm">
               </div>
+
+              <button
+                class="bg-yellow-500 text-white px-5 py-1.5 rounded text-sm font-semibold shadow-sm">
+                Update
+              </button>
+
+              <a href="/adminWithdrawTransactions"
+                class="bg-yellow-500 text-white px-5 py-1.5 rounded text-sm font-semibold shadow-sm">
+                Reset
+              </a>
             </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-
-              <div
-                class="group bg-white border border-gray-200 rounded-md p-6 hover:border-yellow-400 transition-all duration-300">
-                <div class="flex items-start justify-between mb-4">
-                  <span class="text-gray-500 font-bold text-xs tracking-widest uppercase">Admin</span>
-                  <span class="text-2xl font-bold text-gray-800 group-hover:text-yellow-600">₹<%=
-                      manualTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 }) %></span>
-                </div>
-                <div class="w-full bg-gray-100 h-1 mb-3 rounded-full overflow-hidden">
-                  <div class="bg-brand-yellow h-full w-[74%]"></div>
-                </div>
-                <p class="text-xs text-gray-400 font-semibold">Transactions: <%= manualCount %>
-                </p>
-              </div>
-
-              <div
-                class="group bg-white border border-gray-200 rounded-md p-6 hover:border-yellow-400 transition-all duration-300">
-                <div class="flex items-start justify-between mb-4">
-                  <span class="text-gray-500 font-bold text-xs tracking-widest uppercase">GPay</span>
-                  <span class="text-2xl font-bold text-gray-800 group-hover:text-yellow-600">₹<%=
-                      gpayTotal.toLocaleString("en-IN") %></span>
-                </div>
-                <div class="w-full bg-gray-100 h-1 mb-3 rounded-full overflow-hidden">
-                  <div class="h-full w-[15%]"></div>
-                </div>
-                <p class="text-xs text-gray-400 font-semibold">Transactions: <%= gpayCount %>
-                </p>
-              </div>
-
-              <div
-                class="group bg-white border border-gray-200 rounded-md p-6 hover:border-yellow-400 transition-all duration-300">
-                <div class="flex items-start justify-between mb-4">
-                  <span class="text-gray-500 font-bold text-xs tracking-widest uppercase">Paytm</span>
-                  <span class="text-2xl font-bold text-gray-800 group-hover:text-yellow-600">₹<%=
-                      paytmTotal.toLocaleString("en-IN") %></span>
-                </div>
-                <div class="w-full bg-gray-100 h-1 mb-3 rounded-full overflow-hidden">
-                  <div class=" h-full w-[5%]"></div>
-                </div>
-                <p class="text-xs text-gray-400 font-semibold">Transactions: <%= paytmCount %>
-                </p>
-              </div>
-
-              <div
-                class="group bg-white border border-gray-200 rounded-md p-6 hover:border-yellow-400 transition-all duration-300">
-                <div class="flex items-start justify-between mb-4">
-                  <span class="text-gray-500 font-bold text-xs tracking-widest uppercase">PhonePe</span>
-                  <span class="text-2xl font-bold text-gray-800 group-hover:text-yellow-600">₹<%=
-                      phonepeTotal.toLocaleString("en-IN") %></span>
-                </div>
-                <div class="w-full bg-gray-100 h-1 mb-3 rounded-full overflow-hidden">
-                  <div class=" h-full w-[25%]"></div>
-                </div>
-                <p class="text-xs text-gray-400 font-semibold">Transactions: <%= phonepeCount %>
-                </p>
-              </div>
-
-            </div>
-          </div>
         </div>
 
-      </main>
-      <!-- ==================================== Body 2 Here ========================================= -->
-      <main class="bg-gray-100 p-4 md:p-8">
+        <div class="p-6 space-y-6">
 
-        <div class="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-
-          <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-            <div class="text-sm text-gray-700">
-              Show
-              <select onchange="location = this.value;" class="border border-gray-300 rounded px-2 py-1">
-
-                <option value="?limit=10&search=<%= search %>&from=<%= from %>&to=<%= to %>" <%=perPage==10 ? 'selected'
-                  : '' %>>10</option>
-
-                <option value="?limit=25&search=<%= search %>&from=<%= from %>&to=<%= to %>" <%=perPage==25 ? 'selected'
-                  : '' %>>25</option>
-
-                <option value="?limit=50&search=<%= search %>&from=<%= from %>&to=<%= to %>" <%=perPage==50 ? 'selected'
-                  : '' %>>50</option>
-              </select>
-              entries
-            </div>
-            <div class="flex items-center gap-2">
-              <label class="text-sm text-gray-700">Search:</label>
-              <input type="text" name="search" value="<%= search %>"
-                class="border border-gray-300 rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <!-- TOTAL -->
+          <div class="bg-yellow-600 rounded-md p-8 text-white shadow-sm relative overflow-hidden">
+            <div class="relative z-10">
+              <div class="flex flex-col md:flex-row md:items-baseline gap-2">
+                <span class="text-lg opacity-90 font-medium">Total Withdraw</span>
+                <span class="text-4xl md:text-5xl font-bold tracking-tight">
+                  ₹<%= totalWithdrawAmount.toLocaleString("en-IN") %>
+                </span>
+              </div>
+              <p class="text-sm mt-2 opacity-90 font-medium">
+                Total Transactions: <%= totalWithdrawCount %>
+              </p>
             </div>
           </div>
-          </form>
-          <div class="overflow-x-auto">
-            <table class="w-full border-collapse">
-              <thead>
-                <tr class="text-left border-y border-gray-300">
-                  <th class="p-3 font-semibold text-sm text-gray-700 border-x border-gray-300 bg-gray-50">S.No</th>
-                  <th class="p-3 font-semibold text-sm text-gray-700 border-x border-gray-300 bg-gray-50">Mobile</th>
-                  <th class="p-3 font-semibold text-sm text-gray-700 border-x border-gray-300 bg-gray-50">Username</th>
-                  <th class="p-3 font-semibold text-sm text-gray-700 border-x border-gray-300 bg-gray-50">Amount</th>
-                  <th class="p-3 font-semibold text-sm text-gray-700 border-x border-gray-300 bg-gray-50">Withdraw Type
-                  </th>
-                  <th class="p-3 font-semibold text-sm text-gray-700 border-x border-gray-300 bg-gray-50">Date</th>
+
+          <!-- METHOD CARDS -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+
+            <!-- ADMIN -->
+            <div class="group bg-white border border-gray-200 rounded-md p-6">
+              <div class="flex items-start justify-between mb-4">
+                <span class="text-gray-500 font-bold text-xs uppercase">Admin</span>
+                <span class="text-2xl font-bold text-gray-800">
+                  ₹<%= manualTotal.toLocaleString("en-IN") %>
+                </span>
+              </div>
+              <p class="text-xs text-gray-400 font-semibold">
+                Transactions: <%= manualCount %>
+              </p>
+            </div>
+
+            <!-- GPAY -->
+            <div class="group bg-white border border-gray-200 rounded-md p-6">
+              <div class="flex items-start justify-between mb-4">
+                <span class="text-gray-500 font-bold text-xs uppercase">GPay</span>
+                <span class="text-2xl font-bold text-gray-800">
+                  ₹<%= gpayTotal.toLocaleString("en-IN") %>
+                </span>
+              </div>
+              <p class="text-xs text-gray-400 font-semibold">
+                Transactions: <%= gpayCount %>
+              </p>
+            </div>
+
+            <!-- PAYTM -->
+            <div class="group bg-white border border-gray-200 rounded-md p-6">
+              <div class="flex items-start justify-between mb-4">
+                <span class="text-gray-500 font-bold text-xs uppercase">Paytm</span>
+                <span class="text-2xl font-bold text-gray-800">
+                  ₹<%= paytmTotal.toLocaleString("en-IN") %>
+                </span>
+              </div>
+              <p class="text-xs text-gray-400 font-semibold">
+                Transactions: <%= paytmCount %>
+              </p>
+            </div>
+
+            <!-- PHONEPE -->
+            <div class="group bg-white border border-gray-200 rounded-md p-6">
+              <div class="flex items-start justify-between mb-4">
+                <span class="text-gray-500 font-bold text-xs uppercase">PhonePe</span>
+                <span class="text-2xl font-bold text-gray-800">
+                  ₹<%= phonepeTotal.toLocaleString("en-IN") %>
+                </span>
+              </div>
+              <p class="text-xs text-gray-400 font-semibold">
+                Transactions: <%= phonepeCount %>
+              </p>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- TABLE -->
+    <main class="bg-gray-100 p-4 md:p-8">
+      <div class="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+
+        <div class="overflow-x-auto">
+          <table class="w-full border-collapse">
+            <thead>
+              <tr class="text-left border-y border-gray-300">
+                <th class="p-3 border-x">S.No</th>
+                <th class="p-3 border-x">Mobile</th>
+                <th class="p-3 border-x">Username</th>
+                <th class="p-3 border-x">Amount</th>
+                <th class="p-3 border-x">Withdraw Type</th>
+                <th class="p-3 border-x">Date</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <% if (withdraws.length > 0) { %>
+                <% withdraws.forEach((tx, index) => { %>
+                  <tr>
+                    <td class="p-3 border-x">
+                      <%= (currentPage - 1) * perPage + index + 1 %>
+                    </td>
+                    <td class="p-3 border-x">
+                      <%= tx.user?.phoneNo || "-" %>
+                    </td>
+                    <td class="p-3 border-x">
+                      <%= tx.user?.username || "-" %>
+                    </td>
+                    <td class="p-3 border-x font-medium">
+                      ₹<%= Number(tx.amount).toFixed(2) %>
+                    </td>
+                    <td class="p-3 border-x">
+                      <%= tx.gettingWithdrawManualy === "manual"
+                            ? "Admin"
+                            : (tx.withdrawUpi || "-") %>
+                    </td>
+                    <td class="p-3 border-x text-xs text-gray-500">
+                      <%= new Date(tx.createdAt).toLocaleString() %>
+                    </td>
+                  </tr>
+                <% }) %>
+              <% } else { %>
+                <tr>
+                  <td colspan="6" class="text-center p-4 text-gray-500">
+                    No withdraw transactions found
+                  </td>
                 </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-200">
-                <% if (deposits.length> 0) { %>
-                  <% deposits.forEach((tx, index)=> { %>
-                    <tr class="hover:bg-blue-50 transition-colors">
-                      <td class="p-3 text-sm text-gray-600 border-x border-gray-300">
-                        <%= (currentPage - 1) * perPage + index + 1 %>
-                      </td>
-                      <td class="p-3 text-sm text-gray-600 border-x border-gray-300">
-                        <%= tx.user?.phoneNo || "-" %>
-                      </td>
-                      <td class="p-3 text-sm text-gray-600 border-x border-gray-300">
-                        <%= tx.user?.username || "-" %>
-                      </td>
-                      <td class="p-3 text-sm text-gray-600 border-x border-gray-300 font-medium">
-                        ₹<%= tx.amount.toFixed(2) %>
-                      </td>
-                      <td class="p-3 text-sm text-gray-600 border-x border-gray-300">
-                        <%= tx.receiveMethod %>
-                      </td>
-                      <td class="p-3 text-xs text-gray-500 border-x border-gray-300">
-                        <%= new Date(tx.createdAt).toLocaleString() %>
-                      </td>
-                    </tr>
-                    <% }) %>
-                      <% } else { %>
-                        <tr>
-                          <td colspan="6" class="text-center p-4 text-gray-500">
-                            No deposits found
-                          </td>
-                        </tr>
-                        <% } %>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="flex flex-col md:flex-row justify-between items-center mt-6 gap-4">
-            <div class="text-sm text-gray-600">
-              Showing 1 to 10 of 135 entries
-            </div>
-            <nav class="inline-flex rounded-md shadow-sm -space-x-px">
-              <% if (currentPage> 1) { %>
-                <a href="?page=<%= currentPage - 1 %>&limit=<%= perPage %>&search=<%= search %>&from=<%= from %>&to=<%= to %>"
-                  class="px-3 py-2 border border-gray-300 bg-white text-sm">Previous</a>
-                <% } %>
-
-                  <% for(let i=1; i <=totalPages; i++) { %>
-                    <a href="?page=<%= i %>&limit=<%= perPage %>&search=<%= search %>&from=<%= from %>&to=<%= to %>"
-                      class="px-4 py-2 border border-gray-300 text-sm <%= currentPage === i ? 'bg-blue-600 text-white' : 'bg-white text-gray-700' %>">
-                      <%= i %>
-                    </a>
-                    <% } %>
-
-                      <% if (currentPage < totalPages) { %>
-                        <a href="?page=<%= currentPage + 1 %>&limit=<%= perPage %>&search=<%= search %>&from=<%= from %>&to=<%= to %>"
-                          class="px-3 py-2 border border-gray-300 bg-white text-sm">Next</a>
-                        <% } %>
-            </nav>
-          </div>
+              <% } %>
+            </tbody>
+          </table>
         </div>
 
-      </main>
+      </div>
+    </main>
+
   </main>
   <script src="/js/sidebar.js"></script>
 </body>
-
 </html>

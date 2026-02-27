@@ -228,7 +228,7 @@
                         ₹<%= tx.amount.toFixed(2) %>
                       </td>
                       <td class="p-3 text-sm text-gray-600 border-x border-gray-300">
-                        <%= tx.payMethod %>
+                        <%= tx.depositUpi || "Admin" %>
                       </td>
                       <td class="p-3 text-xs text-gray-500 border-x border-gray-300">
                         <%= new Date(tx.createdAt).toLocaleString() %>

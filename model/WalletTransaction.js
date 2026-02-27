@@ -2,17 +2,13 @@ const mongoose = require("mongoose");
 
 const walletTransactionSchema = new mongoose.Schema(
   {
-    // The primary user whose wallet is affected
     user: {
       //(whose wallet changed)
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
     },
 
-    // Admin involved in the transaction (null if system/payment gateway)
     admin: {
-      //(who performed action)
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       default: null,
@@ -26,7 +22,7 @@ const walletTransactionSchema = new mongoose.Schema(
     // credit = wallet increases, debit = wallet decreases
     type: {
       type: String,
-      enum: ["credit", "debit","deposit_rejected","withdraw_rejected"],
+      enum: ["user_credit", "user_debit", "admin_credit", "admin_debit", "deposit_rejected","withdraw_rejected"],
       required: true,
     },
 
@@ -38,11 +34,11 @@ const walletTransactionSchema = new mongoose.Schema(
         "withdraw", // User withdraws money
         "game_win", // User wins in a game
         "game_loss", // User loses in a game
-        "admin_credit", // Admin adds money to user wallet
-        "admin_debit", // Admin removes money from user wallet
+        "admin_deposit_user", // Admin adds money to user wallet
+        "admin_withdraw_user", // Admin removes money from user wallet
         "refund", // Refunds
-        "withdraw_rejected",
-        "deposit_rejected"
+        "user_deposit_rejected",
+        "user_withdraw_rejected",
       ],
       required: true,
     },

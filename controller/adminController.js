@@ -4,6 +4,7 @@ const bcrypt = require("bcryptjs");
 const User = require("../model/userSchema");
 const firebaseAdmin = require("../config/firebase");
 const WalletTransaction = require("../model/WalletTransaction");
+const UserWalletTransaction = require("../model/UserWalletTransaction");
 const UserBankDetails = require("../model/UserBankDetails");
 const moment = require("moment-timezone");
 const { DateTime } = require("luxon");
@@ -237,110 +238,78 @@ exports.updateWallet = async (req, res) => {
     const { userId, amount, action } = req.body;
 
     const amt = Number(amount);
-    if (!amt || amt <= 0)
+    if (!amt || amt <= 0) {
       return res.json({ success: false, message: "Invalid amount" });
+    }
 
     const user = await User.findById(userId);
-    if (!user) return res.json({ success: false, message: "User not found" });
+    if (!user) {
+      return res.json({ success: false, message: "User not found" });
+    }
 
-    let userOld = user.wallet;
-    let adminOld = admin.wallet;
+    const userOldBalance = user.wallet;
+    const adminOldBalance = admin.wallet;
 
-    if (action === "admin_credit") {
-      // ✅ ADMIN WALLET CHECK HOGA
-      if (admin.wallet < amt)
+    // ===============================
+    // ✅ ADMIN GIVES MONEY TO USER
+    // ===============================
+    if (action === "admin_debit") {
+      if (admin.wallet < amt) {
         return res.json({
           success: false,
           message: "Admin has insufficient balance",
         });
+      }
 
-      // Wallet update
-      user.wallet += amt; // user ko paisa mila
-      admin.wallet -= amt; // admin ka paisa gaya
+      // Update balances
+      admin.wallet -= amt;
+      user.wallet += amt;
+
+      await admin.save();
+      await user.save();
+
+      // USER TRANSACTION (Credit)
+      await UserWalletTransaction.create({
+        user: user._id,
+        type: "credit",
+        source: "deposit",
+        amount: amt,
+        gettingdepositManualy: "manual", // ✅ ADDED
+        oldBalance: userOldBalance,
+        newBalance: user.wallet,
+        status: "success",
+        remark: `Admin credited ₹${amt}`,
+      });
+
+      // ===============================
+      // ✅ ADMIN TAKES MONEY FROM USER
+      // ===============================
+    } else if (action === "admin_credit") {
+      if (user.wallet < amt) {
+        return res.json({
+          success: false,
+          message: "User has insufficient balance",
+        });
+      }
+
+      // Update balances
+      user.wallet -= amt;
+      admin.wallet += amt;
 
       await user.save();
       await admin.save();
 
       // USER TRANSACTION (Debit)
-      await WalletTransaction.create({
+      await UserWalletTransaction.create({
         user: user._id,
-        admin: admin._id,
         type: "debit",
-        source: "deposit",
-        receiveMethod: null,
-        payMethod: "manual",
-        mobileNoOrUpiId: null,
-        amount: amt,
-        oldBalance: userOld,
-        newBalance: user.wallet,
-        adminOldBalance: adminOld,
-        adminNewBalance: admin.wallet,
-        status: "success",
-      });
-
-      // ADMIN TRANSACTION (Credit)
-      await WalletTransaction.create({
-        user: admin._id,
-        admin: admin._id,
-        relatedUser: user._id,
-        type: "credit",
-        source: "admin_credit",
-        receiveMethod: "manual",
-        payMethod: null,
-        mobileNoOrUpiId: null,
-        amount: amt,
-        adminOldBalance: adminOld,
-        adminNewBalance: admin.wallet,
-        status: "success",
-        remark: `Admin credited ${amt} to ${user.username}`,
-      });
-    } else if (action === "admin_debit") {
-      // ✅ USER WALLET CHECK HOGA
-      if (user.wallet < amt)
-        return res.json({
-          success: false,
-          message: "User has insufficient balance",
-        });
-
-      // Wallet update
-      user.wallet -= amt; // user ka paisa gaya
-      admin.wallet += amt; // admin ka paisa aaya
-
-      await user.save();
-      await admin.save();
-
-      // USER TRANSACTION (DEBIT)
-      await WalletTransaction.create({
-        user: user._id,
-        admin: admin._id,
-        type: "credit",
         source: "withdraw",
-        payMethod: null,
-        receiveMethod: "manual",
-        mobileNoOrUpiId: null,
         amount: amt,
-        oldBalance: userOld,
+        gettingWithdrawManualy: "manual", // ✅ ADDED
+        oldBalance: userOldBalance,
         newBalance: user.wallet,
-        adminOldBalance: adminOld,
-        adminNewBalance: admin.wallet,
         status: "success",
-      });
-
-      // ADMIN TRANSACTION (CREDIT)
-      await WalletTransaction.create({
-        user: admin._id,
-        admin: admin._id,
-        relatedUser: user._id,
-        type: "debit",
-        source: "admin_debit",
-        payMethod: "manual",
-        receiveMethod: null,
-        mobileNoOrUpiId: null,
-        amount: amt,
-        adminOldBalance: adminOld,
-        adminNewBalance: admin.wallet,
-        status: "success",
-        remark: `Admin debited ${amt} from ${user.username}`,
+        remark: `Admin debited ₹${amt}`,
       });
     } else {
       return res.json({ success: false, message: "Invalid action" });
@@ -560,7 +529,6 @@ exports.adminCreateUser = async (req, res) => {
 
 exports.getSingleUserDetails = async (req, res) => {
   try {
-    // 🔐 Admin auth check
     if (
       !req.session.isLoggedIn ||
       !req.session.admin ||
@@ -581,185 +549,117 @@ exports.getSingleUserDetails = async (req, res) => {
     }
 
     const userId = req.params.userId;
-
-    // 👤 Get user
     const user = await User.findById(userId);
-    if (!user) {
-      return res.redirect("/admin/allUsers");
-    }
+    if (!user) return res.redirect("/admin/allUsers");
 
-    // 🏦 Get bank details
     const bankDetails = await UserBankDetails.findOne({ user: user._id });
 
-    // 💰 TOTAL DEPOSIT (all money coming into user wallet)
-    const depositAgg = await WalletTransaction.aggregate([
+    /* ================= TOTAL DEPOSIT ================= */
+
+    const depositAgg = await UserWalletTransaction.aggregate([
       {
         $match: {
           user: user._id,
-          source: { $in: ["admin_credit", "deposit", "refund"] },
+          type: "credit",
           status: "success",
         },
       },
-      {
-        $group: {
-          _id: null,
-          total: { $sum: "$amount" },
-        },
-      },
+      { $group: { _id: null, total: { $sum: "$amount" } } },
     ]);
 
-    // 💸 TOTAL WITHDRAW (all money going out from user wallet)
-    const withdrawAgg = await WalletTransaction.aggregate([
+    const withdrawAgg = await UserWalletTransaction.aggregate([
       {
         $match: {
           user: user._id,
-          source: { $in: ["admin_debit", "withdraw"] },
+          type: "debit",
           status: "success",
         },
       },
-      {
-        $group: {
-          _id: null,
-          total: { $sum: "$amount" },
-        },
-      },
+      { $group: { _id: null, total: { $sum: "$amount" } } },
     ]);
 
     const totalDeposit = depositAgg[0]?.total || 0;
     const totalWithdraw = withdrawAgg[0]?.total || 0;
 
-    // 🧾 Last 50 Transactions
-    const transactions = await WalletTransaction.find({ user: user._id })
-      .populate("admin", "username phoneNo")
-      .sort({ createdAt: -1 })
-      .limit(50);
+    /* ================= NEW TRANSACTION ================= */
 
+    const newTPage = parseInt(req.query.newTPage) || 1;
+    const newTLimit =
+      req.query.newTLimit === "all"
+        ? null
+        : parseInt(req.query.newTLimit) || 10;
 
+    const newTType = req.query.newTType || "all";
 
+    let newMatch = { user: user._id };
+    if (newTType !== "all") newMatch.type = newTType;
 
+    const newTTotalRecords =
+      await UserWalletTransaction.countDocuments(newMatch);
 
-      // ================= NEW TRANSACTION SYSTEM =================
+    const newTTotalPages = newTLimit
+      ? Math.ceil(newTTotalRecords / newTLimit)
+      : 1;
 
-const newTPage = parseInt(req.query.newTPage) || 1;
-const newTLimit =
-  req.query.newTLimit === "all"
-    ? null
-    : parseInt(req.query.newTLimit) || 10;
+    let newQuery = UserWalletTransaction.find(newMatch).sort({ createdAt: -1 });
 
-const newTType = req.query.newTType || "all";
+    if (newTLimit) {
+      newQuery = newQuery.skip((newTPage - 1) * newTLimit).limit(newTLimit);
+    }
 
-// filter object
-let newTransactionMatch = { user: user._id };
+    const newTransactions = await newQuery;
 
-if (newTType !== "all") {
-  newTransactionMatch.type = newTType;
-}
+    /* ================= WITHDRAW TABLE ================= */
 
-// total count
-const newTTotalRecords = await WalletTransaction.countDocuments(
-  newTransactionMatch
-);
-
-const newTTotalPages = newTLimit
-  ? Math.ceil(newTTotalRecords / newTLimit)
-  : 1;
-
-// query
-let newTransactionQuery = WalletTransaction.find(newTransactionMatch)
-  .populate("admin", "username phoneNo")
-  .sort({ createdAt: -1 });
-
-if (newTLimit) {
-  newTransactionQuery = newTransactionQuery
-    .skip((newTPage - 1) * newTLimit)
-    .limit(newTLimit);
-}
-
-const newTransactions = await newTransactionQuery;
-    // ===================== WITHDRAW LIST PAGINATION =====================
-
-    // query params
     const withdrawPage = parseInt(req.query.withdrawPage) || 1;
     const withdrawLimit =
       req.query.withdrawLimit === "all"
         ? null
         : parseInt(req.query.withdrawLimit) || 10;
 
-    const withdrawSearch = req.query.withdrawSearch || "";
     const withdrawStatus = req.query.withdrawStatus || "all";
+    const withdrawSearch = req.query.withdrawSearch || "";
 
-    // withdraw condition (USER VIEW)
-    const withdrawBaseMatch = {
+    let withdrawMatch = {
       user: user._id,
-      source: { $in: ["withdraw", "admin_debit"] },
+      type: "debit",
     };
 
-    // ✅ STATUS FILTER
     if (withdrawStatus !== "all") {
-      withdrawBaseMatch.status = withdrawStatus;
+      withdrawMatch.status = withdrawStatus;
     }
 
-    // 🔍 username / mobile search
-    let withdrawUserFilter = {};
-    if (withdrawSearch) {
-      withdrawUserFilter = {
-        $or: [
-          { "userData.username": { $regex: withdrawSearch, $options: "i" } },
-          { "userData.phoneNo": { $regex: withdrawSearch, $options: "i" } },
-        ],
-      };
-    }
-
-    // aggregation
-    const withdrawAggPipeline = [
-      { $match: withdrawBaseMatch },
-      {
-        $lookup: {
-          from: "users",
-          localField: "user",
-          foreignField: "_id",
-          as: "userData",
-        },
-      },
-      { $unwind: "$userData" },
-      ...(withdrawSearch ? [{ $match: withdrawUserFilter }] : []),
-      { $sort: { createdAt: -1 } },
-    ];
-
-    // total count
-    const withdrawCountAgg = await WalletTransaction.aggregate([
-      ...withdrawAggPipeline,
-      { $count: "total" },
-    ]);
-
-    const withdrawTotalRecords = withdrawCountAgg[0]?.total || 0;
-
-    // pagination
-    if (withdrawLimit) {
-      withdrawAggPipeline.push(
-        { $skip: (withdrawPage - 1) * withdrawLimit },
-        { $limit: withdrawLimit },
-      );
-    }
-
-    const withdrawTransactions =
-      await WalletTransaction.aggregate(withdrawAggPipeline);
+    const withdrawTotalRecords =
+      await UserWalletTransaction.countDocuments(withdrawMatch);
 
     const withdrawTotalPages = withdrawLimit
       ? Math.ceil(withdrawTotalRecords / withdrawLimit)
       : 1;
 
-    // ====================================================================End
+    let withdrawQuery = UserWalletTransaction.find(withdrawMatch).sort({
+      createdAt: -1,
+    });
+
+    if (withdrawLimit) {
+      withdrawQuery = withdrawQuery
+        .skip((withdrawPage - 1) * withdrawLimit)
+        .limit(withdrawLimit);
+    }
+
+    const withdrawTransactions = await withdrawQuery;
+
+    /* ================= BID HISTORY (UNCHANGED STYLE SAFE) ================= */
 
     // ===================== USER BID HISTORY (NEW - SAFE ADD) =====================
-
     const userBidPage = parseInt(req.query.userBidPage) || 1;
+
     const userBidLimit =
       req.query.userBidLimit === "all"
         ? null
         : parseInt(req.query.userBidLimit) || 10;
 
     const userBidSearch = req.query.userBidSearch || "";
+
     const userBidMarket = req.query.userBidMarket || "all";
 
     let userSelectedModels = [];
@@ -800,17 +700,21 @@ const newTransactions = await newTransactionQuery;
           if (userBidSearch) {
             const search = userBidSearch.toLowerCase();
 
-            const text = `
-    ${bet.gameName || ""}
-    ${bet.gameType || ""}
-  `.toLowerCase();
+            const text =
+              `${bet.gameName || ""} ${bet.gameType || ""}`.toLowerCase();
 
             if (!text.includes(search)) return;
           }
 
           let marketLabel = "Main Market";
-          if (jackpotBetModels.includes(Model)) marketLabel = "Jackpot";
-          if (starlineBetModels.includes(Model)) marketLabel = "Starline";
+
+          if (jackpotBetModels.includes(Model)) {
+            marketLabel = "Jackpot";
+          }
+
+          if (starlineBetModels.includes(Model)) {
+            marketLabel = "Starline";
+          }
 
           let number =
             b.number ??
@@ -824,7 +728,7 @@ const newTransactions = await newTransactionQuery;
             user: bet.userId,
             gameType: bet.gameType || "-",
             market: marketLabel,
-            session: b.session ?? "-",
+            session: b.session ?? b.mode ?? "-",
             amount,
             digits: number,
             gameName: bet.gameName || "-",
@@ -835,11 +739,14 @@ const newTransactions = await newTransactionQuery;
       });
     }
 
-    // SORT
+    /* ================= SORT ================= */
+
     userAllBids.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-    // PAGINATION
+    /* ================= PAGINATION ================= */
+
     const userBidTotalRecords = userAllBids.length;
+
     const userBidTotalPages = userBidLimit
       ? Math.ceil(userBidTotalRecords / userBidLimit)
       : 1;
@@ -850,33 +757,33 @@ const newTransactions = await newTransactionQuery;
           userBidPage * userBidLimit,
         )
       : userAllBids;
-
-
-
-
-
-
-      
     // ===================== END USER BID HISTORY =====================
 
-    // 📤 Send to page
+    /* ================= RENDER ================= */
+
     res.render("Admin/singleUserDetails", {
       pageTitle: "User Details",
       admin,
       user,
-      bankDetails, // ✅ NOW AVAILABLE
-      walletBalance: user.wallet,
+      bankDetails,
       totalDeposit,
       totalWithdraw,
-      transactions,
-      // 🔽 NEW (withdraw table only)
+
       withdrawTransactions,
       withdrawPage,
       withdrawLimit: withdrawLimit || "all",
-      withdrawSearch,
       withdrawTotalPages,
       withdrawTotalRecords,
       withdrawStatus,
+      withdrawSearch, // 🔥 FIX ADDED
+
+      newTransactions,
+      newTPage,
+      newTLimit: newTLimit || "all",
+      newTType,
+      newTTotalPages,
+      newTTotalRecords,
+
       // 🔽 NEW (user bid table only)
       userBidHistory: userPaginatedBids || [],
       userBidPage,
@@ -886,14 +793,6 @@ const newTransactions = await newTransactionQuery;
       userBidTotalPages,
       userBidTotalRecords,
 
-
-
-      newTransactions,
-newTPage,
-newTLimit: newTLimit || "all",
-newTType,
-newTTotalPages,
-newTTotalRecords,
       isLoggedIn: req.session.isLoggedIn,
     });
   } catch (error) {
@@ -6982,7 +6881,9 @@ exports.depositRequest = async (req, res) => {
     const limit = 10;
     const skip = (page - 1) * limit;
 
-    let filter = { source: "deposit" };
+    // ✅ IMPORTANT UPDATE
+    // Include both normal deposit + manual deposit
+    let filter = { source: "deposit", gettingdepositManualy: null };
 
     // ✅ Date Filter
     if (from && to) {
@@ -7006,13 +6907,14 @@ exports.depositRequest = async (req, res) => {
       if (user) {
         filter.user = user._id;
       } else {
-        filter.user = null; // no result
+        filter.user = null;
       }
     }
 
-    const total = await WalletTransaction.countDocuments(filter);
+    // 🔥 MODEL UPDATED HERE
+    const total = await UserWalletTransaction.countDocuments(filter);
 
-    const transactions = await WalletTransaction.find(filter)
+    const transactions = await UserWalletTransaction.find(filter)
       .populate("user")
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -7060,11 +6962,18 @@ exports.acceptDeposit = async (req, res) => {
       return res.redirect("/admin/login");
     }
 
-    const deposit = await WalletTransaction.findById(req.params.id)
+    // ✅ NEW MODEL
+    const deposit = await UserWalletTransaction.findById(req.params.id)
       .populate("user")
       .session(session);
 
-    if (!deposit || deposit.status !== "pending") {
+    // ✅ Only pending user request deposits
+    if (
+      !deposit ||
+      deposit.status !== "pending" ||
+      deposit.source !== "deposit" ||
+      deposit.gettingdepositManualy !== null
+    ) {
       await session.abortTransaction();
       session.endSession();
       return res.redirect("/admin/DepositRequests");
@@ -7076,49 +6985,30 @@ exports.acceptDeposit = async (req, res) => {
       return res.send("Admin wallet balance low");
     }
 
-    // USER WALLET UPDATE
+    // ==========================
+    // 💰 USER WALLET UPDATE
+    // ==========================
     const userOldBalance = deposit.user.wallet;
     const userNewBalance = userOldBalance + deposit.amount;
 
     deposit.user.wallet = userNewBalance;
     await deposit.user.save({ session });
 
-    // ADMIN WALLET UPDATE
-    const adminOldBalance = admin.wallet;
-    const adminNewBalance = adminOldBalance - deposit.amount;
-
-    admin.wallet = adminNewBalance;
+    // ==========================
+    // 💰 ADMIN WALLET UPDATE
+    // ==========================
+    admin.wallet -= deposit.amount;
     await admin.save({ session });
 
-    // UPDATE ORIGINAL DEPOSIT
+    // ==========================
+    // ✅ UPDATE ORIGINAL DEPOSIT ENTRY
+    // ==========================
     deposit.status = "success";
-    deposit.admin = admin._id;
     deposit.oldBalance = userOldBalance;
     deposit.newBalance = userNewBalance;
-    deposit.adminOldBalance = adminOldBalance;
-    deposit.adminNewBalance = adminNewBalance;
+    deposit.remark = "Deposit approved by admin";
 
     await deposit.save({ session });
-
-    // ADMIN TRANSACTION HISTORY ENTRY
-    await WalletTransaction.create(
-      [
-        {
-          user: admin._id, // admin wallet affected
-          admin: admin._id,
-          type: "credit",
-          source: "admin_credit",
-          amount: deposit.amount,
-          // ✅ USE THESE
-          adminOldBalance: adminOldBalance,
-          adminNewBalance: adminNewBalance,
-          status: "success",
-          remark: `Deposit approved for ${deposit.user.username}`,
-          relatedUser: deposit.user._id, // optional (if added in schema)
-        },
-      ],
-      { session },
-    );
 
     await session.commitTransaction();
     session.endSession();
@@ -7158,43 +7048,30 @@ exports.rejectDeposit = async (req, res) => {
       return res.redirect("/admin/login");
     }
 
-    const deposit = await WalletTransaction.findById(req.params.id)
+    // ✅ NEW MODEL
+    const deposit = await UserWalletTransaction.findById(req.params.id)
       .populate("user")
       .session(session);
 
-    if (!deposit || deposit.status !== "pending") {
+    // ✅ Only pending user request deposits
+    if (
+      !deposit ||
+      deposit.status !== "pending" ||
+      deposit.source !== "deposit" ||
+      deposit.gettingdepositManualy !== null
+    ) {
       await session.abortTransaction();
       session.endSession();
       return res.redirect("/admin/DepositRequests");
     }
 
     // =========================
-    // 1️⃣ Update Deposit Entry
+    // ✅ Update Deposit Entry Only
     // =========================
     deposit.status = "rejected";
-    deposit.admin = admin._id;
     deposit.remark = `Deposit rejected by ${admin.username}`;
 
     await deposit.save({ session });
-
-    // =========================
-    // 2️⃣ Admin Activity History Entry
-    // (No wallet balance change)
-    // =========================
-    await WalletTransaction.create(
-      [
-        {
-          user: admin._id,
-          relatedUser: deposit.user._id,
-          type: "deposit_rejected", // ⚠ ensure enum has this
-          source: "deposit_rejected", // ⚠ add in enum
-          amount: deposit.amount,
-          status: "success",
-          remark: `Rejected deposit of ${deposit.user.username}`,
-        },
-      ],
-      { session },
-    );
 
     await session.commitTransaction();
     session.endSession();
@@ -7235,9 +7112,11 @@ exports.withdrawRequest = async (req, res, next) => {
     const limit = 10;
     const skip = (page - 1) * limit;
 
+    // ✅ Only real user withdraw requests
     let filter = {
       source: "withdraw",
-      type: "credit",
+      type: "debit",
+      gettingWithdrawManualy: null,
     };
 
     if (status) filter.status = status;
@@ -7264,9 +7143,9 @@ exports.withdrawRequest = async (req, res, next) => {
       filter.user = { $in: userIds };
     }
 
-    const total = await WalletTransaction.countDocuments(filter);
+    const total = await UserWalletTransaction.countDocuments(filter);
 
-    const withdrawRequests = await WalletTransaction.find(filter)
+    const withdrawRequests = await UserWalletTransaction.find(filter)
       .populate("user")
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -7291,7 +7170,6 @@ exports.withdrawRequest = async (req, res, next) => {
       adminUser,
       isLoggedIn: req.session.isLoggedIn,
       withdrawRequests: updatedRequests,
-      // withdrawRequests,
       currentPage: Number(page),
       totalPages: Math.ceil(total / limit),
       total,
@@ -7316,7 +7194,6 @@ exports.approveWithdraw = async (req, res) => {
       return res.redirect("/admin/login");
     }
 
-    // 🔹 Admin Fetch
     const admin = await User.findOne({
       _id: req.session.admin._id,
       role: "admin",
@@ -7330,78 +7207,57 @@ exports.approveWithdraw = async (req, res) => {
       return res.redirect("/admin/login");
     }
 
-    // 🔹 Withdraw Transaction Fetch
-    const withdraw = await WalletTransaction.findById(req.params.id)
+    const withdraw = await UserWalletTransaction.findById(req.params.id)
       .populate("user")
       .session(session);
 
-    if (!withdraw || withdraw.status !== "pending") {
+    if (
+      !withdraw ||
+      withdraw.status !== "pending" ||
+      withdraw.source !== "withdraw" ||
+      withdraw.gettingWithdrawManualy !== null
+    ) {
       await session.abortTransaction();
       session.endSession();
       return res.redirect("/admin/WithdrawPointsRequestReport");
     }
 
-    // 🔹 Check Admin Balance
-    if (admin.wallet < withdraw.amount) {
+    const user = withdraw.user;
+
+    // 🔥 Check user balance
+    if (user.wallet < withdraw.amount) {
       await session.abortTransaction();
       session.endSession();
-      return res.send("Admin wallet balance low");
+      return res.send("User wallet balance low");
     }
 
     // ===============================
-    // 1️⃣ USER WALLET ALREADY DEDUCTED?
-    // (Assuming withdraw request ke time pe user wallet se amount minus ho chuka hai)
-    // Agar nahi hua hai, toh yaha minus karna padega.
+    // 1️⃣ USER WALLET DEDUCT
     // ===============================
 
-    const userOldBalance = withdraw.user.wallet;
-    const userNewBalance = userOldBalance;
-    // 👆 If already deducted at request time
+    const oldBalance = user.wallet;
+    const newBalance = oldBalance - withdraw.amount;
+
+    user.wallet = newBalance;
+    await user.save({ session });
 
     // ===============================
-    // 2️⃣ ADMIN WALLET UPDATE
+    // 2️⃣ ADMIN WALLET CREDIT (PLUS)
     // ===============================
 
-    const adminOldBalance = admin.wallet;
-    const adminNewBalance = adminOldBalance - withdraw.amount;
-
-    admin.wallet = adminNewBalance;
+    admin.wallet = admin.wallet + withdraw.amount;
     await admin.save({ session });
 
     // ===============================
-    // 3️⃣ UPDATE ORIGINAL WITHDRAW
+    // 3️⃣ UPDATE TRANSACTION ENTRY
     // ===============================
 
+    withdraw.oldBalance = oldBalance;
+    withdraw.newBalance = newBalance;
     withdraw.status = "success";
-    withdraw.admin = admin._id;
-    withdraw.oldBalance = userOldBalance;
-    withdraw.newBalance = userNewBalance;
-    withdraw.adminOldBalance = adminOldBalance;
-    withdraw.adminNewBalance = adminNewBalance;
+    withdraw.remark = `Withdraw approved by admin`;
 
     await withdraw.save({ session });
-
-    // ===============================
-    // 4️⃣ ADMIN DEBIT HISTORY ENTRY
-    // ===============================
-
-    await WalletTransaction.create(
-      [
-        {
-          user: admin._id,
-          admin: admin._id,
-          relatedUser: withdraw.user._id,
-          type: "debit",
-          source: "admin_debit",
-          amount: withdraw.amount,
-          adminOldBalance: adminOldBalance,
-          adminNewBalance: adminNewBalance,
-          status: "success",
-          remark: `Withdraw approved for ${withdraw.user.username}`,
-        },
-      ],
-      { session },
-    );
 
     await session.commitTransaction();
     session.endSession();
@@ -7441,54 +7297,27 @@ exports.rejectWithdraw = async (req, res) => {
       return res.redirect("/admin/login");
     }
 
-    const withdraw = await WalletTransaction.findById(req.params.id)
+    const withdraw = await UserWalletTransaction.findById(req.params.id)
       .populate("user")
       .session(session);
 
-    if (!withdraw || withdraw.status !== "pending") {
+    if (
+      !withdraw ||
+      withdraw.status !== "pending" ||
+      withdraw.source !== "withdraw" ||
+      withdraw.gettingWithdrawManualy !== null
+    ) {
       await session.abortTransaction();
       session.endSession();
       return res.redirect("/admin/WithdrawPointsRequestReport");
     }
 
-    // =========================
-    // 1️⃣ Refund User Wallet
-    // =========================
-    const userOldBalance = withdraw.user.wallet;
-    const userNewBalance = userOldBalance + withdraw.amount;
+    // ✅ NO WALLET REFUND (because not deducted yet)
 
-    withdraw.user.wallet = userNewBalance;
-    await withdraw.user.save({ session });
-
-    // =========================
-    // 2️⃣ Update Withdraw Entry
-    // =========================
     withdraw.status = "rejected";
-    withdraw.admin = admin._id;
-    withdraw.oldBalance = userOldBalance;
-    withdraw.newBalance = userNewBalance;
-    withdraw.remark = `Rejected by ${admin.username}`;
+    withdraw.remark = `Rejected by admin`;
 
     await withdraw.save({ session });
-
-    // =========================
-    // 3️⃣ Admin Reject History Entry
-    // (No wallet change)
-    // =========================
-    await WalletTransaction.create(
-      [
-        {
-          user: admin._id, // admin history
-          relatedUser: withdraw.user._id,
-          type: "withdraw_rejected", // ⚠ add this in enum
-          source: "withdraw_rejected", // ⚠ add in enum
-          amount: withdraw.amount,
-          status: "success",
-          remark: `Rejected withdraw of ${withdraw.user.username}`,
-        },
-      ],
-      { session },
-    );
 
     await session.commitTransaction();
     session.endSession();
@@ -7502,7 +7331,7 @@ exports.rejectWithdraw = async (req, res) => {
   }
 };
 
-exports.adminDepositHistory = async (req, res, next) => {
+exports.adminDepositHistory = async (req, res) => {
   try {
     if (
       !req.session.isLoggedIn ||
@@ -7523,37 +7352,28 @@ exports.adminDepositHistory = async (req, res, next) => {
       return res.redirect("/admin/login");
     }
 
-    /* =========================
-       FILTER VALUES
-    ========================== */
-
     const { from, to, search, page = 1, limit = 10 } = req.query;
 
     const currentPage = parseInt(page);
     const perPage = parseInt(limit);
 
     let filter = {
-      type: "debit",
+      type: "credit",
       source: "deposit",
       status: "success",
     };
 
-    /* =========================
-       DATE FILTER
-    ========================== */
+    /* ================= DATE FILTER ================= */
 
     if (from && to) {
       filter.createdAt = {
-        $gte: new Date(from + "T00:00:00.000Z"),
-        $lte: new Date(to + "T23:59:59.999Z"),
+        $gte: new Date(from + "T00:00:00"),
+        $lte: new Date(to + "T23:59:59"),
       };
     }
 
-    /* =========================
-       USERNAME SEARCH
-    ========================== */
+    /* ================= USER SEARCH ================= */
 
-    // let userFilter = {};
     if (search && search.trim() !== "") {
       const users = await User.find({
         username: { $regex: search.trim(), $options: "i" },
@@ -7561,25 +7381,17 @@ exports.adminDepositHistory = async (req, res, next) => {
 
       const userIds = users.map((u) => u._id);
 
-      if (userIds.length > 0) {
-        filter.user = { $in: userIds };
-      } else {
-        // Force no results
-        filter.user = null;
-      }
+      filter.user = userIds.length > 0 ? { $in: userIds } : null;
     }
 
-    /* =========================
-       TOTAL COUNT (Date wise)
-    ========================== */
+    /* ================= TOTAL COUNT ================= */
 
-    const totalDepositCount = await WalletTransaction.countDocuments(filter);
+    const totalDepositCount =
+      await UserWalletTransaction.countDocuments(filter);
 
-    /* =========================
-       TOTAL AMOUNT (Date wise)
-    ========================== */
+    /* ================= TOTAL AMOUNT ================= */
 
-    const totalAmountAgg = await WalletTransaction.aggregate([
+    const totalAmountAgg = await UserWalletTransaction.aggregate([
       { $match: filter },
       {
         $group: {
@@ -7592,15 +7404,19 @@ exports.adminDepositHistory = async (req, res, next) => {
     const totalDepositAmount =
       totalAmountAgg.length > 0 ? totalAmountAgg[0].total : 0;
 
-    /* =========================
-       PAYMETHOD WISE (Date wise)
-    ========================== */
+    /* ================= PAYMETHOD WISE ================= */
 
-    const payMethodStats = await WalletTransaction.aggregate([
+    const payMethodStats = await UserWalletTransaction.aggregate([
       { $match: filter },
       {
         $group: {
-          _id: "$payMethod",
+          _id: {
+            $cond: [
+              { $eq: ["$gettingdepositManualy", "manual"] },
+              "manual",
+              "$depositUpi",
+            ],
+          },
           totalAmount: { $sum: "$amount" },
           totalCount: { $sum: 1 },
         },
@@ -7635,11 +7451,9 @@ exports.adminDepositHistory = async (req, res, next) => {
       }
     });
 
-    /* =========================
-       PAGINATED DATA
-    ========================== */
+    /* ================= PAGINATION ================= */
 
-    const deposits = await WalletTransaction.find(filter)
+    const deposits = await UserWalletTransaction.find(filter)
       .populate("user", "username phoneNo")
       .sort({ createdAt: -1 })
       .skip((currentPage - 1) * perPage)
@@ -7647,18 +7461,12 @@ exports.adminDepositHistory = async (req, res, next) => {
 
     const totalPages = Math.ceil(totalDepositCount / perPage);
 
-    /* =========================
-       RENDER
-    ========================== */
-
     res.render("Admin/adminDepositTransactions", {
       pageTitle: "Admin Deposit Req",
       admin,
       deposits,
-
       totalDepositAmount,
       totalDepositCount,
-
       gpayTotal,
       gpayCount,
       paytmTotal,
@@ -7673,7 +7481,6 @@ exports.adminDepositHistory = async (req, res, next) => {
       search: search || "",
       from: from || "",
       to: to || "",
-
       isLoggedIn: req.session.isLoggedIn,
     });
   } catch (err) {
@@ -7702,37 +7509,30 @@ exports.adminWithdrawTranction = async (req, res, next) => {
       return res.redirect("/admin/login");
     }
 
-    /* =========================
-       FILTER VALUES
-    ========================== */
-
     const { from, to, search, page = 1, limit = 10 } = req.query;
 
     const currentPage = parseInt(page);
     const perPage = parseInt(limit);
 
+    /* ================= FILTER ================= */
+
     let filter = {
-      type: "credit",
+      type: "debit",
       source: "withdraw",
       status: "success",
     };
 
-    /* =========================
-       DATE FILTER
-    ========================== */
+    /* ================= DATE FILTER ================= */
 
     if (from && to) {
       filter.createdAt = {
-        $gte: new Date(from + "T00:00:00.000Z"),
-        $lte: new Date(to + "T23:59:59.999Z"),
+        $gte: new Date(from + "T00:00:00"),
+        $lte: new Date(to + "T23:59:59"),
       };
     }
 
-    /* =========================
-       USERNAME SEARCH
-    ========================== */
+    /* ================= USER SEARCH ================= */
 
-    // let userFilter = {};
     if (search && search.trim() !== "") {
       const users = await User.find({
         username: { $regex: search.trim(), $options: "i" },
@@ -7740,25 +7540,17 @@ exports.adminWithdrawTranction = async (req, res, next) => {
 
       const userIds = users.map((u) => u._id);
 
-      if (userIds.length > 0) {
-        filter.user = { $in: userIds };
-      } else {
-        // Force no results
-        filter.user = null;
-      }
+      filter.user = userIds.length > 0 ? { $in: userIds } : null;
     }
 
-    /* =========================
-       TOTAL COUNT (Date wise)
-    ========================== */
+    /* ================= TOTAL COUNT ================= */
 
-    const totalDepositCount = await WalletTransaction.countDocuments(filter);
+    const totalWithdrawCount =
+      await UserWalletTransaction.countDocuments(filter);
 
-    /* =========================
-       TOTAL AMOUNT (Date wise)
-    ========================== */
+    /* ================= TOTAL AMOUNT ================= */
 
-    const totalAmountAgg = await WalletTransaction.aggregate([
+    const totalAmountAgg = await UserWalletTransaction.aggregate([
       { $match: filter },
       {
         $group: {
@@ -7768,18 +7560,22 @@ exports.adminWithdrawTranction = async (req, res, next) => {
       },
     ]);
 
-    const totalDepositAmount =
+    const totalWithdrawAmount =
       totalAmountAgg.length > 0 ? totalAmountAgg[0].total : 0;
 
-    /* =========================
-       PAYMETHOD WISE (Date wise)
-    ========================== */
+    /* ================= METHOD WISE ================= */
 
-    const payMethodStats = await WalletTransaction.aggregate([
+    const payMethodStats = await UserWalletTransaction.aggregate([
       { $match: filter },
       {
         $group: {
-          _id: "$receiveMethod",
+          _id: {
+            $cond: [
+              { $eq: ["$gettingWithdrawManualy", "manual"] },
+              "manual",
+              "$withdrawUpi",
+            ],
+          },
           totalAmount: { $sum: "$amount" },
           totalCount: { $sum: 1 },
         },
@@ -7814,29 +7610,25 @@ exports.adminWithdrawTranction = async (req, res, next) => {
       }
     });
 
-    /* =========================
-       PAGINATED DATA
-    ========================== */
+    /* ================= PAGINATION ================= */
 
-    const deposits = await WalletTransaction.find(filter)
+    const withdraws = await UserWalletTransaction.find(filter)
       .populate("user", "username phoneNo")
       .sort({ createdAt: -1 })
       .skip((currentPage - 1) * perPage)
       .limit(perPage);
 
-    const totalPages = Math.ceil(totalDepositCount / perPage);
+    const totalPages = Math.ceil(totalWithdrawCount / perPage);
 
-    /* =========================
-       RENDER
-    ========================== */
+    /* ================= RENDER ================= */
 
     res.render("Admin/adminWithdrawTransactions", {
       pageTitle: "Admin Withdraw Req",
       admin,
-      deposits,
+      withdraws,
 
-      totalDepositAmount,
-      totalDepositCount,
+      totalWithdrawAmount,
+      totalWithdrawCount,
 
       gpayTotal,
       gpayCount,
@@ -7846,6 +7638,7 @@ exports.adminWithdrawTranction = async (req, res, next) => {
       phonepeCount,
       manualTotal,
       manualCount,
+
       currentPage,
       totalPages,
       perPage,

@@ -264,21 +264,21 @@ function openUserModal(data) {
   let paymentField = "";
 
   // 🔹 Selected Method + Entered Value
-  if (data.receiveMethod === "bank") {
+  if (data.withdrawUpi === "bank") {
     paymentField = `<p><b>Selected Method:</b> Bank</p>
-                    <p><b>Account No / Input:</b> ${data.mobileNoOrUpiId || "-"}</p>`;
+                    <p><b>Account No / Input:</b> ${data.withdrawOnUpiIdOrMobileNo || "-"}</p>`;
   } 
-  else if (data.receiveMethod === "phonepe") {
+  else if (data.withdrawUpi === "phonepe") {
     paymentField = `<p><b>Selected Method:</b> PhonePe</p>
-                    <p><b>PhonePe No / UPI:</b> ${data.mobileNoOrUpiId || "-"}</p>`;
+                    <p><b>PhonePe No / UPI:</b> ${data.withdrawOnUpiIdOrMobileNo || "-"}</p>`;
   } 
-  else if (data.receiveMethod === "gpay") {
+  else if (data.withdrawUpi === "gpay") {
     paymentField = `<p><b>Selected Method:</b> GPay</p>
-                    <p><b>GPay UPI:</b> ${data.mobileNoOrUpiId || "-"}</p>`;
+                    <p><b>GPay UPI:</b> ${data.withdrawOnUpiIdOrMobileNo || "-"}</p>`;
   } 
-  else if (data.receiveMethod === "paytm") {
+  else if (data.withdrawUpi === "paytm") {
     paymentField = `<p><b>Selected Method:</b> Paytm</p>
-                    <p><b>Paytm No:</b> ${data.mobileNoOrUpiId || "-"}</p>`;
+                    <p><b>Paytm No:</b> ${data.withdrawOnUpiIdOrMobileNo || "-"}</p>`;
   }
 
   // 🔹 Always Show Bank Details
