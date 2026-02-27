@@ -220,7 +220,6 @@ exports.toggleUserStatus = async (req, res) => {
 
 exports.updateWallet = async (req, res) => {
   try {
-    // 1️⃣ Check if admin is logged in
     if (
       !req.session.isLoggedIn ||
       !req.session.admin ||
@@ -229,20 +228,13 @@ exports.updateWallet = async (req, res) => {
       return res.redirect("/admin/login");
     }
 
-    const admin = await User.findOne({
-      _id: req.session.admin._id,
-      role: "admin",
-      userStatus: "active",
-    });
-
+    const admin = await User.findById(req.session.admin._id);
     if (!admin) {
       req.session.destroy();
       return res.redirect("/admin/login");
     }
 
-    const { userId, amount, type, action } = req.body;
-    // type = "credit" | "debit" (wallet change)
-    // action = "admin" | "user_withdraw" | "deposit" etc. (source)
+    const { userId, amount, action } = req.body;
 
     const amt = Number(amount);
     if (!amt || amt <= 0)
@@ -254,74 +246,116 @@ exports.updateWallet = async (req, res) => {
     let userOld = user.wallet;
     let adminOld = admin.wallet;
 
-    // 2️⃣ Handle wallet logic
-    switch (action) {
-      case "admin_credit": // Admin adds money to user
-        if (admin.wallet < amt)
-          return res.json({
-            success: false,
-            message: "Admin has insufficient balance",
-          });
-        user.wallet += amt;
-        admin.wallet -= amt;
-        break;
+    if (action === "admin_credit") {
+      // ✅ ADMIN WALLET CHECK HOGA
+      if (admin.wallet < amt)
+        return res.json({
+          success: false,
+          message: "Admin has insufficient balance",
+        });
 
-      case "admin_debit": // Admin removes money from user
-        if (user.wallet < amt)
-          return res.json({
-            success: false,
-            message: "User has insufficient balance",
-          });
-        user.wallet -= amt;
-        admin.wallet += amt;
-        break;
+      // Wallet update
+      user.wallet += amt; // user ko paisa mila
+      admin.wallet -= amt; // admin ka paisa gaya
 
-      case "withdraw": // User withdraws money → admin pays
-        if (user.wallet < amt)
-          return res.json({
-            success: false,
-            message: "User has insufficient balance",
-          });
-        user.wallet -= amt;
-        admin.wallet -= amt; // admin gives money to user
-        break;
+      await user.save();
+      await admin.save();
 
-      case "deposit": // User deposits money (payment gateway)
-        user.wallet += amt;
-        break;
+      // USER TRANSACTION (Debit)
+      await WalletTransaction.create({
+        user: user._id,
+        admin: admin._id,
+        type: "debit",
+        source: "deposit",
+        receiveMethod: null,
+        payMethod: "manual",
+        mobileNoOrUpiId: null,
+        amount: amt,
+        oldBalance: userOld,
+        newBalance: user.wallet,
+        adminOldBalance: adminOld,
+        adminNewBalance: admin.wallet,
+        status: "success",
+      });
 
-      default:
-        return res.json({ success: false, message: "Invalid action type" });
+      // ADMIN TRANSACTION (Credit)
+      await WalletTransaction.create({
+        user: admin._id,
+        admin: admin._id,
+        relatedUser: user._id,
+        type: "credit",
+        source: "admin_credit",
+        receiveMethod: "manual",
+        payMethod: null,
+        mobileNoOrUpiId: null,
+        amount: amt,
+        adminOldBalance: adminOld,
+        adminNewBalance: admin.wallet,
+        status: "success",
+        remark: `Admin credited ${amt} to ${user.username}`,
+      });
+    } else if (action === "admin_debit") {
+      // ✅ USER WALLET CHECK HOGA
+      if (user.wallet < amt)
+        return res.json({
+          success: false,
+          message: "User has insufficient balance",
+        });
+
+      // Wallet update
+      user.wallet -= amt; // user ka paisa gaya
+      admin.wallet += amt; // admin ka paisa aaya
+
+      await user.save();
+      await admin.save();
+
+      // USER TRANSACTION (DEBIT)
+      await WalletTransaction.create({
+        user: user._id,
+        admin: admin._id,
+        type: "credit",
+        source: "withdraw",
+        payMethod:null,
+        receiveMethod: "manual",
+        mobileNoOrUpiId: null,
+        amount: amt,
+        oldBalance: userOld,
+        newBalance: user.wallet,
+        adminOldBalance: adminOld,
+        adminNewBalance: admin.wallet,
+        status: "success",
+      });
+
+      // ADMIN TRANSACTION (CREDIT)
+      await WalletTransaction.create({
+        user: admin._id,
+        admin: admin._id,
+        relatedUser: user._id,
+        type: "debit",
+        source: "admin_debit",
+        payMethod: "manual",
+        receiveMethod: null,
+        mobileNoOrUpiId: null,
+        amount: amt,
+        adminOldBalance: adminOld,
+        adminNewBalance: admin.wallet,
+        status: "success",
+        remark: `Admin debited ${amt} from ${user.username}`,
+      });
+    } else {
+      return res.json({ success: false, message: "Invalid action" });
     }
 
-    // 3️⃣ Save wallets
-    await user.save();
-    await admin.save();
-
-    // 4️⃣ Record wallet transaction for user
-    await WalletTransaction.create({
-      user: user._id,
-      admin: action.startsWith("admin") ? admin._id : null,
-      type,
-      source: action,
-      amount: amt,
-      oldBalance: userOld,
-      newBalance: user.wallet,
-      adminOldBalance: adminOld,
-      adminNewBalance: admin.wallet,
-      status: "success",
-      remark:
-        action === "withdraw"
-          ? `User withdraws ${amt} from wallet`
-          : action === "deposit"
-            ? `User deposits ${amt}`
-            : `Admin ${type} ${amt} to user ${user.username}`,
+    return res.json({
+      success: true,
+      message: "Wallet updated successfully",
     });
-
-    return res.json({ success: true, message: "Wallet updated successfully" });
   } catch (err) {
-    console.error("Wallet update failed:", err);
-    res.json({ success: false, message: "Update failed, try again" });
+    console.error(err);
+    return res.json({
+      success: false,
+      message: "Update failed, try again",
+    });
   }
 };
 
@@ -675,6 +709,112 @@ exports.getSingleUserDetails = async (req, res) => {
 
     // ====================================================================End
 
+
+    // ===================== USER BID HISTORY (NEW - SAFE ADD) =====================
+
+    const userBidPage = parseInt(req.query.userBidPage) || 1;
+    const userBidLimit =
+      req.query.userBidLimit === "all"
+        ? null
+        : parseInt(req.query.userBidLimit) || 10;
+
+    const userBidSearch = req.query.userBidSearch || "";
+    const userBidMarket = req.query.userBidMarket || "all";
+
+    let userSelectedModels = [];
+
+    if (userBidMarket === "main") {
+      userSelectedModels = betModels;
+    } else if (userBidMarket === "jackpot") {
+      userSelectedModels = jackpotBetModels;
+    } else if (userBidMarket === "starline") {
+      userSelectedModels = starlineBetModels;
+    } else {
+      userSelectedModels = [
+        ...betModels,
+        ...jackpotBetModels,
+        ...starlineBetModels,
+      ];
+    }
+
+    let userAllBids = [];
+
+    for (const Model of userSelectedModels) {
+      const records = await Model.find({ userId: user._id })
+        .populate("userId", "username phoneNo")
+        .lean();
+
+      records.forEach((bet) => {
+        if (!Array.isArray(bet.bets)) return;
+
+        bet.bets.forEach((b) => {
+          const amount =
+            b.amount ??
+            b.totalPoints ??
+            b.totalAmount ??
+            b.amountPerUnderNo ??
+            b.perUnderNosPoints ??
+            0;
+
+         if (userBidSearch) {
+  const search = userBidSearch.toLowerCase();
+
+  const text = `
+    ${bet.gameName || ""}
+    ${bet.gameType || ""}
+  `.toLowerCase();
+
+  if (!text.includes(search)) return;
+}
+
+          let marketLabel = "Main Market";
+          if (jackpotBetModels.includes(Model)) marketLabel = "Jackpot";
+          if (starlineBetModels.includes(Model)) marketLabel = "Starline";
+
+          let number =
+            b.number ??
+            b.openDigit ??
+            b.closeDigit ??
+            b.openPanna ??
+            b.closePanna ??
+            "-";
+
+          userAllBids.push({
+            user: bet.userId,
+            gameType: bet.gameType || "-",
+            market: marketLabel,
+            session: b.session ?? "-",
+            amount,
+            digits: number,
+            gameName: bet.gameName || "-",
+            status: b.resultStatus || "PENDING",
+            createdAt: bet.createdAt,
+          });
+        });
+      });
+    }
+
+    // SORT
+    userAllBids.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    // PAGINATION
+    const userBidTotalRecords = userAllBids.length;
+    const userBidTotalPages = userBidLimit
+      ? Math.ceil(userBidTotalRecords / userBidLimit)
+      : 1;
+
+    const userPaginatedBids = userBidLimit
+      ? userAllBids.slice(
+          (userBidPage - 1) * userBidLimit,
+          userBidPage * userBidLimit
+        )
+      : userAllBids;
+
+    // ===================== END USER BID HISTORY =====================
+
+
+
+
     // 📤 Send to page
     res.render("Admin/singleUserDetails", {
       pageTitle: "User Details",
@@ -693,6 +833,14 @@ exports.getSingleUserDetails = async (req, res) => {
       withdrawTotalPages,
       withdrawTotalRecords,
       withdrawStatus,
+            // 🔽 NEW (user bid table only)
+      userBidHistory: userPaginatedBids || [],
+      userBidPage,
+      userBidLimit: userBidLimit || "all",
+      userBidSearch,
+      userBidMarket,
+      userBidTotalPages,
+      userBidTotalRecords,
       isLoggedIn: req.session.isLoggedIn,
     });
   } catch (error) {
@@ -6833,89 +6981,6 @@ exports.depositRequest = async (req, res) => {
   }
 };
 
-// exports.acceptDeposit = async (req, res) => {
-//   try {
-//     if (
-//       !req.session.isLoggedIn ||
-//       !req.session.admin ||
-//       req.session.admin.role !== "admin"
-//     ) {
-//       return res.redirect("/admin/login");
-//     }
-
-//     const adminUser = await User.findOne({
-//       _id: req.session.admin._id,
-//       role: "admin",
-//       userStatus: "active",
-//     });
-
-//     if (!adminUser) {
-//       req.session.destroy();
-//       return res.redirect("/admin/login");
-//     }
-
-//     const deposit = await WalletTransaction.findById(req.params.id).populate(
-//       "user",
-//     );
-
-//     if (!deposit || deposit.status !== "pending") {
-//       return res.redirect("/admin/DepositRequests");
-//     }
-
-//     const admin = await User.findById(req.session.admin._id);
-
-//     if (admin.wallet < deposit.amount) {
-//       return res.send("Admin wallet balance low");
-//     }
-
-//     // USER WALLET UPDATE
-//     const userOldBalance = deposit.user.wallet;
-//     const userNewBalance = userOldBalance + deposit.amount;
-
-//     deposit.user.wallet = userNewBalance;
-//     await deposit.user.save();
-
-//     // ADMIN WALLET UPDATE
-//     const adminOldBalance = admin.wallet;
-//     const adminNewBalance = adminOldBalance - deposit.amount;
-
-//     admin.wallet = adminNewBalance;
-//     await admin.save();
-
-//     // UPDATE ORIGINAL DEPOSIT
-//     deposit.status = "success";
-//     deposit.admin = admin._id;
-//     deposit.oldBalance = userOldBalance;
-//     deposit.newBalance = userNewBalance;
-//     deposit.adminOldBalance = adminOldBalance;
-//     deposit.adminNewBalance = adminNewBalance;
-//     await deposit.save();
-
-//     // ADMIN TRANSACTION HISTORY ENTRY
-// await WalletTransaction.create({
-//   user: admin._id, // admin wallet affected
-//   admin: admin._id,
-//   type: "debit",
-//   source: "admin_debit",
-//   amount: deposit.amount,
-
-//   oldBalance: adminOldBalance,
-//   newBalance: adminNewBalance,
-
-//   status: "success",
-//   remark: `Deposit approved for ${deposit.user.username}`,
-
-//   // 👇 extra reference store karo
-//   relatedUser: deposit.user._id
-// });
-
-//     res.redirect("/admin/DepositRequests");
-//   } catch (err) {
-//     console.error(err);
-//     res.send("Error accepting deposit");
-//   }
-// };
-
 exports.acceptDeposit = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -6988,8 +7053,8 @@ exports.acceptDeposit = async (req, res) => {
         {
           user: admin._id, // admin wallet affected
           admin: admin._id,
-          type: "debit",
-          source: "admin_debit",
+          type: "credit",
+          source: "admin_credit",
           amount: deposit.amount,
           // ✅ USE THESE
           adminOldBalance: adminOldBalance,
@@ -7119,7 +7184,7 @@ exports.withdrawRequest = async (req, res, next) => {
 
     let filter = {
       source: "withdraw",
-      type: "debit",
+      type: "credit",
     };
 
     if (status) filter.status = status;
@@ -7415,7 +7480,7 @@ exports.adminDepositHistory = async (req, res, next) => {
     const perPage = parseInt(limit);
 
     let filter = {
-      type: "credit",
+      type: "debit",
       source: "deposit",
       status: "success",
     };
@@ -7436,20 +7501,20 @@ exports.adminDepositHistory = async (req, res, next) => {
     ========================== */
 
     // let userFilter = {};
-  if (search && search.trim() !== "") {
-  const users = await User.find({
-    username: { $regex: search.trim(), $options: "i" },
-  }).select("_id");
+    if (search && search.trim() !== "") {
+      const users = await User.find({
+        username: { $regex: search.trim(), $options: "i" },
+      }).select("_id");
 
-  const userIds = users.map((u) => u._id);
+      const userIds = users.map((u) => u._id);
 
-  if (userIds.length > 0) {
-    filter.user = { $in: userIds };
-  } else {
-    // Force no results
-    filter.user = null;
-  }
-}
+      if (userIds.length > 0) {
+        filter.user = { $in: userIds };
+      } else {
+        // Force no results
+        filter.user = null;
+      }
+    }
 
     /* =========================
        TOTAL COUNT (Date wise)
@@ -7489,6 +7554,8 @@ exports.adminDepositHistory = async (req, res, next) => {
       },
     ]);
 
+    let manualTotal = 0,
+      manualCount = 0;
     let gpayTotal = 0,
       gpayCount = 0,
       paytmTotal = 0,
@@ -7508,6 +7575,10 @@ exports.adminDepositHistory = async (req, res, next) => {
       if (item._id === "phonepe") {
         phonepeTotal = item.totalAmount;
         phonepeCount = item.totalCount;
+      }
+      if (item._id === "manual") {
+        manualTotal = item.totalAmount;
+        manualCount = item.totalCount;
       }
     });
 
@@ -7541,7 +7612,187 @@ exports.adminDepositHistory = async (req, res, next) => {
       paytmCount,
       phonepeTotal,
       phonepeCount,
+      manualTotal,
+      manualCount,
+      currentPage,
+      totalPages,
+      perPage,
+      search: search || "",
+      from: from || "",
+      to: to || "",
 
+      isLoggedIn: req.session.isLoggedIn,
+    });
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+exports.adminWithdrawTranction = async (req, res, next) => {
+  try {
+    if (
+      !req.session.isLoggedIn ||
+      !req.session.admin ||
+      req.session.admin.role !== "admin"
+    ) {
+      return res.redirect("/admin/login");
+    }
+
+    const admin = await User.findOne({
+      _id: req.session.admin._id,
+      role: "admin",
+      userStatus: "active",
+    });
+
+    if (!admin) {
+      req.session.destroy();
+      return res.redirect("/admin/login");
+    }
+
+    /* =========================
+       FILTER VALUES
+    ========================== */
+
+    const { from, to, search, page = 1, limit = 10 } = req.query;
+
+    const currentPage = parseInt(page);
+    const perPage = parseInt(limit);
+
+    let filter = {
+      type: "credit",
+      source: "withdraw",
+      status: "success",
+    };
+
+    /* =========================
+       DATE FILTER
+    ========================== */
+
+    if (from && to) {
+      filter.createdAt = {
+        $gte: new Date(from + "T00:00:00.000Z"),
+        $lte: new Date(to + "T23:59:59.999Z"),
+      };
+    }
+
+    /* =========================
+       USERNAME SEARCH
+    ========================== */
+
+    // let userFilter = {};
+    if (search && search.trim() !== "") {
+      const users = await User.find({
+        username: { $regex: search.trim(), $options: "i" },
+      }).select("_id");
+
+      const userIds = users.map((u) => u._id);
+
+      if (userIds.length > 0) {
+        filter.user = { $in: userIds };
+      } else {
+        // Force no results
+        filter.user = null;
+      }
+    }
+
+    /* =========================
+       TOTAL COUNT (Date wise)
+    ========================== */
+
+    const totalDepositCount = await WalletTransaction.countDocuments(filter);
+
+    /* =========================
+       TOTAL AMOUNT (Date wise)
+    ========================== */
+
+    const totalAmountAgg = await WalletTransaction.aggregate([
+      { $match: filter },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$amount" },
+        },
+      },
+    ]);
+
+    const totalDepositAmount =
+      totalAmountAgg.length > 0 ? totalAmountAgg[0].total : 0;
+
+    /* =========================
+       PAYMETHOD WISE (Date wise)
+    ========================== */
+
+    const payMethodStats = await WalletTransaction.aggregate([
+      { $match: filter },
+      {
+        $group: {
+          _id: "$receiveMethod",
+          totalAmount: { $sum: "$amount" },
+          totalCount: { $sum: 1 },
+        },
+      },
+    ]);
+
+    let manualTotal = 0,
+      manualCount = 0;
+    let gpayTotal = 0,
+      gpayCount = 0,
+      paytmTotal = 0,
+      paytmCount = 0,
+      phonepeTotal = 0,
+      phonepeCount = 0;
+
+    payMethodStats.forEach((item) => {
+      if (item._id === "gpay") {
+        gpayTotal = item.totalAmount;
+        gpayCount = item.totalCount;
+      }
+      if (item._id === "paytm") {
+        paytmTotal = item.totalAmount;
+        paytmCount = item.totalCount;
+      }
+      if (item._id === "phonepe") {
+        phonepeTotal = item.totalAmount;
+        phonepeCount = item.totalCount;
+      }
+      if (item._id === "manual") {
+        manualTotal = item.totalAmount;
+        manualCount = item.totalCount;
+      }
+    });
+
+    /* =========================
+       PAGINATED DATA
+    ========================== */
+
+    const deposits = await WalletTransaction.find(filter)
+      .populate("user", "username phoneNo")
+      .sort({ createdAt: -1 })
+      .skip((currentPage - 1) * perPage)
+      .limit(perPage);
+
+    const totalPages = Math.ceil(totalDepositCount / perPage);
+
+    /* =========================
+       RENDER
+    ========================== */
+
+    res.render("Admin/adminWithdrawTransactions", {
+      pageTitle: "Admin Withdraw Req",
+      admin,
+      deposits,
+
+      totalDepositAmount,
+      totalDepositCount,
+
+      gpayTotal,
+      gpayCount,
+      paytmTotal,
+      paytmCount,
+      phonepeTotal,
+      phonepeCount,
+      manualTotal,
+      manualCount,
       currentPage,
       totalPages,
       perPage,

@@ -252,6 +252,7 @@ adminRouter.get("/admin/withdraw/reject/:id", adminController.rejectWithdraw);
 
 // Admin Deposit tranction history route 
 adminRouter.get("/adminDepositTransactions", adminController.adminDepositHistory);
-
+// Admin Withdraw tranction history route
+adminRouter.get("/adminWithdrawTransactions", adminController.adminWithdrawTranction);
 
 module.exports = adminRouter;

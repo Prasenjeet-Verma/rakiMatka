@@ -49,12 +49,12 @@ const walletTransactionSchema = new mongoose.Schema(
     // Payment method selected by user for receiving money
     receiveMethod: {
       type: String,
-      enum: ["phonepe", "gpay", "paytm", "bank", null],
+      enum: ["phonepe", "gpay", "paytm", "bank", "manual",null],
       default: null,
     },
     payMethod: {
       type: String,
-      enum: ["phonepe", "gpay", "paytm", "bank", null],
+      enum: ["phonepe", "gpay", "paytm", "bank", "manual",null],
       default: null,
     },
 

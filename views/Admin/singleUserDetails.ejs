@@ -46,12 +46,12 @@
               <div class="flex justify-between items-center mb-4">
                 <h2 class="text-lg font-semibold">Personal Information</h2>
                 <div class="flex gap-2">
-                  <button class="bg-green-500 text-white px-3 py-1 rounded text-sm">
+                  <!-- <button class="bg-green-500 text-white px-3 py-1 rounded text-sm">
                     WhatsApp
                   </button>
                   <button class="bg-red-500 text-white px-3 py-1 rounded text-sm">
                     Call
-                  </button>
+                  </button> -->
                 </div>
               </div>
 
@@ -121,7 +121,7 @@
                 <p class="text-4xl font-semibold mt-2">
                   <%= user.wallet %>₹ <span class="text-green-600 text-lg">Points</span>
                 </p>
-
+                <!-- 
                 <div class="flex justify-center gap-3 mt-4">
                   <button class="openPointsModal bg-green-600 text-white px-5 py-2 rounded hover:bg-green-700"
                     data-type="add" data-userid="<%= user._id %>">
@@ -133,7 +133,7 @@
                     Withdraw Points
                   </button>
 
-                </div>
+                </div> -->
               </div>
             </div>
 
@@ -323,35 +323,60 @@
       <record class="bg-gray-100 p-4">
         <div class="bg-white rounded-lg shadow p-4">
           <!-- HEADER -->
-          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
-            <div class="flex items-center gap-2">
-              <h2 class="font-semibold">Bid History</h2>
-              <select class="border rounded px-2 py-1 text-sm">
-                <option>All</option>
-                <option>Main Market</option>
-                <option>Starline</option>
-                <option>Jackpot</option>
-              </select>
-            </div>
-          </div>
+<form method="GET" class="space-y-4">
 
-          <!-- CONTROLS -->
-          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
-            <div class="flex items-center gap-2 flex-wrap">
-              <span class="text-sm">Show</span>
-              <select class="border rounded px-2 py-1 text-sm">
-                <option>10</option>
-                <option>50</option>
-                <option>100</option>
-                <option>All</option>
-              </select>
-            </div>
+  <!-- HEADER -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div class="flex items-center gap-2">
+      <h2 class="font-semibold">Bid History</h2>
 
-            <div class="flex items-center gap-2">
-              <label class="text-sm">Search:</label>
-              <input type="text" class="border rounded px-2 py-1 text-sm w-40" />
-            </div>
-          </div>
+      <!-- MARKET FILTER -->
+      <select name="userBidMarket"
+              onchange="this.form.submit()"
+              class="border rounded px-2 py-1 text-sm">
+
+        <option value="all" <%= userBidMarket==="all"?"selected":"" %>>All</option>
+        <option value="main" <%= userBidMarket==="main"?"selected":"" %>>Main Market</option>
+        <option value="starline" <%= userBidMarket==="starline"?"selected":"" %>>Starline</option>
+        <option value="jackpot" <%= userBidMarket==="jackpot"?"selected":"" %>>Jackpot</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+
+    <!-- SHOW LIMIT -->
+    <div class="flex items-center gap-2">
+      <span class="text-sm">Show</span>
+      <select name="userBidLimit"
+              onchange="this.form.submit()"
+              class="border rounded px-2 py-1 text-sm">
+
+        <option value="10" <%= userBidLimit==10?"selected":"" %>>10</option>
+        <option value="25" <%= userBidLimit==25?"selected":"" %>>25</option>
+        <option value="50" <%= userBidLimit==50?"selected":"" %>>50</option>
+        <option value="all" <%= userBidLimit==="all"?"selected":"" %>>All</option>
+      </select>
+    </div>
+
+    <!-- SEARCH -->
+    <div class="flex items-center gap-2">
+      <input type="text"
+             name="userBidSearch"
+             value="<%= userBidSearch || '' %>"
+             placeholder="Search game or user"
+             class="border rounded px-2 py-1 text-sm w-48" />
+
+      <button type="submit"
+              class="bg-gray-800 text-white px-3 py-1 rounded text-sm">
+        Search
+      </button>
+    </div>
+
+  </div>
+
+</form>
 
           <!-- TABLE -->
           <div class="overflow-x-auto">
@@ -361,73 +386,142 @@
                   <th class="border px-3 py-2 text-left">ID</th>
                   <th class="border px-3 py-2 text-left">Mobile Number</th>
                   <th class="border px-3 py-2 text-left">User name</th>
-                  <th class="border px-3 py-2 text-left">Game Type</th>
                   <th class="border px-3 py-2 text-left">Market</th>
+                  <th class="border px-3 py-2 text-left">Game Name</th>
+                  <th class="border px-3 py-2 text-left">Game Type</th>
                   <th class="border px-3 py-2 text-left">Session</th>
                   <th class="border px-3 py-2 text-left">Amount</th>
                   <th class="border px-3 py-2 text-left">Digits</th>
-                  <th class="border px-3 py-2 text-left">Game Name</th>
                   <th class="border px-3 py-2 text-left">Game Status</th>
                   <th class="border px-3 py-2 text-left">Placed on</th>
                 </tr>
               </thead>
 
               <tbody>
-                <!-- ROW -->
-                <tr class="bg-blue-50">
-                  <td class="border px-3 py-2">1</td>
-                  <td class="border px-3 py-2">9194253817</td>
-                  <td class="border px-3 py-2">Rajesh Nagde</td>
-                  <td class="border px-3 py-2">Main Game</td>
-                  <td class="border px-3 py-2">KALYAN NIGHT</td>
-                  <td class="border px-3 py-2">close</td>
-                  <td class="border px-3 py-2">50.00</td>
-                  <td class="border px-3 py-2">3</td>
-                  <td class="border px-3 py-2">single</td>
-                  <td class="border px-3 py-2">
-                    <span class="bg-red-600 text-white text-xs px-2 py-1 rounded">
-                      Lost
-                    </span>
-                  </td>
-                  <td class="border px-3 py-2">01/06/2026, 11:13:02 PM</td>
-                </tr>
+                <% if (userBidHistory && userBidHistory.length> 0) { %>
+                  <% userBidHistory.forEach((bid, index)=> { %>
+                    <tr class="hover:bg-gray-50">
 
-                <!-- ROW -->
-                <tr>
-                  <td class="border px-3 py-2">2</td>
-                  <td class="border px-3 py-2">9194253817</td>
-                  <td class="border px-3 py-2">Rajesh Nagde</td>
-                  <td class="border px-3 py-2">Main Game</td>
-                  <td class="border px-3 py-2">KALYAN NIGHT</td>
-                  <td class="border px-3 py-2">close</td>
-                  <td class="border px-3 py-2">25.00</td>
-                  <td class="border px-3 py-2">5</td>
-                  <td class="border px-3 py-2">single</td>
-                  <td class="border px-3 py-2">
-                    <span class="bg-green-600 text-white text-xs px-2 py-1 rounded">
-                      Win
-                    </span>
-                  </td>
-                  <td class="border px-3 py-2">01/06/2026, 11:13:02 PM</td>
-                </tr>
+                      <!-- SERIAL NUMBER -->
+                      <td class="border px-3 py-2">
+                        <%= (userBidPage - 1) * (userBidLimit==="all" ? userBidHistory.length : userBidLimit) + index +
+                          1 %>
+                      </td>
 
-                <!-- ADD MORE ROWS SAME WAY -->
+                      <!-- MOBILE -->
+                      <td class="border px-3 py-2">
+                        <%= bid.user?.phoneNo || "-" %>
+                      </td>
+
+                      <!-- USERNAME -->
+                      <td class="border px-3 py-2">
+                        <%= bid.user?.username || "-" %>
+                      </td>
+
+
+                      <!-- MARKET -->
+                      <td class="border px-3 py-2">
+                        <%= bid.market %>
+                      </td>
+
+                      <!-- GAME NAME -->
+                      <td class="border px-3 py-2">
+                        <%= bid.gameName %>
+                      </td>
+
+                      <!-- GAME TYPE -->
+                      <td class="border px-3 py-2">
+                        <%= bid.gameType %>
+                      </td>
+
+                      <!-- SESSION -->
+                      <td class="border px-3 py-2">
+                        <%= bid.session %>
+                      </td>
+
+                      <!-- AMOUNT -->
+                      <td class="border px-3 py-2 font-medium">
+                        ₹<%= Number(bid.amount).toFixed(2) %>
+                      </td>
+
+                      <!-- DIGITS -->
+                      <td class="border px-3 py-2">
+                        <%= bid.digits %>
+                      </td>
+
+                      <!-- STATUS -->
+                      <td class="border px-3 py-2">
+                        <% if (bid.status==="WIN" ) { %>
+                          <span class="bg-green-600 text-white text-xs px-2 py-1 rounded">
+                            Win
+                          </span>
+                          <% } else if (bid.status==="LOSE" ) { %>
+                            <span class="bg-red-600 text-white text-xs px-2 py-1 rounded">
+                              Lost
+                            </span>
+                            <% } else { %>
+                              <span class="bg-gray-500 text-white text-xs px-2 py-1 rounded">
+                                Pending
+                              </span>
+                              <% } %>
+                      </td>
+
+                      <!-- DATE -->
+                      <td class="border px-3 py-2 text-xs">
+                        <%= new Date(bid.createdAt).toLocaleString() %>
+                      </td>
+
+                    </tr>
+                    <% }) %>
+
+                      <% } else { %>
+
+                        <tr>
+                          <td colspan="11" class="text-center p-4 text-gray-500">
+                            No bids found
+                          </td>
+                        </tr>
+
+                        <% } %>
               </tbody>
             </table>
           </div>
 
           <!-- FOOTER -->
-          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-4 text-sm">
-            <p>Showing 1 to 10 of 70 entries</p>
+ <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-4 text-sm">
 
-            <div class="flex items-center gap-2 flex-wrap">
-              <button class="border px-3 py-1 rounded text-gray-600">
-                Previous
-              </button>
-              <button class="border px-3 py-1 rounded bg-gray-200">1</button>
-              <button class="border px-3 py-1 rounded">Next</button>
-            </div>
-          </div>
+  <p>
+    Showing 
+    <%= userBidHistory.length > 0 
+        ? (userBidPage - 1) * (userBidLimit === "all" ? userBidHistory.length : userBidLimit) + 1 
+        : 0 %>
+    to 
+    <%= (userBidPage - 1) * (userBidLimit === "all" ? userBidHistory.length : userBidLimit) + userBidHistory.length %>
+    of <%= userBidTotalRecords %> entries
+  </p>
+
+  <div class="flex items-center gap-2">
+
+    <% if (userBidPage > 1) { %>
+      <a href="?userBidPage=<%= userBidPage - 1 %>&userBidLimit=<%= userBidLimit %>&userBidMarket=<%= userBidMarket %>&userBidSearch=<%= userBidSearch %>"
+         class="border px-3 py-1 rounded">
+        Previous
+      </a>
+    <% } %>
+
+    <span class="px-3 py-1 bg-gray-200 rounded">
+      <%= userBidPage %>
+    </span>
+
+    <% if (userBidPage < userBidTotalPages) { %>
+      <a href="?userBidPage=<%= userBidPage + 1 %>&userBidLimit=<%= userBidLimit %>&userBidMarket=<%= userBidMarket %>&userBidSearch=<%= userBidSearch %>"
+         class="border px-3 py-1 rounded">
+        Next
+      </a>
+    <% } %>
+
+  </div>
+</div>
         </div>
       </record>
 

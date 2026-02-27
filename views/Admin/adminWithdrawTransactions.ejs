@@ -59,7 +59,7 @@
         <div class="max-w-6xl mx-auto bg-white rounded-lg shadow-sm border border-gray-200">
 
           <div class="p-6 border-b border-gray-100 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <h1 class="text-2xl font-semibold text-gray-800">Deposit Summary</h1>
+            <h1 class="text-2xl font-semibold text-gray-800">Withdraw Summary</h1>
 
             <form method="GET">
               <div class="flex flex-wrap items-center gap-3 bg-gray-50 p-3 rounded-lg border border-gray-200">
@@ -81,7 +81,7 @@
                   class="bg-yellow-500 text-white px-5 py-1.5 rounded text-sm font-semibold transition-colors shadow-sm active:scale-95">
                   Update
                 </button>
-                <a href="/adminDepositTransactions"
+                <a href="/adminWithdrawTransactions"
                   class="bg-yellow-500 text-white px-5 py-1.5 rounded text-sm font-semibold transition-colors shadow-sm active:scale-95">
                   Reset
                 </a>
@@ -97,7 +97,7 @@
 
               <div class="relative z-10">
                 <div class="flex flex-col md:flex-row md:items-baseline gap-2">
-                  <span class="text-lg opacity-90 font-medium tex">Total Deposits</span>
+                  <span class="text-lg opacity-90 font-medium tex">Total Withdraw</span>
                   <span class="text-4xl md:text-5xl font-bold tracking-tight"> ₹<%=
                       totalDepositAmount.toLocaleString("en-IN") %></span>
                 </div>
@@ -206,7 +206,7 @@
                   <th class="p-3 font-semibold text-sm text-gray-700 border-x border-gray-300 bg-gray-50">Mobile</th>
                   <th class="p-3 font-semibold text-sm text-gray-700 border-x border-gray-300 bg-gray-50">Username</th>
                   <th class="p-3 font-semibold text-sm text-gray-700 border-x border-gray-300 bg-gray-50">Amount</th>
-                  <th class="p-3 font-semibold text-sm text-gray-700 border-x border-gray-300 bg-gray-50">Deposit Type
+                  <th class="p-3 font-semibold text-sm text-gray-700 border-x border-gray-300 bg-gray-50">Withdraw Type
                   </th>
                   <th class="p-3 font-semibold text-sm text-gray-700 border-x border-gray-300 bg-gray-50">Date</th>
                 </tr>
@@ -228,7 +228,7 @@
                         ₹<%= tx.amount.toFixed(2) %>
                       </td>
                       <td class="p-3 text-sm text-gray-600 border-x border-gray-300">
-                        <%= tx.payMethod %>
+                        <%= tx.receiveMethod %>
                       </td>
                       <td class="p-3 text-xs text-gray-500 border-x border-gray-300">
                         <%= new Date(tx.createdAt).toLocaleString() %>

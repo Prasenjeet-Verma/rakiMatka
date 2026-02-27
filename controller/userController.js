@@ -362,7 +362,7 @@ exports.createDeposit = async (req, res) => {
 
     const deposit = await WalletTransaction.create({
       user: user._id,
-      type: "credit",
+      type: "debit",
       source: "deposit",
       amount,
       payMethod,
@@ -700,7 +700,7 @@ exports.postWithdrawRequest = async (req, res) => {
 
     await WalletTransaction.create({
       user: user._id,
-      type: "debit",
+      type: "credit",
       source: "withdraw",
       receiveMethod: method,
       mobileNoOrUpiId,
