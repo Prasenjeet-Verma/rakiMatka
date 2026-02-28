@@ -78,6 +78,13 @@ const starlineBetModels = [
   require("../model/StarlineTriplePannaBet"),
 ];
 exports.getAdminLoginPage = async (req, res, next) => {
+    if (req.session.isLoggedIn) {
+    // Role-based redirect
+    if (req.session.user.role === "admin") {
+      return res.redirect("/admin/dashboard");
+    }
+    return res.redirect("/");
+  }
   res.render("Admin/adminLogin", {
     pageTitle: "Admin Login",
     errors: [],

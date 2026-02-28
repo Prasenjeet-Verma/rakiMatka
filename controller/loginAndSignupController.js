@@ -7,7 +7,13 @@ const Main = require("../model/MainSettings");
 exports.getSignupPage = async (req, res, next) => {
   try {
     // if (req.session.isLoggedIn) return res.redirect("/");
-
+  if (req.session.isLoggedIn) {
+    // Role-based redirect
+    if (req.session.user.role === "admin") {
+      return res.redirect("/admin/dashboard");
+    }
+    return res.redirect("/userdashboard");
+  }
     res.render("LoginandSignup/createAccount", {
       pageTitle: "Create Account",
       isLoggedIn: false,
@@ -122,6 +128,13 @@ exports.postSignupPage = [
 // --- GET Login Page ---
 exports.getloginPage = (req, res, next) => {
   try {
+      if (req.session.isLoggedIn) {
+    // Role-based redirect
+    if (req.session.user.role === "admin") {
+      return res.redirect("/admin/dashboard");
+    }
+    return res.redirect("/userdashboard");
+  }
     // if (req.session.isLoggedIn) return res.redirect("/");
     res.render("LoginandSignup/login", {
       pageTitle: "Login",

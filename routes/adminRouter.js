@@ -21,16 +21,20 @@ const upload = multer({
     }
   },
 });
-function redirectIfLoggedIn(req, res, next) {
-  if (req.session.isLoggedIn) {
-    return res.redirect("/admin/dashboard"); // or role-based redirect
+function redirectIfAdmin(req, res, next) {
+  // If user is logged in AND role is admin, allow access
+  if (req.session.isLoggedIn && req.session.user.role === "admin") {
+    return next();
   }
-  next();
+  // Otherwise redirect to home
+  res.redirect("/");
 }
+
+// Usage in adminRouter
 adminRouter.get(
   "/admin/login",
-  redirectIfLoggedIn,
-  adminController.getAdminLoginPage,
+  redirectIfAdmin,
+  adminController.getAdminLoginPage
 );
 adminRouter.post("/admin/login", adminController.postAdminLogin);
 adminRouter.get("/admin/dashboard", adminController.getAdminDashboard);
