@@ -166,8 +166,15 @@ exports.getAdminDashboard = async (req, res) => {
 
     const moment = require("moment-timezone");
 
-    const todayStart = moment().tz("Asia/Kolkata").startOf("day").toDate();
-    const todayEnd = moment().tz("Asia/Kolkata").endOf("day").toDate();
+    // ✅ Get date from query OR default to today
+const selectedDate = req.query.date
+  ? moment.tz(req.query.date, "YYYY-MM-DD", "Asia/Kolkata")
+  : moment().tz("Asia/Kolkata");
+
+const todayStart = selectedDate.clone().startOf("day").toDate();
+const todayEnd = selectedDate.clone().endOf("day").toDate();
+
+const formattedDate = selectedDate.format("YYYY-MM-DD");
 
     const admin = await User.findOne({
       _id: req.session.admin._id,
@@ -511,6 +518,7 @@ const todayManualWithdrawCount = todayManualWithdraw[0]?.totalCount || 0;
       todayManualDepositCount,
       todayManualWithdrawAmount,
       todayManualWithdrawCount,
+      selectedDate: formattedDate,
       isLoggedIn: req.session.isLoggedIn,
     });
   } catch (err) {
