@@ -1,12 +1,10 @@
+const mongoose = require("mongoose");
 const moment = require("moment-timezone");
 const bcrypt = require("bcryptjs");
 const User = require("../model/userSchema");
 const fs = require("fs");
 const uploadToPhpServer = require("../utils/uploadToPhpServer");
-// const WalletTransaction = require("../model/WalletTransaction");
-const mongoose = require("mongoose");
 const UserWalletTransaction = require("../model/UserWalletTransaction");
-const AdminWalletTransaction = require("../model/AdminWalletTransaction");
 const Reward = require("../model/Reward");
 const UserBankDetails = require("../model/UserBankDetails");
 const Game = require("../model/Game");

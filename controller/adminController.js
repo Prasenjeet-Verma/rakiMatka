@@ -3,7 +3,6 @@ const { check, validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const User = require("../model/userSchema");
 const firebaseAdmin = require("../config/firebase");
-const WalletTransaction = require("../model/WalletTransaction");
 const UserWalletTransaction = require("../model/UserWalletTransaction");
 const UserBankDetails = require("../model/UserBankDetails");
 const moment = require("moment-timezone");
@@ -150,11 +149,25 @@ exports.postAdminLogin = [
   },
 ];
 
+
+
+
+
+
+
+
+
+
 exports.getAdminDashboard = async (req, res) => {
   try {
     if (!req.session.isLoggedIn || req.session.admin.role !== "admin") {
       return res.redirect("/login");
     }
+
+    const moment = require("moment-timezone");
+
+    const todayStart = moment().tz("Asia/Kolkata").startOf("day").toDate();
+    const todayEnd = moment().tz("Asia/Kolkata").endOf("day").toDate();
 
     const admin = await User.findOne({
       _id: req.session.admin._id,
@@ -167,14 +180,337 @@ exports.getAdminDashboard = async (req, res) => {
       return res.redirect("/login");
     }
 
-    const totalUsers = await User.countDocuments({ role: "user" });
-    const blockedUsers = await User.countDocuments({ userStatus: "suspended" });
+    const totalUsers = await User.countDocuments({ role: "user" }); // <-- Total User Count
+    const blockedUsers = await User.countDocuments({ userStatus: "suspended" }); // <-- Total Blocked User Count
+    const adminWallet = admin.wallet || 0; // <-- Admin Total Wallet
 
+    // ================= Today Bet Amount =================
+   const allBetModels = [
+  ...betModels,
+  ...jackpotBetModels,
+  ...starlineBetModels,
+];
+
+let todayTotalBet = 0;
+
+for (const Model of allBetModels) {
+  const result = await Model.aggregate([
+    {
+      $match: {
+        createdAt: { $gte: todayStart, $lte: todayEnd },
+      },
+    },
+    {
+      $project: {
+        totalAmount: 1,
+        amount: 1,
+        amountPerUnderNo: 1,
+        bets: 1,
+      },
+    },
+    {
+      $addFields: {
+        calculatedAmount: {
+          $cond: [
+            { $ifNull: ["$totalAmount", false] },
+            "$totalAmount", // ✅ If totalAmount exists use it
+            {
+              $cond: [
+                { $ifNull: ["$amount", false] },
+                "$amount", // ✅ else use amount
+                {
+                  $cond: [
+                    { $ifNull: ["$amountPerUnderNo", false] },
+                    "$amountPerUnderNo", // ✅ else use amountPerUnderNo
+                    {
+                      $sum: {
+                        $map: {
+                          input: { $ifNull: ["$bets", []] },
+                          as: "bet",
+                          in: {
+                            $add: [
+                              { $ifNull: ["$$bet.amount", 0] },
+                              { $ifNull: ["$$bet.amountPerUnderNo", 0] },
+                            ],
+                          },
+                        },
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        total: { $sum: "$calculatedAmount" },
+      },
+    },
+  ]);
+
+  if (result.length > 0) {
+    todayTotalBet += result[0].total;
+  }
+}
+// ================= END =================
+
+// ================= TODAY PLAY USERS COUNT =================
+let todayUsersSet = new Set();
+
+for (const Model of allBetModels) {
+  const users = await Model.distinct("userId", {
+    createdAt: { $gte: todayStart, $lte: todayEnd },
+  });
+
+  users.forEach((id) => todayUsersSet.add(id.toString()));
+}
+
+const todayPlayUsers = todayUsersSet.size;
+// ================= END =================
+
+
+// ================= TODAY REGISTER USERS COUNT =================
+const todayRegisterUsers = await User.countDocuments({
+  role: "user",
+  createdAt: { $gte: todayStart, $lte: todayEnd },
+});
+// ================= END =================
+
+// ================= TODAY ADMIN PROFIT AMOUNT COUNT =================
+let todayAdminProfit = 0;
+
+for (const Model of allBetModels) {
+  const result = await Model.aggregate([
+    {
+      $match: {
+        createdAt: { $gte: todayStart, $lte: todayEnd },
+      },
+    },
+    {
+      $addFields: {
+        calculatedLoss: {
+          $cond: [
+            // ✅ Case 1: Top-level resultStatus exists
+            { $eq: ["$resultStatus", "LOSS"] },
+            {
+              $add: [
+                { $ifNull: ["$totalAmount", 0] },
+                { $ifNull: ["$amount", 0] },
+                { $ifNull: ["$amountPerUnderNo", 0] },
+              ],
+            },
+
+            // ✅ Case 2: Nested bets array
+            {
+              $sum: {
+                $map: {
+                  input: { $ifNull: ["$bets", []] },
+                  as: "bet",
+                  in: {
+                    $cond: [
+                      { $eq: ["$$bet.resultStatus", "LOSS"] },
+                      {
+                        $add: [
+                          { $ifNull: ["$$bet.amount", 0] },
+                          { $ifNull: ["$$bet.amountPerUnderNo", 0] },
+                        ],
+                      },
+                      0,
+                    ],
+                  },
+                },
+              },
+            },
+          ],
+        },
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        total: { $sum: "$calculatedLoss" },
+      },
+    },
+  ]);
+
+  if (result.length > 0) {
+    todayAdminProfit += result[0].total;
+  }
+}
+// ================= END =================
+
+// ================= TODAY USER PROFIT AMOUNT COUNT =================
+let todayUserWinningAmount = 0;
+
+for (const Model of allBetModels) {
+  const result = await Model.aggregate([
+    {
+      $match: {
+        createdAt: { $gte: todayStart, $lte: todayEnd },
+      },
+    },
+    {
+      $addFields: {
+        calculatedWin: {
+          $cond: [
+            // ✅ Case 1: Top-level WIN
+            { $eq: ["$resultStatus", "WIN"] },
+            { $ifNull: ["$winAmount", 0] },
+
+            // ✅ Case 2: Nested bets WIN
+            {
+              $sum: {
+                $map: {
+                  input: { $ifNull: ["$bets", []] },
+                  as: "bet",
+                  in: {
+                    $cond: [
+                      { $eq: ["$$bet.resultStatus", "WIN"] },
+                      { $ifNull: ["$$bet.winAmount", 0] },
+                      0,
+                    ],
+                  },
+                },
+              },
+            },
+          ],
+        },
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        total: { $sum: "$calculatedWin" },
+      },
+    },
+  ]);
+
+  if (result.length > 0) {
+    todayUserWinningAmount += result[0].total;
+  }
+}
+// ================= END =================
+
+// ================= TODAY DEPOSIT VIA UPI REQ ACCEPT COUNT AND AMOUNT =================
+const todayApprovedDeposit = await UserWalletTransaction.aggregate([
+  {
+    $match: {
+      createdAt: { $gte: todayStart, $lte: todayEnd },
+      source: "deposit",
+      type: "credit",
+      status: "success",
+      depositUpi: { $ne: null },          // ✅ Only UPI deposits
+      gettingdepositManualy: null,        // ❌ Exclude manual deposits
+    },
+  },
+  {
+    $group: {
+      _id: null,
+      totalAmount: { $sum: "$amount" },
+      totalCount: { $sum: 1 },
+    },
+  },
+]);
+
+const todayDepositAmount = todayApprovedDeposit[0]?.totalAmount || 0;
+const todayDepositCount = todayApprovedDeposit[0]?.totalCount || 0;
+// ================= END =================
+
+// ================= TODAY WITHDRAW VIA UPI REQ ACCEPT COUNT AND AMOUNT  =================
+const todayApprovedWithdraw = await UserWalletTransaction.aggregate([
+  {
+    $match: {
+      createdAt: { $gte: todayStart, $lte: todayEnd },
+      source: "withdraw",
+      type: "debit",
+      status: "success",
+      withdrawUpi: { $ne: null },          // ✅ Only UPI withdraw
+      gettingWithdrawManualy: null,        // ❌ Exclude manual withdraw
+    },
+  },
+  {
+    $group: {
+      _id: null,
+      totalAmount: { $sum: "$amount" },
+      totalCount: { $sum: 1 },
+    },
+  },
+]);
+
+const todayWithdrawAmount = todayApprovedWithdraw[0]?.totalAmount || 0;
+const todayWithdrawCount = todayApprovedWithdraw[0]?.totalCount || 0;
+// ================= END =================
+
+// ================= TODAY DEPOSIT MANUALY CREDIT BY ADMIN COUNT AND AMOUNT =================
+const todayManualDeposit = await UserWalletTransaction.aggregate([
+  {
+    $match: {
+      createdAt: { $gte: todayStart, $lte: todayEnd },
+      source: "deposit",
+      type: "credit",
+      status: "success",
+      gettingdepositManualy: "manual", // ✅ Only Manual Deposit
+    },
+  },
+  {
+    $group: {
+      _id: null,
+      totalAmount: { $sum: "$amount" },
+      totalCount: { $sum: 1 },
+    },
+  },
+]);
+
+const todayManualDepositAmount = todayManualDeposit[0]?.totalAmount || 0;
+const todayManualDepositCount = todayManualDeposit[0]?.totalCount || 0;
+// ================= END =================
+
+// ================= TODAY WITHDRAW MANUALY DEBIT BY ADMIN COUNT AND AMOUNT =================
+const todayManualWithdraw = await UserWalletTransaction.aggregate([
+  {
+    $match: {
+      createdAt: { $gte: todayStart, $lte: todayEnd },
+      source: "withdraw",
+      type: "debit",
+      status: "success",
+      gettingWithdrawManualy: "manual", // ✅ Only Manual Withdraw
+    },
+  },
+  {
+    $group: {
+      _id: null,
+      totalAmount: { $sum: "$amount" },
+      totalCount: { $sum: 1 },
+    },
+  },
+]);
+
+const todayManualWithdrawAmount = todayManualWithdraw[0]?.totalAmount || 0;
+const todayManualWithdrawCount = todayManualWithdraw[0]?.totalCount || 0;
+// ================= END =================
     res.render("Admin/admindashbord", {
       pageTitle: "Admin Dashboard",
       admin,
       totalUsers,
       blockedUsers,
+      adminWallet,
+      todayTotalBet,
+      todayPlayUsers,
+      todayRegisterUsers,
+      todayAdminProfit,
+      todayUserWinningAmount,
+      todayDepositAmount,
+      todayDepositCount,
+      todayWithdrawAmount,
+      todayWithdrawCount, 
+      todayManualDepositAmount,
+      todayManualDepositCount,
+      todayManualWithdrawAmount,
+      todayManualWithdrawCount,
       isLoggedIn: req.session.isLoggedIn,
     });
   } catch (err) {
@@ -182,6 +518,27 @@ exports.getAdminDashboard = async (req, res) => {
     res.redirect("/admin/login");
   }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 exports.toggleUserStatus = async (req, res) => {
   try {
@@ -347,13 +704,16 @@ exports.getAllUsersPage = async (req, res) => {
     }
 
     const page = parseInt(req.query.page) || 1;
+
     const limit =
       req.query.limit === "all" ? 0 : parseInt(req.query.limit) || 10;
+
     const skip = limit === 0 ? 0 : (page - 1) * limit;
 
     const search = req.query.search || "";
 
-    // 🔍 Search filter
+    /* ================= SEARCH FILTER ================= */
+
     const filter = {
       role: "user",
       ...(search && {
@@ -361,24 +721,41 @@ exports.getAllUsersPage = async (req, res) => {
       }),
     };
 
-    // Count after search
+    /* ================= COUNT USERS ================= */
+
     const totalUsers = await User.countDocuments(filter);
 
-    // Fetch users
+    /* ================= FETCH USERS ================= */
+
     const users = await User.find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit === 0 ? totalUsers : limit);
 
+    /* ================= CREDIT / DEBIT STATS ================= */
+
     const usersWithStats = await Promise.all(
       users.map(async (user) => {
-        const totalCredit = await WalletTransaction.aggregate([
-          { $match: { user: user._id, type: "credit", status: "success" } },
+
+        const totalCredit = await UserWalletTransaction.aggregate([
+          {
+            $match: {
+              user: user._id,
+              type: "credit",
+              status: "success",
+            },
+          },
           { $group: { _id: null, total: { $sum: "$amount" } } },
         ]);
 
-        const totalDebit = await WalletTransaction.aggregate([
-          { $match: { user: user._id, type: "debit", status: "success" } },
+        const totalDebit = await UserWalletTransaction.aggregate([
+          {
+            $match: {
+              user: user._id,
+              type: "debit",
+              status: "success",
+            },
+          },
           { $group: { _id: null, total: { $sum: "$amount" } } },
         ]);
 
@@ -387,10 +764,12 @@ exports.getAllUsersPage = async (req, res) => {
           totalCredit: totalCredit[0]?.total || 0,
           totalDebit: totalDebit[0]?.total || 0,
         };
-      }),
+      })
     );
 
     const totalPages = limit === 0 ? 1 : Math.ceil(totalUsers / limit);
+
+    /* ================= RENDER ================= */
 
     res.render("Admin/adminallUser", {
       pageTitle: "All Users",
@@ -403,8 +782,9 @@ exports.getAllUsersPage = async (req, res) => {
       totalPages,
       limit,
       totalUsers,
-      search, // 👈 pass back to view
+      search,
     });
+
   } catch (error) {
     console.error("All Users Page Error:", error);
     res.redirect("/admin/dashboard");
