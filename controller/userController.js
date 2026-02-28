@@ -51,15 +51,190 @@ exports.UserHomePage = async (req, res, next) => {
     const user = req.session.user || null;
     const isLoggedIn = !!req.session.isLoggedIn;
 
-    // ✅ Get latest slider images
     const slider = await HomeSliderImage.findOne()
       .sort({ createdAt: -1 })
       .lean();
 
+    // ✅ Only Normal GameRates
+    const normalRates = await GameRate.find({
+      isStarline: false,
+      isJackpot: false,
+      isActive: true,
+    }).lean();
+    // ✅ Only Starline GameRates
+    const starlineRates = await GameRate.find({
+      isStarline: true,
+      isJackpot: false,
+      isActive: true,
+    }).lean();
+    // ✅ Only Jackpot GameRates
+    const jackpotRates = await GameRate.find({
+      isJackpot: true,
+      isStarline: false,
+      isActive: true,
+    }).lean();
+
+    // 🇮🇳 India Time
+    const now = new Date();
+    const indiaTime = new Date(
+      now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }),
+    );
+
+    const todayDate = indiaTime.toISOString().split("T")[0]; // YYYY-MM-DD
+    const todayWeekday = indiaTime
+      .toLocaleDateString("en-US", {
+        weekday: "long",
+        timeZone: "Asia/Kolkata",
+      })
+      .toLowerCase();
+
+    const games = await Game.find({
+      isStarline: false,
+      isJackpot: false,
+      isDeleted: false,
+    }).lean();
+
+    const finalGames = [];
+
+    for (let game of games) {
+      const todaySchedule = game.schedule[todayWeekday];
+      if (!todaySchedule || !todaySchedule.isActive) continue;
+
+      // Fetch results
+      const openResult = await GameResult.findOne({
+        gameName: game.gameName,
+        session: "OPEN",
+        resultDate: todayDate,
+      }).lean();
+
+      const closeResult = await GameResult.findOne({
+        gameName: game.gameName,
+        session: "CLOSE",
+        resultDate: todayDate,
+      }).lean();
+
+      let status = "RUNNING";
+
+      if (closeResult) {
+        status = "CLOSED";
+      }
+
+      finalGames.push({
+        gameName: game.gameName,
+        openTime: todaySchedule.openTime,
+        closeTime: todaySchedule.closeTime,
+        openResult,
+        closeResult,
+        status,
+      });
+    }
+// 🔥 Sort by openTime ascending
+finalGames.sort((a, b) => {
+  const timeA = new Date("1970-01-01T" + a.openTime);
+  const timeB = new Date("1970-01-01T" + b.openTime);
+  return timeA - timeB;
+});
+
+//Jackpot
+// ✅ Jackpot Games Fetch
+const jackpotGames = await Game.find({
+  isJackpot: true,
+  isDeleted: false,
+}).lean();
+
+const finalJackpotGames = [];
+
+for (let game of jackpotGames) {
+  const todaySchedule = game.schedule[todayWeekday];
+  if (!todaySchedule || !todaySchedule.isActive) continue;
+
+  // Jackpot result fetch
+  const jackpotResult = await JackpotGameResult.findOne({
+    gameName: game.gameName,
+    resultDate: todayDate,
+  }).lean();
+
+  let status = "RUNNING";
+
+  if (jackpotResult) {
+    status = "CLOSED";
+  }
+
+  finalJackpotGames.push({
+    gameName: game.gameName,
+    openTime: todaySchedule.openTime,
+    closeTime: todaySchedule.closeTime,
+    jackpotResult,
+    status,
+  });
+}
+
+// 🔥 Sort by openTime ascending
+finalJackpotGames.sort((a, b) => {
+  const timeA = new Date("1970-01-01T" + a.openTime);
+  const timeB = new Date("1970-01-01T" + b.openTime);
+  return timeA - timeB;
+});
+
+// ⭐ Starline Games Fetch
+const starlineGames = await Game.find({
+  isStarline: true,
+  isJackpot: false,
+  isDeleted: false,
+}).lean();
+
+const finalStarlineGames = [];
+
+for (let game of starlineGames) {
+  const todaySchedule = game.schedule[todayWeekday];
+  if (!todaySchedule || !todaySchedule.isActive) continue;
+
+  // Starline result (only OPEN session)
+  const starlineResult = await StarlineGameResult.findOne({
+    gameName: game.gameName,
+    session: "OPEN",
+    resultDate: todayDate,
+  }).lean();
+
+  let status = "RUNNING";
+
+  // ⭐ Agar result mil gaya → direct CLOSED
+  if (starlineResult) {
+    status = "CLOSED";
+  }
+
+  finalStarlineGames.push({
+    gameName: game.gameName,
+    openTime: todaySchedule.openTime,
+    starlineResult,
+    status,
+  });
+}
+
+// 🔥 Sort by openTime ascending
+finalStarlineGames.sort((a, b) => {
+  const timeA = new Date("1970-01-01T" + a.openTime);
+  const timeB = new Date("1970-01-01T" + b.openTime);
+  return timeA - timeB;
+});
+const contact = await ContactAdmin.findOne({ isActive: true }).lean();
+const rawNumber = contact.whatsappNumber;
+const cleanNumber = rawNumber.replace(/\D/g, ""); // remove + and spaces
+contact.whatsappNumber = cleanNumber;
+const rawCall = contact.callNumber;
+const cleanCall = rawCall.replace(/\D/g, "");
+contact.callNumber = cleanCall;
     res.render("User/UserHomePage", {
-      user: user,
-      isLoggedIn: isLoggedIn,
-      slider: slider, // 👈 pass to EJS
+      user,
+      isLoggedIn,
+      slider,
+      normalRates,
+      starlineRates,
+      jackpotRates,
+      finalGames,
+      finalJackpotGames,
+      finalStarlineGames,
+      contact,
     });
   } catch (err) {
     console.error("Error in UserHomePage:", err);
@@ -544,7 +719,6 @@ exports.markDepositPending = async (req, res) => {
 //     res.send("Error submitting transaction");
 //   }
 // };
-
 
 exports.cancelDeposit = async (req, res) => {
   try {

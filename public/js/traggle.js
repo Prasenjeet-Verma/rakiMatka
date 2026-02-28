@@ -4,10 +4,20 @@ const tabs = {
   gali: document.getElementById("tab-gali"),
 };
 
+// ⭐ All sections grouped properly
 const sections = {
-  main: document.getElementById("mainMarket"),
-  star: document.getElementById("starLine"),
-  gali: document.getElementById("galiDesawar"),
+  main: [
+    document.getElementById("mainMarketRates"),
+    document.getElementById("mainMarket"),
+  ],
+  star: [
+    document.getElementById("starLineRates"),
+    document.getElementById("starLineGames"),
+  ],
+  gali: [
+    document.getElementById("galiDesawarRates"),
+    document.getElementById("galiDesawar"),
+  ],
 };
 
 function resetTabs() {
@@ -18,29 +28,25 @@ function resetTabs() {
 }
 
 function hideSections() {
-  Object.values(sections).forEach((sec) => sec.classList.add("hidden"));
+  Object.values(sections).forEach((group) => {
+    group.forEach((sec) => {
+      if (sec) sec.classList.add("hidden");
+    });
+  });
 }
 
-tabs.main.onclick = () => {
+function activateTab(type) {
   resetTabs();
   hideSections();
-  tabs.main.classList.remove("bg-gray-100", "text-gray-700");
-  tabs.main.classList.add("bg-blue-700", "text-white");
-  sections.main.classList.remove("hidden");
-};
 
-tabs.star.onclick = () => {
-  resetTabs();
-  hideSections();
-  tabs.star.classList.remove("bg-gray-100", "text-gray-700");
-  tabs.star.classList.add("bg-blue-700", "text-white");
-  sections.star.classList.remove("hidden");
-};
+  tabs[type].classList.remove("bg-gray-100", "text-gray-700");
+  tabs[type].classList.add("bg-blue-700", "text-white");
 
-tabs.gali.onclick = () => {
-  resetTabs();
-  hideSections();
-  tabs.gali.classList.remove("bg-gray-100", "text-gray-700");
-  tabs.gali.classList.add("bg-blue-700", "text-white");
-  sections.gali.classList.remove("hidden");
-};
+  sections[type].forEach((sec) => {
+    if (sec) sec.classList.remove("hidden");
+  });
+}
+
+tabs.main.onclick = () => activateTab("main");
+tabs.star.onclick = () => activateTab("star");
+tabs.gali.onclick = () => activateTab("gali");
