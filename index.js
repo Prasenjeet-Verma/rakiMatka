@@ -25,20 +25,43 @@ const store = new MongoDBStore({
 });
 store.on("error", console.log);
 
+// app.use(
+//   session({
+//     secret: process.env.SESSION_SECRET || "mysecret", // from .env
+//     resave: false,
+//     saveUninitialized: false,
+//     store: store,
+//   })
+// );
+
+
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "mysecret", // from .env
+    secret: process.env.SESSION_SECRET || "mysecret",
     resave: false,
     saveUninitialized: false,
     store: store,
+    cookie: {
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+      httpOnly: true, // prevents JS access to cookie
+      secure: false, // change to true if using HTTPS
+    },
   })
 );
-
 // ---------------- PARSERS ----------------
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
+// Prevent browser caching of pages like login
+app.use((req, res, next) => {
+  res.set(
+    "Cache-Control",
+    "no-cache, no-store, must-revalidate, private"
+  );
+  res.set("Pragma", "no-cache");
+  res.set("Expires", "0");
+  next();
+});
 
 // ---------------- CUSTOM MIDDLEWARE ----------------
 app.use((req, res, next) => {

@@ -1,8 +1,37 @@
 const express = require("express");
 const adminRouter = express.Router();
 const adminController = require("../controller/adminController");
+// Manual deposit methods routes
+const multer = require("multer");
+const path = require("path");
 
-adminRouter.get("/admin/login", adminController.getAdminLoginPage);
+const upload = multer({
+  dest: "temp/",
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png/;
+    const ext = allowedTypes.test(
+      path.extname(file.originalname).toLowerCase(),
+    );
+    const mime = allowedTypes.test(file.mimetype);
+
+    if (ext && mime) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only JPG, JPEG, PNG allowed"));
+    }
+  },
+});
+function redirectIfLoggedIn(req, res, next) {
+  if (req.session.isLoggedIn) {
+    return res.redirect("/admin/dashboard"); // or role-based redirect
+  }
+  next();
+}
+adminRouter.get(
+  "/admin/login",
+  redirectIfLoggedIn,
+  adminController.getAdminLoginPage,
+);
 adminRouter.post("/admin/login", adminController.postAdminLogin);
 adminRouter.get("/admin/dashboard", adminController.getAdminDashboard);
 adminRouter.get("/admin/allUsers", adminController.getAllUsersPage);
@@ -169,90 +198,104 @@ adminRouter.get(
 );
 adminRouter.post("/admin/send-notification", adminController.sendNotification);
 
-adminRouter.get("/admin/Change-Password", adminController.getChangePasswordPage);
-adminRouter.post(
+adminRouter.get(
   "/admin/Change-Password",
-  adminController.postChangePassword,
+  adminController.getChangePasswordPage,
 );
+adminRouter.post("/admin/Change-Password", adminController.postChangePassword);
 
 adminRouter.get("/admin/WinningHistory", adminController.getWinningHistoryPage);
 adminRouter.get("/admin/BidHistory", adminController.getBidHistoryPage);
 
-adminRouter.get("/admin/contact-admin", adminController.getContactUsDetailsPage);
-adminRouter.post("/admin/contact-admin", adminController.updateContactUsDetails);
+adminRouter.get(
+  "/admin/contact-admin",
+  adminController.getContactUsDetailsPage,
+);
+adminRouter.post(
+  "/admin/contact-admin",
+  adminController.updateContactUsDetails,
+);
 
-
-
-// Manual deposit methods routes
-const multer = require("multer");
-const path = require("path");
-
-const upload = multer({
-  dest: "temp/",
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png/;
-    const ext = allowedTypes.test(
-      path.extname(file.originalname).toLowerCase()
-    );
-    const mime = allowedTypes.test(file.mimetype);
-
-    if (ext && mime) {
-      cb(null, true);
-    } else {
-      cb(new Error("Only JPG, JPEG, PNG allowed"));
-    }
-  },
-});
-
-adminRouter.get("/admin/manual-deposit-methods", adminController.getManualDepositMethodsPage);
+adminRouter.get(
+  "/admin/manual-deposit-methods",
+  adminController.getManualDepositMethodsPage,
+);
 
 adminRouter.post(
   "/admin/manual-deposit-methods",
   upload.single("qrImage"),
-  adminController.postManualDepositMethods
+  adminController.postManualDepositMethods,
 );
 
 adminRouter.post(
   "/admin/delete-manual-deposit/:id",
-  adminController.deleteManualDeposit
+  adminController.deleteManualDeposit,
 );
 
-adminRouter.get("/admin/set-withdraw-timings", adminController.setWithdrawTimings);
+adminRouter.get(
+  "/admin/set-withdraw-timings",
+  adminController.setWithdrawTimings,
+);
 adminRouter.post(
   "/admin/set-withdraw-timings",
-  adminController.postWithdrawTimings
+  adminController.postWithdrawTimings,
 );
 
 adminRouter.get("/admin/main-settings", adminController.getMainSettingsPage);
 adminRouter.post("/admin/main-settings", adminController.postMainSettings);
 
-adminRouter.get("/admin/payment-gateway-settings", adminController.getPaymentGatewaySettingsPage);
-adminRouter.post("/admin/payment-gateway-settings", adminController.postPaymentGatewaySettings);
+adminRouter.get(
+  "/admin/payment-gateway-settings",
+  adminController.getPaymentGatewaySettingsPage,
+);
+adminRouter.post(
+  "/admin/payment-gateway-settings",
+  adminController.postPaymentGatewaySettings,
+);
 
 // Admin routes for image slider in home page view after login
 adminRouter.get("/admin/image-slider", adminController.getImageSliderPage);
-adminRouter.post("/admin/upload-home-slider-image", upload.single("sliderImage"), adminController.uploadHomeSliderImage);
-adminRouter.get("/admin/delete-home-slider-image/:fieldName", adminController.deleteSliderImage);
+adminRouter.post(
+  "/admin/upload-home-slider-image",
+  upload.single("sliderImage"),
+  adminController.uploadHomeSliderImage,
+);
+adminRouter.get(
+  "/admin/delete-home-slider-image/:fieldName",
+  adminController.deleteSliderImage,
+);
 // Admin routes for sending image and message
-adminRouter.post("/sendimageandmsgnotification", upload.single("sendImage"), adminController.sendImageAndMessageNotification);
+adminRouter.post(
+  "/sendimageandmsgnotification",
+  upload.single("sendImage"),
+  adminController.sendImageAndMessageNotification,
+);
 adminRouter.post(
   "/admin/delete-notification/:id",
-  adminController.deleteNotification
+  adminController.deleteNotification,
 );
 // Admin Deposit route
 adminRouter.get("/admin/DepositRequests", adminController.depositRequest);
 adminRouter.post("/admin/deposit/accept/:id", adminController.acceptDeposit);
 adminRouter.post("/admin/deposit/reject/:id", adminController.rejectDeposit);
 
-
 // Admin withdraw Routes
-adminRouter.get("/admin/WithdrawPointsRequestReport", adminController.withdrawRequest)
+adminRouter.get(
+  "/admin/WithdrawPointsRequestReport",
+  adminController.withdrawRequest,
+);
 adminRouter.get("/admin/withdraw/approve/:id", adminController.approveWithdraw);
 adminRouter.get("/admin/withdraw/reject/:id", adminController.rejectWithdraw);
 
-// Admin Deposit tranction history route 
-adminRouter.get("/adminDepositTransactions", adminController.adminDepositHistory);
+// Admin Deposit tranction history route
+adminRouter.get(
+  "/adminDepositTransactions",
+  adminController.adminDepositHistory,
+);
 // Admin Withdraw tranction history route
-adminRouter.get("/adminWithdrawTransactions", adminController.adminWithdrawTranction);
+adminRouter.get(
+  "/adminWithdrawTransactions",
+  adminController.adminWithdrawTranction,
+);
 
 module.exports = adminRouter;

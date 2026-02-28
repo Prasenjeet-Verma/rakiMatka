@@ -20,6 +20,7 @@ const upload = multer({
     }
   },
 });
+
 userRouter.get('/', userController.UserHomePage);
 userRouter.get('/userdashboard', userController.getUserDashboardPage);
 userRouter.get('/userprofile', userController.getUserProfilePage);

@@ -149,15 +149,6 @@ exports.postAdminLogin = [
   },
 ];
 
-
-
-
-
-
-
-
-
-
 exports.getAdminDashboard = async (req, res) => {
   try {
     if (!req.session.isLoggedIn || req.session.admin.role !== "admin") {

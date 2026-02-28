@@ -457,10 +457,17 @@ exports.getUserDashboardPage = async (req, res, next) => {
       }
     }
 
-    // ===================== 🎯 FETCH ALL IMAGE MESSAGES =====================
-    const allNotifications = await SendImageMessage.find({})
-      .sort({ createdAt: -1 })
-      .lean();
+   // ===================== 🎯 FETCH ALL IMAGE MESSAGES (ONCE PER LOGIN) =====================
+let allNotifications = [];
+
+if (!req.session.hasSeenNotifications) {
+  allNotifications = await SendImageMessage.find({})
+    .sort({ createdAt: -1 })
+    .lean();
+
+  // Mark notifications as seen for this session
+  req.session.hasSeenNotifications = true;
+}
 
     // ===================== 🎯 FETCH SIGNUP REWARDS =====================
     const signupRewards = await Reward.find({
@@ -477,6 +484,18 @@ exports.getUserDashboardPage = async (req, res, next) => {
         .tz("Asia/Kolkata")
         .format("DD MMM YYYY hh:mm:ss A"),
     }));
+//
+    let embedLink = "";
+
+if (mainSettings?.withdrawVideoLink) {
+  const videoIdMatch = mainSettings.withdrawVideoLink.match(
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&]+)/,
+  );
+
+  if (videoIdMatch) {
+    embedLink = `https://www.youtube.com/embed/${videoIdMatch[1]}`;
+  }
+}
     // ===================== 🎯 RENDER DASHBOARD =====================
     res.render("User/userDashboard", {
       user,
@@ -499,6 +518,7 @@ exports.getUserDashboardPage = async (req, res, next) => {
       directUpiStatus: paymentSettings?.directUpi || "Disable",
       allNotifications, // ✅ NEW
       signupRewards: formattedSignupRewards, // ✅ use formatted dates
+      embedLink,
       isLoggedIn: req.session.isLoggedIn,
     });
   } catch (err) {

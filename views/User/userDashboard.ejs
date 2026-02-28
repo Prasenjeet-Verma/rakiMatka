@@ -104,7 +104,7 @@
         </div>
         <div class="space-y-3 text-gray-700 flex flex-col items-center justify-center">
 
-          <iframe width="340" height="200" src="https://www.youtube.com/embed/afHc6fUEF-g?si=xm8xuMnPsTLDKHoo"
+          <iframe width="340" height="200" src="<%= embedLink %>"
             title="YouTube video player" frameborder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
@@ -1076,7 +1076,75 @@
   </aside>
 
   <!-- =========================  Script are here ===================== -->
+<% if (allNotifications && allNotifications.length> 0) { %>
 
+    <div id="announcementModal" style="position:fixed; inset:0; background:rgba(0,0,0,0.6);
+display:flex; align-items:center; justify-content:center; z-index:9999;">
+
+      <div style="background:white; width:90%; max-width:400px; border-radius:10px; padding:20px; position:relative;">
+
+        <button id="closeAnnouncementBtn"
+          style="position:absolute; top:10px; right:10px; font-size:20px; border:none; background:none; cursor:pointer;">
+          ✖
+        </button>
+
+        <div id="announcementContent"></div>
+
+      </div>
+    </div>
+
+   <script>
+document.addEventListener("DOMContentLoaded", function () {
+
+  const announcements = <%- JSON.stringify(allNotifications || []) %>;
+  let currentIndex = 0;
+
+  const modal = document.getElementById("announcementModal");
+  const container = document.getElementById("announcementContent");
+  const closeBtn = document.getElementById("closeAnnouncementBtn");
+
+  if (!modal || announcements.length === 0) return;
+
+  function showAnnouncement(index) {
+    const data = announcements[index];
+    if (!data) return;
+
+    let html = "";
+
+    if (data.sendImage && data.sendImage.startsWith("http")) {
+      html += `<img src="${data.sendImage}" 
+          style="width:100%; border-radius:8px; margin-bottom:15px;"
+          onerror="this.remove()">`;
+    }
+
+    if (data.sendMessage) {
+      html += `<p style="text-align:center; font-weight:500;">
+            ${data.sendMessage}
+          </p>`;
+    }
+
+    container.innerHTML = html;
+  }
+
+  function nextAnnouncement() {
+    currentIndex++;
+
+    if (currentIndex >= announcements.length) {
+      modal.remove();
+      return;
+    }
+
+    showAnnouncement(currentIndex);
+  }
+
+  closeBtn?.addEventListener("click", nextAnnouncement);
+
+  showAnnouncement(currentIndex);
+
+});
+</script>
+
+    <% } %>
 
   <style>
     /* Slower Animation: Increased from 15s to 25s */
@@ -1159,9 +1227,6 @@
   </script>
 
 
-
-
-
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       const copyBtn = document.getElementById("copyUpiBtn");
@@ -1194,68 +1259,7 @@
   <script src="/js/user.js"></script>
 
 
-  <% if (allNotifications && allNotifications.length> 0) { %>
-
-    <div id="announcementModal" style="position:fixed; inset:0; background:rgba(0,0,0,0.6);
-display:flex; align-items:center; justify-content:center; z-index:9999;">
-
-      <div style="background:white; width:90%; max-width:400px; border-radius:10px; padding:20px; position:relative;">
-
-        <button id="closeAnnouncementBtn"
-          style="position:absolute; top:10px; right:10px; font-size:20px; border:none; background:none; cursor:pointer;">
-          ✖
-        </button>
-
-        <div id="announcementContent"></div>
-
-      </div>
-    </div>
-
-    <script>
-      const announcements = <% - JSON.stringify(allNotifications || []) %>;
-      let currentIndex = 0;
-
-      const modal = document.getElementById("announcementModal");
-      const container = document.getElementById("announcementContent");
-      const closeBtn = document.getElementById("closeAnnouncementBtn");
-
-      function showAnnouncement(index) {
-        const data = announcements[index];
-        if (!data) return;
-
-        let html = "";
-
-        if (data.sendImage) {
-          html += `<img src="${data.sendImage}" 
-              style="width:100%; border-radius:8px; margin-bottom:15px;">`;
-        }
-
-        if (data.sendMessage) {
-          html += `<p style="text-align:center; font-weight:500;">
-                ${data.sendMessage}
-              </p>`;
-        }
-
-        container.innerHTML = html;
-      }
-
-      function nextAnnouncement() {
-        currentIndex++;
-
-        if (currentIndex >= announcements.length) {
-          modal.style.display = "none";
-          return;
-        }
-
-        showAnnouncement(currentIndex);
-      }
-
-      closeBtn.addEventListener("click", nextAnnouncement);
-
-      showAnnouncement(currentIndex);
-    </script>
-
-    <% } %>
+  
 </body>
 
 </html>

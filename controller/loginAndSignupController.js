@@ -228,6 +228,9 @@ exports.logoutUserAndAdmin = (req, res, next) => {
   // 🔹 Save role before destroying session
   const wasAdmin = req.session.admin?.role === "admin";
 
+  // 🔹 Reset notification flag for next login
+  req.session.hasSeenNotifications = false;
+
   req.session.destroy((err) => {
     if (err) {
       console.error("Logout Error:", err);
