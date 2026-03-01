@@ -99,10 +99,10 @@
       </div>
 
       <!-- CONTENT -->
-      <div class="p-4 space-y-4">
+      <div style="overflow-x: auto;" class="p-4 space-y-4">
 
         <% gameRates.forEach(rate=> { %>
-          <div class="flex justify-between items-center px-5 py-4 rounded-xl shadow-md
+          <div class="flex justify-between items-center px-5 py-4 rounded-xl shadow-md w-[200vh]
       <%= rate.isActive ? 'bg-emerald-800 text-white' : 'bg-gray-400 text-gray-800' %>">
 
             <!-- LEFT -->

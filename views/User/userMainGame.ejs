@@ -1126,7 +1126,8 @@
     </header>
 
     <!-- FORM -->
-    <div class="px-5 pt-8 space-y-8 flex-1">
+     <div styile="height: 100vh; overflow-y: auto;">
+          <div class="px-5 pt-8 space-y-8 flex-1"  style="overflow-y: auto; height: 80vh;">
       <!-- CHOOSE SESSION -->
       <div class="flex justify-between items-center">
         <h2 class="text-xl font-bold text-gray-900">Choose<br />Session</h2>
@@ -1186,17 +1187,18 @@
     </table>
 
       <!-- SUBMIT BUTTON -->
-      <div class="flex justify-center pt-8">
-        <button id="spmotor_submitbtn" type="submit" class="bg-gradient-to-r from-purple-700 to-indigo-700 text-white
+      <div class="flex justify-center pt-8 pb-10">
+        <button id="spmotor_submitbtn" type="submit" class="bg-gradient-to-r from-teal-700 to-teal-700 text-white
                text-xl font-bold px-24 py-4 rounded-2xl shadow-xl
                active:scale-95 transition-all duration-150">
           Submit
         </button>
       </div>
     </div>
+     </div>
 
     <!-- BOTTOM BAR -->
-    <div class="border-t-2 border-teal-800 bg-white py-4">
+    <div class="border-t-2 border-teal-800 bg-white py-4 pb-0.5 fixed bottom-0 w-full">
       <div class="flex justify-around text-center font-semibold text-lg">
         <div>
           <div>Bids</div>

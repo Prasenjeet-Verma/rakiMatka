@@ -12,7 +12,7 @@ body {
 }
 
 .card-gradient {
-  background: linear-gradient(to right, #1e00d3 0%, #800020 100%);
+  background: linear-gradient(to right, green 0%, green 100%);
 }
 
 .nav-item:hover {
