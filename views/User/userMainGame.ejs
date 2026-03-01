@@ -410,7 +410,7 @@
     </div>
   </header>
 
-  <div class="px-5 pt-8 space-y-6 flex-1">
+  <div class="px-5 pt-8 space-y-6 flex-1 max-h-[90vh] overflow-y-auto overflow-x-hidden" >
 
     <!-- MAIN DIGIT -->
     <div class="flex justify-between items-center">
@@ -454,7 +454,7 @@
 </div>
 
     <!-- SUBMIT -->
-    <div class="flex justify-center pt-6">
+    <div class="flex justify-center pt-6 pb-[6rem]">
       <button id="jodiDigitBulk_submitbtn"
         class="bg-teal-800 text-white px-24 py-4 rounded-xl font-bold disabled:opacity-50 disabled:cursor-not-allowed">
         Submit
@@ -463,7 +463,7 @@
   </div>
 
   <!-- BOTTOM -->
-  <div class="border-t py-4">
+  <div class="border-t py-4 fixed bottom-[1px] w-full z-[200] bg-white">
     <div class="flex justify-around font-bold">
       <div>Bids <div class="jodiDigitBulk_totalbids">0</div></div>
       <div>Amount <div class="jodiDigitBulk_totalamount">0</div></div>
@@ -978,7 +978,7 @@
     <div class="flex justify-between items-center">
       <h2 class="font-bold text-lg">Close Digit</h2>
       <input id="closePanna" type="number" readonly
-        class="w-48 px-4 py-3 rounded-xl border bg-gray-100">
+        class="w-48 px-4 py-3 rounded-xl border">
     </div>
 
     <!-- POINTS -->
@@ -997,7 +997,7 @@
     </div>
 
     <!-- TABLE -->
-    <div class="overflow-x-auto">
+    <div class="overflow-x-auto h-[20vh] overflow-y-auto">
       <table class="w-full border text-center text-sm">
         <thead class="bg-gray-200 font-bold">
           <tr>
@@ -1015,7 +1015,7 @@
 
   <!-- SUBMIT -->
   <button id="HalfSangamSubmit"
-    class="bg-green-600 text-white py-4 text-xl font-bold">
+    class="bg-teal-800 text-white py-4 text-xl font-bold">
     Submit
   </button>
 
@@ -1060,7 +1060,7 @@
     <div class="flex justify-between items-center">
       <h2 class="font-bold text-lg">Close Panna</h2>
       <input id="closePannaFullSangam" type="number" readonly
-        class="w-48 px-4 py-3 rounded-xl border bg-gray-100">
+        class="w-48 px-4 py-3 rounded-xl border">
     </div>
 
     <!-- POINTS -->
@@ -1079,7 +1079,7 @@
     </div>
 
     <!-- TABLE -->
-    <div class="overflow-x-auto">
+    <div class="overflow-x-auto h-[20vh] overflow-y-auto">
       <table class="w-full border text-center text-sm">
         <thead class="bg-gray-200 font-bold">
           <tr>
@@ -1097,7 +1097,7 @@
 
   <!-- SUBMIT -->
   <button id="fullSangamSubmit"
-    class="bg-green-600 text-white py-4 text-xl font-bold">
+    class="bg-teal-800 text-white py-4 text-xl font-bold">
     Submit
   </button>
 
