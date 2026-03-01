@@ -317,20 +317,20 @@
     </div>
     <div class="container pt-20">
       <div class="info-card">
-        <h2 class="font-bold text-lg mb-2">⭐ Starline Rates</h2>
+        <h2 class="font-bold text-lg mb-2 text-green-700">⭐ Starline Rates</h2>
 
         <% if (starlineRates.length===0) { %>
-          <div class="text-sm text-gray-500">
+          <div class="text-sm text-green-700">
             No Rates Available
           </div>
           <% } %>
 
             <% starlineRates.forEach(rate=> { %>
               <div class="info-row flex justify-between py-1 border-b last:border-none">
-                <span class="font-medium text-gray-700">
+                <span class="font-medium text-green-700">
                   <%= rate.gameType %>
                 </span>
-                <span class="font-semibold text-indigo-600">
+                <span class="font-semibold text-green-700">
                   <%= rate.betAmount %> - <%= rate.profitAmount %>
                 </span>
               </div>
@@ -345,9 +345,9 @@
           <a href="/user-win-history" class="flex justify-center"><button>Win History</button></a>
         </div>
       </div>
+<!-- game card -->
 
-
-      <div class="p-4 grid grid-cols-2 sm:grid-cols-2 gap-4 pt-[19rem]">
+      <div class="p-4 grid grid-cols-2 sm:grid-cols-2 gap-4">
         <% starlineGames.sort((a, b)=> {
           const timeA = new Date("1970-01-01 " + a.openTime);
           const timeB = new Date("1970-01-01 " + b.openTime);
@@ -362,7 +362,7 @@
 
               <% starlineGames.forEach(game=> { %>
 
-                <div class="bg-white rounded-xl shadow p-4">
+                <div style="border: 2px solid green;" class="bg-white rounded-xl shadow p-4" class="bg-white rounded-xl shadow p-4">
                   <div class="flex justify-between items-center mb-2">
                     <span class="text-[x-small] text-gray-600 border-b pb-2
           <%= game.isRunning ? 'border-green-500' : 'border-red-500' %>">
@@ -371,38 +371,46 @@
                     <i class="fas fa-info-circle text-red-500"></i>
                   </div>
 
+                  <div class="flex justify-center">
                   <h2 class="font-bold text-lg">
                     <%= game.gameName %>
                   </h2>
+                  </div>
 
                   <% if (game.starlineOpen || game.starlineClose) { %>
-                    <p class="text-sm font-bold text-purple-600 mt-1 tracking-wide">
+                    <div class="flex justify-center">
+                      <p class="text-sm font-bold text-green-600 mt-1 tracking-wide">
                       ⭐
                       <%= game.starlineOpen ? game.starlineOpen.panna + "-" + game.starlineOpen.digit : "xx" %>
                         |
                         <%= game.starlineClose ? game.starlineClose.panna + "-" + game.starlineClose.digit : "xx" %>
                     </p>
+                    </div>
                     <% } else { %>
-                      <p class="text-sm font-bold text-gray-400 mt-1 tracking-wide">
+                      <div class="flex justify-center">
+                        <p class="text-sm font-bold text-gray-400 mt-1 tracking-wide">
                         ⭐ xx | xx
                       </p>
+                      </div>
                       <% } %>
 
-                        <p class="mt-1 font-semibold
+                        <div class="flex justify-center">
+                          <p class="mt-1 font-semibold
         <%= game.isRunning ? 'text-green-600' : 'text-red-600' %>">
                           <%= game.statusText %>
                         </p>
+                        </div>
 
                         <% if (game.isRunning) { %>
                           <a href="/playstarline/<%= game._id %>">
                             <button
-                              class="mt-4 w-full bg-green-700 text-white py-3 rounded-lg flex items-center justify-center gap-2 font-semibold">
+                              class="mt-4 w-full bg-green-700 text-white py-1 rounded-lg flex items-center justify-center gap-2 font-semibold">
                               <i class="fas fa-gamepad"></i> Play Game
                             </button>
                           </a>
                           <% } else { %>
                             <button disabled
-                              class="mt-4 w-full bg-gray-400 text-white py-3 rounded-lg flex items-center justify-center gap-2 font-semibold cursor-not-allowed">
+                              class="mt-4 w-full bg-gray-400 text-white py-1 rounded-lg flex items-center justify-center gap-2 font-semibold cursor-not-allowed">
                               Market Closed
                             </button>
                             <% } %>
@@ -426,10 +434,10 @@
     </div>
     <div class="container pt-[5rem]">
       <div class="info-card">
-        <h2 class="font-bold text-lg mb-4">🎰 Jackpot Rates</h2>
+        <h2 class="font-bold text-lg mb-4 text-green-700">🎰 Jackpot Rates</h2>
 
         <% if (!jackpotRates || jackpotRates.length===0) { %>
-          <div class="text-sm text-gray-500">
+          <div class="text-sm text-green-700">
             No Rates Available
           </div>
           <% } %>
@@ -437,11 +445,11 @@
             <% jackpotRates.forEach(rate=> { %>
               <div class="info-row flex justify-between items-center py-2 border-b last:border-none">
 
-                <span class="font-medium text-gray-700">
+                <span class="font-medium text-green-700">
                   <%= rate.gameType %>
                 </span>
 
-                <span class="font-semibold text-red-600">
+                <span class="font-semibold text-green-700">
                   <%= rate.betAmount %> - <%= rate.profitAmount %>
                 </span>
 
@@ -457,7 +465,7 @@
         </div>
       </div>
 
-      <div class="p-4 grid grid-cols-2 sm:grid-cols-2 gap-4 pt-[19rem]">
+      <div class="p-4 grid grid-cols-2 sm:grid-cols-2 gap-4">
         <% jackpotGames.sort((a, b)=> {
           const timeA = new Date("1970-01-01 " + a.openTime);
           const timeB = new Date("1970-01-01 " + b.openTime);
@@ -472,7 +480,7 @@
 
               <% jackpotGames.forEach(game=> { %>
 
-                <div class="bg-white rounded-xl shadow p-4">
+                <div style="border: 2px solid green;" class="bg-white rounded-xl shadow p-4" class="bg-white rounded-xl shadow p-4">
                   <div class="flex justify-between items-center mb-2">
                     <span class="text-[x-small] text-gray-600 border-b pb-2
           <%= game.isRunning ? 'border-green-500' : 'border-red-500' %>">
@@ -481,12 +489,16 @@
                     <i class="fas fa-info-circle text-red-500"></i>
                   </div>
 
+                  <div class="flex justify-center">
                   <h2 class="font-bold text-lg">
                     <%= game.gameName %>
                   </h2>
+                  </div>
 
                   <% if (game.jackpotResult) { %>
-                    <p class="text-sm font-bold text-indigo-600 mt-1 tracking-wide">
+                 
+                   <div class="flex justify-center">
+                     <p class="text-sm font-bold text-green-700 mt-1 tracking-wide">
                       🎯
                       <span class="text-gray-800">
                         <%= game.jackpotResult.left %>
@@ -500,27 +512,32 @@
                         <%= game.jackpotResult.right %>
                       </span>
                     </p>
+                   </div>
                     <% } else { %>
-                      <p class="text-sm font-bold text-gray-400 mt-1 tracking-wide">
+                    <div class="flex justify-center">
+                        <p class="text-sm font-bold text-gray-400 mt-1 tracking-wide">
                         🎯 xx
                       </p>
+                    </div>
                       <% } %>
 
-                        <p class="mt-1 font-semibold
+                        <div class="flex justify-center">
+                          <p class="mt-1 font-semibold
         <%= game.isRunning ? 'text-green-600' : 'text-red-600' %>">
                           <%= game.statusText %>
                         </p>
+                        </div>
 
                         <% if (game.isRunning) { %>
                           <a href="/playjackpot/<%= game._id %>">
                             <button
-                              class="mt-4 w-full bg-green-700 text-white py-3 rounded-lg flex items-center justify-center gap-2 font-semibold">
+                              class="mt-4 w-full bg-green-700 text-white py-1 rounded-lg flex items-center justify-center gap-2 font-semibold">
                               <i class="fas fa-gamepad"></i> Play Game
                             </button>
                           </a>
                           <% } else { %>
                             <button disabled
-                              class="mt-4 w-full bg-gray-400 text-white py-3 rounded-lg flex items-center justify-center gap-2 font-semibold cursor-not-allowed">
+                              class="mt-4 w-full bg-gray-400 text-white py-1 rounded-lg flex items-center justify-center gap-2 font-semibold cursor-not-allowed">
                               Market Closed
                             </button>
                             <% } %>
