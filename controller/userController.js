@@ -192,6 +192,7 @@ const bcrypt = require("bcryptjs");
 const User = require("../model/userSchema");
 const fs = require("fs");
 const uploadToPhpServer = require("../utils/uploadToPhpServer");
+const AdminLogo = require("../model/AdminLogo");
 const UserWalletTransaction = require("../model/UserWalletTransaction");
 const Reward = require("../model/Reward");
 const UserBankDetails = require("../model/UserBankDetails");
@@ -244,6 +245,10 @@ exports.UserHomePage = async (req, res, next) => {
     const slider = await HomeSliderImage.findOne()
       .sort({ createdAt: -1 })
       .lean();
+     
+
+      const logo = await AdminLogo.findOne();
+      const mainSetting = await MainSettings.findOne()
 
     // ✅ Only Normal GameRates
     const normalRates = await GameRate.find({
@@ -335,11 +340,13 @@ exports.UserHomePage = async (req, res, next) => {
     res.render("User/UserHomePage", {
       user,
       slider,
+      mainSetting,
       normalRates,
       starlineRates,
       jackpotRates,
       finalGames,
       contact,
+      logo
     });
   } catch (err) {
     console.error("Error in UserHomePage:", err);

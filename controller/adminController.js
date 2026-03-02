@@ -16,8 +16,8 @@ const MainSettings = require("../model/MainSettings");
 const ContactAdmin = require("../model/contactAdmin");
 const bellNotification = require("../model/normalNotification");
 const ManualDeposit = require("../model/ManualDeposit");
-const uploadToPhpServer = require("../utils/uploadToPhpServer");
 const fs = require("fs");
+const uploadToPhpServer = require("../utils/uploadToPhpServer");
 const HomeSliderImage = require("../model/HomeSliderImage");
 const SendImageMsg = require("../model/SendImageMessage");
 const PaymentGatewaySettings = require("../model/PaymentGatewaySettings");
@@ -6784,6 +6784,7 @@ exports.postMainSettings = async (req, res) => {
       minBet: req.body.minBet,
       maxBet: req.body.maxBet,
       shareLink: req.body.shareLink,
+      downloadLink: req.body.downloadLink,
       withdrawVideoLink: req.body.withdrawVideoLink,
       withdrawDisabled: req.body.withdrawDisabled, // direct save, no conversion
     };
@@ -6914,6 +6915,7 @@ exports.postPaymentGatewaySettings = async (req, res) => {
 };
 
 // GET page
+const AdminLogo = require("../model/AdminLogo");
 exports.getImageSliderPage = async (req, res) => {
   try {
     if (
@@ -6962,6 +6964,11 @@ exports.getImageSliderPage = async (req, res) => {
       await slider.save();
     }
 
+   let logo = await AdminLogo.findOne();
+
+    if (!logo) {
+      logo = await AdminLogo.create({ logoUrl: "" });
+    }
     res.render("Admin/imageSlider", {
       pageTitle: "Image Slider Settings",
       admin,
@@ -6973,10 +6980,58 @@ exports.getImageSliderPage = async (req, res) => {
       totalPages,
       totalEntries,
       limit,
+       logo,
     });
   } catch (error) {
     console.error(error);
     res.status(500).send("Server Error");
+  }
+};
+
+
+/* ================= UPLOAD LOGO ================= */
+exports.uploadLogo = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.redirect("/admin/image-slider");
+    }
+
+    const tempPath = req.file.path;
+
+    // Upload to PHP server
+    const uploadedUrl = await uploadToPhpServer(tempPath);
+
+    // Delete temp file
+    fs.unlinkSync(tempPath);
+
+    let logo = await AdminLogo.findOne();
+    if (!logo) {
+      logo = await AdminLogo.create({ logoUrl: uploadedUrl });
+    } else {
+      logo.logoUrl = uploadedUrl;
+      await logo.save();
+    }
+
+    res.redirect("/admin/image-slider");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Upload Error");
+  }
+};
+
+/* ================= DELETE LOGO ================= */
+exports.deleteLogo = async (req, res) => {
+  try {
+    const logo = await AdminLogo.findOne();
+    if (logo) {
+      logo.logoUrl = "";
+      await logo.save();
+    }
+
+    res.redirect("/admin/image-slider");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Delete Error");
   }
 };
 

@@ -280,9 +280,44 @@
         </div>
         </div>
 
-      </main>
+
+
+                 <!------------------------\\\\\\\\\\ logo \\\\\\\\\\\\\\\\\\\\------------------------------>
+<main>
+  <h2 class="text-2xl font-bold mb-4">Admin Logo Settings</h2>
+<!-- <% if (logo?.logoUrl) { %>
+  <img src="<%= logo.logoUrl %>" class="h-12" />
+<% } %> -->
+<!-- Current Logo -->
+<% if (logo.logoUrl) { %>
+  <div class="mb-4">
+    <img src="<%= logo.logoUrl %>" class="h-24 mb-3" />
+    
+    <form action="/admin/delete-logo" method="POST">
+      <button class="bg-red-600 text-white px-4 py-2 rounded">
+        Delete Logo
+      </button>
+    </form>
+  </div>
+<% } %>
+
+<!-- Upload Form -->
+<form action="/admin/upload-logo" method="POST" enctype="multipart/form-data">
+  <input type="file" name="logo" accept="image/*" required />
+  
+  <button class="bg-blue-600 text-white px-4 py-2 rounded mt-2">
+    Upload / Update Logo
+  </button>
+</form>
+</main>
 
   </main>
+
+
+
+      </main>
+
+
   <script src="/js/sidebar.js"></script>
 </body>
 

@@ -41,6 +41,10 @@ const mainSettingsSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+     downloadLink: {
+      type: String,
+      required: true,
+    },
     withdrawVideoLink: {
       type: String,
       required: true,

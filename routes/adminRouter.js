@@ -302,4 +302,6 @@ adminRouter.get(
   adminController.adminWithdrawTranction,
 );
 
+adminRouter.post("/admin/upload-logo", upload.single("logo"), adminController.uploadLogo);
+adminRouter.post("/admin/delete-logo", adminController.deleteLogo);
 module.exports = adminRouter;

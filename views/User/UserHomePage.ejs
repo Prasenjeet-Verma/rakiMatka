@@ -43,7 +43,7 @@
 
   <overflow class="bg-white shadow-md px-4 py-3 flex justify-between items-center">
     <div class="flex items-center gap-2" style="width: 5rem;">
-      <img src="images/logo/logo.png" alt="">
+      <img src="<%= logo.logoUrl %>" alt="">
     </div>
   </overflow>
 
@@ -103,10 +103,15 @@
 
   <!-- DOWNLOAD APP -->
   <div class="px-6 mt-6">
-    <button
-      class="w-full bg-green-700 text-white py-3 rounded-full text-lg font-semibold flex items-center justify-center gap-2 hover:bg-green-800 transition">
-      <i class="fab fa-android"></i> Download App
-    </button>
+   <% if (mainSetting?.downloadLink) { %>
+  <a 
+    href="<%= mainSetting.downloadLink %>" 
+    target="_blank"
+    class="w-full bg-green-700 text-white py-3 rounded-full text-lg font-semibold flex items-center justify-center gap-2 hover:bg-green-800 transition"
+  >
+    <i class="fab fa-android"></i> Download App
+  </a>
+<% } %>
   </div>
 
   <!-- CONTACT -->
