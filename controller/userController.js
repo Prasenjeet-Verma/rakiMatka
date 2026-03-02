@@ -59,16 +59,16 @@ if (req.session?.user?.role === "user") {
 //   return res.redirect("/login");
 // }
 
-const userCheck = await User.findOne({
-  _id: req.session.user._id,
-  role: "user",
-  userStatus: "active",
-}).select("-password");
+// const userCheck = await User.findOne({
+//   _id: req.session.user._id,
+//   role: "user",
+//   userStatus: "active",
+// }).select("-password");
 
-if (!userCheck) {
-  req.session.destroy();
-  return res.redirect("/login");
-}
+// if (!userCheck) {
+//   req.session.destroy();
+//   return res.redirect("/login");
+// }
 
 const user = req.session.user || null;
 
@@ -247,7 +247,6 @@ const cleanCall = rawCall.replace(/\D/g, "");
 contact.callNumber = cleanCall;
     res.render("User/UserHomePage", {
       user,
-      isLoggedIn,
       slider,
       normalRates,
       starlineRates,
