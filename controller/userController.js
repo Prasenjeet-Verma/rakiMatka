@@ -55,9 +55,9 @@ if (req.session?.user?.role === "user") {
 }
 
 // If no session user, redirect to login
-if (!req.session?.user?._id) {
-  return res.redirect("/login");
-}
+// if (!req.session?.user?._id) {
+//   return res.redirect("/login");
+// }
 
 const userCheck = await User.findOne({
   _id: req.session.user._id,
