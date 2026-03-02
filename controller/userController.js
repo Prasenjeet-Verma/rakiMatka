@@ -48,8 +48,29 @@ const JackpotGameResult = require("../model/jackpotGameDeclareResuult");
 
 exports.UserHomePage = async (req, res, next) => {
   try {
-    const user = req.session.user || null;
-    const isLoggedIn = !!req.session.isLoggedIn;
+
+// If already logged in user
+if (req.session?.user?.role === "user") {
+  return res.redirect("/userdashboard");
+}
+
+// If no session user, redirect to login
+if (!req.session?.user?._id) {
+  return res.redirect("/login");
+}
+
+const userCheck = await User.findOne({
+  _id: req.session.user._id,
+  role: "user",
+  userStatus: "active",
+}).select("-password");
+
+if (!userCheck) {
+  req.session.destroy();
+  return res.redirect("/login");
+}
+
+const user = req.session.user || null;
 
     const slider = await HomeSliderImage.findOne()
       .sort({ createdAt: -1 })
