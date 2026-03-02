@@ -89,5 +89,7 @@ userRouter.get("/user/mark-pending/:id", userController.markDepositPending);
 // );
 userRouter.get("/user/cancel-deposit/:id", userController.cancelDeposit);
 
-
+// User index access panna chart route
+userRouter.get("/pana-chart/:gameName", userController.getPanaChart);
+userRouter.get("/jodi-chart/:gameName", userController.getJodiChart);
 module.exports = userRouter;

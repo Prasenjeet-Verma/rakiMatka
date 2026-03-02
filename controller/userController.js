@@ -1,3 +1,192 @@
+    // //Jackpot
+    // // ✅ Jackpot Games Fetch
+    // const jackpotGames = await Game.find({
+    //   isJackpot: true,
+    //   isDeleted: false,
+    // }).lean();
+
+    // const finalJackpotGames = [];
+
+    // for (let game of jackpotGames) {
+    //   const todaySchedule = game.schedule[todayWeekday];
+    //   if (!todaySchedule || !todaySchedule.isActive) continue;
+
+    //   // Jackpot result fetch
+    //   const jackpotResult = await JackpotGameResult.findOne({
+    //     gameName: game.gameName,
+    //     resultDate: todayDate,
+    //   }).lean();
+
+    //   let status = "RUNNING";
+
+    //   if (jackpotResult) {
+    //     status = "CLOSED";
+    //   }
+
+    //   finalJackpotGames.push({
+    //     gameName: game.gameName,
+    //     openTime: todaySchedule.openTime,
+    //     closeTime: todaySchedule.closeTime,
+    //     jackpotResult,
+    //     status,
+    //   });
+    // }
+
+    // // 🔥 Sort by openTime ascending
+    // finalJackpotGames.sort((a, b) => {
+    //   const timeA = new Date("1970-01-01T" + a.openTime);
+    //   const timeB = new Date("1970-01-01T" + b.openTime);
+    //   return timeA - timeB;
+    // });
+
+    // // ⭐ Starline Games Fetch
+    // const starlineGames = await Game.find({
+    //   isStarline: true,
+    //   isJackpot: false,
+    //   isDeleted: false,
+    // }).lean();
+
+    // const finalStarlineGames = [];
+
+    // for (let game of starlineGames) {
+    //   const todaySchedule = game.schedule[todayWeekday];
+    //   if (!todaySchedule || !todaySchedule.isActive) continue;
+
+    //   // Starline result (only OPEN session)
+    //   const starlineResult = await StarlineGameResult.findOne({
+    //     gameName: game.gameName,
+    //     session: "OPEN",
+    //     resultDate: todayDate,
+    //   }).lean();
+
+    //   let status = "RUNNING";
+
+    //   // ⭐ Agar result mil gaya → direct CLOSED
+    //   if (starlineResult) {
+    //     status = "CLOSED";
+    //   }
+
+    //   finalStarlineGames.push({
+    //     gameName: game.gameName,
+    //     openTime: todaySchedule.openTime,
+    //     starlineResult,
+    //     status,
+    //   });
+    // }
+
+    // // 🔥 Sort by openTime ascending
+    // finalStarlineGames.sort((a, b) => {
+    //   const timeA = new Date("1970-01-01T" + a.openTime);
+    //   const timeB = new Date("1970-01-01T" + b.openTime);
+    //   return timeA - timeB;
+    // });  render pass value -->   // finalJackpotGames,finalStarlineGames,
+
+//  <main class="bg-gray-100">
+//       <section class="max-w-7xl mx-auto px-4 py-6">
+
+//         <h2 class="text-xl font-semibold mb-4">Starline Games</h2>
+
+//         <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+//           <% finalStarlineGames.forEach(game=> { %>
+
+//             <div style="border: 2px solid green;" class="bg-green-100 rounded-lg shadow p-4">
+
+//               <h3 class="font-semibold text-center mb-2">
+//                 <%= game.gameName %>
+//               </h3>
+
+//               <div class="text-xs text-gray-600 flex justify-center mb-1">
+//                 <div class="text-amber-500">
+//                   <%= game.openTime %>
+//                 </div>
+//               </div>
+
+//               ⭐ RESULT FORMAT xxx-x
+//               <p class="text-sm text-center text-green-600 my-2">
+//                 <%= game.starlineResult ? game.starlineResult.panna : "xxx" %>
+//                   -
+//                   <%= game.starlineResult ? game.starlineResult.digit : "x" %>
+//               </p>
+
+//               <div class="flex justify-center mb-3">
+//                 <span class="<%= game.status === 'CLOSED'
+//                 ? 'bg-red-500 text-white'
+//                 : 'bg-yellow-400 text-black' %>
+//                 text-xs px-3 py-1 rounded-full">
+//                   <%= game.status %>
+//                 </span>
+//               </div>
+//               <div class="flex justify-center gap-2">
+//                 <button class="border border-green-700 text-green-700 text-xs px-3 py-1 rounded">
+//                   Jodi Chart
+//                 </button>
+//                 <button class="border border-green-700 text-green-700 text-xs px-3 py-1 rounded">
+//                   Pana Chart
+//                 </button>
+//               </div>
+//             </div>
+
+//             <% }) %>
+
+//         </div>
+//       </section>
+//     </main> 
+
+    //  <main class="bg-gray-100">
+    //   <section class="max-w-7xl mx-auto px-4 py-6">
+
+    //     <h2 class="text-xl font-semibold mb-4">Jackpot Games</h2>
+
+    //     <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+    //       <% finalJackpotGames.forEach(game=> { %>
+
+    //         <div style="border: 2px solid green;" class="bg-green-100 rounded-lg shadow p-4">
+
+    //           <h3 class="font-semibold text-center mb-2">
+    //             <%= game.gameName %>
+    //           </h3>
+
+    //           <div class="text-xs text-gray-600 flex justify-center mb-1">
+    //             <div class="text-amber-500">
+    //               <%= game.openTime %> - <%= game.closeTime %>
+    //             </div>
+    //           </div>
+
+    //           <p class="text-sm text-center text-green-600 my-2">
+    //             <%= game.jackpotResult ? game.jackpotResult.left : "x" %>
+    //               -
+    //               <%= game.jackpotResult ? game.jackpotResult.jodi : "xx" %>
+    //                 -
+    //                 <%= game.jackpotResult ? game.jackpotResult.right : "x" %>
+    //           </p>
+
+    //           <div class="flex justify-center mb-3">
+    //             <span class="<%= game.status === 'CLOSED'
+    //             ? 'bg-red-500 text-white'
+    //             : 'bg-yellow-400 text-black' %>
+    //             text-xs px-3 py-1 rounded-full">
+    //               <%= game.status %>
+    //             </span>
+    //           </div>
+    //           <div class="flex justify-center gap-2">
+    //             <button class="border border-green-700 text-green-700 text-xs px-3 py-1 rounded">
+    //               Jodi Chart
+    //             </button>
+    //             <button class="border border-green-700 text-green-700 text-xs px-3 py-1 rounded">
+    //               Pana Chart
+    //             </button>
+    //           </div>
+    //         </div>
+
+    //         <% }) %>
+
+    //     </div>
+    //   </section>
+    // </main>
+
+
 const mongoose = require("mongoose");
 const moment = require("moment-timezone");
 const bcrypt = require("bcryptjs");
@@ -17,9 +206,7 @@ const payment = require("../model/PaymentGatewaySettings");
 const ManualDeposit = require("../model/ManualDeposit");
 const WithdrawTime = require("../model/WithdrawTime");
 const HomeSliderImage = require("../model/HomeSliderImage");
-
 const SendImageMessage = require("../model/SendImageMessage");
-
 const SingleDigitBet = require("../model/SingleDigitBet");
 const SingleBulkDigitBet = require("../model/SingleBulkDigitBet");
 const JodiDigitBet = require("../model/JodiDigitBet");
@@ -48,29 +235,12 @@ const JackpotGameResult = require("../model/jackpotGameDeclareResuult");
 
 exports.UserHomePage = async (req, res, next) => {
   try {
+    // If already logged in user
+    if (req.session?.user?.role === "user") {
+      return res.redirect("/userdashboard");
+    }
 
-// If already logged in user
-if (req.session?.user?.role === "user") {
-  return res.redirect("/userdashboard");
-}
-
-// If no session user, redirect to login
-// if (!req.session?.user?._id) {
-//   return res.redirect("/login");
-// }
-
-// const userCheck = await User.findOne({
-//   _id: req.session.user._id,
-//   role: "user",
-//   userStatus: "active",
-// }).select("-password");
-
-// if (!userCheck) {
-//   req.session.destroy();
-//   return res.redirect("/login");
-// }
-
-const user = req.session.user || null;
+    const user = req.session.user || null;
 
     const slider = await HomeSliderImage.findOne()
       .sort({ createdAt: -1 })
@@ -149,102 +319,21 @@ const user = req.session.user || null;
         status,
       });
     }
-// 🔥 Sort by openTime ascending
-finalGames.sort((a, b) => {
-  const timeA = new Date("1970-01-01T" + a.openTime);
-  const timeB = new Date("1970-01-01T" + b.openTime);
-  return timeA - timeB;
-});
+    // 🔥 Sort by openTime ascending
+    finalGames.sort((a, b) => {
+      const timeA = new Date("1970-01-01T" + a.openTime);
+      const timeB = new Date("1970-01-01T" + b.openTime);
+      return timeA - timeB;
+    });
 
-//Jackpot
-// ✅ Jackpot Games Fetch
-const jackpotGames = await Game.find({
-  isJackpot: true,
-  isDeleted: false,
-}).lean();
 
-const finalJackpotGames = [];
-
-for (let game of jackpotGames) {
-  const todaySchedule = game.schedule[todayWeekday];
-  if (!todaySchedule || !todaySchedule.isActive) continue;
-
-  // Jackpot result fetch
-  const jackpotResult = await JackpotGameResult.findOne({
-    gameName: game.gameName,
-    resultDate: todayDate,
-  }).lean();
-
-  let status = "RUNNING";
-
-  if (jackpotResult) {
-    status = "CLOSED";
-  }
-
-  finalJackpotGames.push({
-    gameName: game.gameName,
-    openTime: todaySchedule.openTime,
-    closeTime: todaySchedule.closeTime,
-    jackpotResult,
-    status,
-  });
-}
-
-// 🔥 Sort by openTime ascending
-finalJackpotGames.sort((a, b) => {
-  const timeA = new Date("1970-01-01T" + a.openTime);
-  const timeB = new Date("1970-01-01T" + b.openTime);
-  return timeA - timeB;
-});
-
-// ⭐ Starline Games Fetch
-const starlineGames = await Game.find({
-  isStarline: true,
-  isJackpot: false,
-  isDeleted: false,
-}).lean();
-
-const finalStarlineGames = [];
-
-for (let game of starlineGames) {
-  const todaySchedule = game.schedule[todayWeekday];
-  if (!todaySchedule || !todaySchedule.isActive) continue;
-
-  // Starline result (only OPEN session)
-  const starlineResult = await StarlineGameResult.findOne({
-    gameName: game.gameName,
-    session: "OPEN",
-    resultDate: todayDate,
-  }).lean();
-
-  let status = "RUNNING";
-
-  // ⭐ Agar result mil gaya → direct CLOSED
-  if (starlineResult) {
-    status = "CLOSED";
-  }
-
-  finalStarlineGames.push({
-    gameName: game.gameName,
-    openTime: todaySchedule.openTime,
-    starlineResult,
-    status,
-  });
-}
-
-// 🔥 Sort by openTime ascending
-finalStarlineGames.sort((a, b) => {
-  const timeA = new Date("1970-01-01T" + a.openTime);
-  const timeB = new Date("1970-01-01T" + b.openTime);
-  return timeA - timeB;
-});
-const contact = await ContactAdmin.findOne({ isActive: true }).lean();
-const rawNumber = contact.whatsappNumber;
-const cleanNumber = rawNumber.replace(/\D/g, ""); // remove + and spaces
-contact.whatsappNumber = cleanNumber;
-const rawCall = contact.callNumber;
-const cleanCall = rawCall.replace(/\D/g, "");
-contact.callNumber = cleanCall;
+    const contact = await ContactAdmin.findOne({ isActive: true }).lean();
+    const rawNumber = contact.whatsappNumber;
+    const cleanNumber = rawNumber.replace(/\D/g, ""); // remove + and spaces
+    contact.whatsappNumber = cleanNumber;
+    const rawCall = contact.callNumber;
+    const cleanCall = rawCall.replace(/\D/g, "");
+    contact.callNumber = cleanCall;
     res.render("User/UserHomePage", {
       user,
       slider,
@@ -252,8 +341,6 @@ contact.callNumber = cleanCall;
       starlineRates,
       jackpotRates,
       finalGames,
-      finalJackpotGames,
-      finalStarlineGames,
       contact,
     });
   } catch (err) {
@@ -262,6 +349,131 @@ contact.callNumber = cleanCall;
   }
 };
 
+exports.getPanaChart = async (req, res, next) => {
+  try {
+    const { gameName } = req.params;
+
+    // Get all results of that game (latest first)
+    const results = await GameResult.find({ gameName })
+      .sort({ resultDate: -1 })
+      .lean();
+
+    const weeks = {};
+
+    results.forEach((result) => {
+
+      const dateObj = new Date(result.resultDate);
+
+      // Find Monday of that week
+      const day = dateObj.getDay();
+      const diff = dateObj.getDate() - day + (day === 0 ? -6 : 1);
+      const monday = new Date(dateObj);
+      monday.setDate(diff);
+
+      const weekKey = monday.toISOString().split("T")[0];
+
+      // Create week entry if not exists
+      if (!weeks[weekKey]) {
+
+        const mondayDate = new Date(monday);
+        const sundayDate = new Date(mondayDate);
+        sundayDate.setDate(mondayDate.getDate() + 6);
+
+        weeks[weekKey] = {
+          startDate: mondayDate.toISOString().split("T")[0],
+          endDate: sundayDate.toISOString().split("T")[0],
+          days: {}
+        };
+      }
+
+      // Get weekday name (Mon, Tue...)
+      const weekday = new Date(result.resultDate)
+        .toLocaleDateString("en-US", { weekday: "short" });
+
+      if (!weeks[weekKey].days[weekday]) {
+        weeks[weekKey].days[weekday] = {};
+      }
+
+      weeks[weekKey].days[weekday][result.session] = result;
+    });
+
+    // Convert object to array & sort latest week first
+    const finalWeeks = Object.values(weeks)
+      .sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
+
+    res.render("User/PanaChart", {
+      gameName,
+      finalWeeks
+    });
+
+  } catch (err) {
+    console.error("Error in getJodiChart:", err);
+    next(err);
+  }
+};
+
+exports.getJodiChart = async (req, res, next) => {
+  try {
+    const { gameName } = req.params;
+
+    // Get all results of that game (latest first)
+    const results = await GameResult.find({ gameName })
+      .sort({ resultDate: -1 })
+      .lean();
+
+    const weeks = {};
+
+    results.forEach((result) => {
+
+      const dateObj = new Date(result.resultDate);
+
+      // Find Monday of that week
+      const day = dateObj.getDay();
+      const diff = dateObj.getDate() - day + (day === 0 ? -6 : 1);
+      const monday = new Date(dateObj);
+      monday.setDate(diff);
+
+      const weekKey = monday.toISOString().split("T")[0];
+
+      // Create week entry if not exists
+      if (!weeks[weekKey]) {
+
+        const mondayDate = new Date(monday);
+        const sundayDate = new Date(mondayDate);
+        sundayDate.setDate(mondayDate.getDate() + 6);
+
+        weeks[weekKey] = {
+          startDate: mondayDate.toISOString().split("T")[0],
+          endDate: sundayDate.toISOString().split("T")[0],
+          days: {}
+        };
+      }
+
+      // Get weekday name (Mon, Tue...)
+      const weekday = new Date(result.resultDate)
+        .toLocaleDateString("en-US", { weekday: "short" });
+
+      if (!weeks[weekKey].days[weekday]) {
+        weeks[weekKey].days[weekday] = {};
+      }
+
+      weeks[weekKey].days[weekday][result.session] = result;
+    });
+
+    // Convert object to array & sort latest week first
+    const finalWeeks = Object.values(weeks)
+      .sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
+
+    res.render("User/JodiChart", {
+      gameName,
+      finalWeeks
+    });
+
+  } catch (err) {
+    console.error("Error in getJodiChart:", err);
+    next(err);
+  }
+};
 exports.getUserDashboardPage = async (req, res, next) => {
   try {
     // 🔐 Auth check
@@ -477,17 +689,17 @@ exports.getUserDashboardPage = async (req, res, next) => {
       }
     }
 
-   // ===================== 🎯 FETCH ALL IMAGE MESSAGES (ONCE PER LOGIN) =====================
-let allNotifications = [];
+    // ===================== 🎯 FETCH ALL IMAGE MESSAGES (ONCE PER LOGIN) =====================
+    let allNotifications = [];
 
-if (!req.session.hasSeenNotifications) {
-  allNotifications = await SendImageMessage.find({})
-    .sort({ createdAt: -1 })
-    .lean();
+    if (!req.session.hasSeenNotifications) {
+      allNotifications = await SendImageMessage.find({})
+        .sort({ createdAt: -1 })
+        .lean();
 
-  // Mark notifications as seen for this session
-  req.session.hasSeenNotifications = true;
-}
+      // Mark notifications as seen for this session
+      req.session.hasSeenNotifications = true;
+    }
 
     // ===================== 🎯 FETCH SIGNUP REWARDS =====================
     const signupRewards = await Reward.find({
@@ -504,18 +716,18 @@ if (!req.session.hasSeenNotifications) {
         .tz("Asia/Kolkata")
         .format("DD MMM YYYY hh:mm:ss A"),
     }));
-//
+    //
     let embedLink = "";
 
-if (mainSettings?.withdrawVideoLink) {
-  const videoIdMatch = mainSettings.withdrawVideoLink.match(
-    /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&]+)/,
-  );
+    if (mainSettings?.withdrawVideoLink) {
+      const videoIdMatch = mainSettings.withdrawVideoLink.match(
+        /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&]+)/,
+      );
 
-  if (videoIdMatch) {
-    embedLink = `https://www.youtube.com/embed/${videoIdMatch[1]}`;
-  }
-}
+      if (videoIdMatch) {
+        embedLink = `https://www.youtube.com/embed/${videoIdMatch[1]}`;
+      }
+    }
     // ===================== 🎯 RENDER DASHBOARD =====================
     res.render("User/userDashboard", {
       user,
