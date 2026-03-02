@@ -1,85 +1,85 @@
-    // //Jackpot
-    // // ✅ Jackpot Games Fetch
-    // const jackpotGames = await Game.find({
-    //   isJackpot: true,
-    //   isDeleted: false,
-    // }).lean();
+// //Jackpot
+// // ✅ Jackpot Games Fetch
+// const jackpotGames = await Game.find({
+//   isJackpot: true,
+//   isDeleted: false,
+// }).lean();
 
-    // const finalJackpotGames = [];
+// const finalJackpotGames = [];
 
-    // for (let game of jackpotGames) {
-    //   const todaySchedule = game.schedule[todayWeekday];
-    //   if (!todaySchedule || !todaySchedule.isActive) continue;
+// for (let game of jackpotGames) {
+//   const todaySchedule = game.schedule[todayWeekday];
+//   if (!todaySchedule || !todaySchedule.isActive) continue;
 
-    //   // Jackpot result fetch
-    //   const jackpotResult = await JackpotGameResult.findOne({
-    //     gameName: game.gameName,
-    //     resultDate: todayDate,
-    //   }).lean();
+//   // Jackpot result fetch
+//   const jackpotResult = await JackpotGameResult.findOne({
+//     gameName: game.gameName,
+//     resultDate: todayDate,
+//   }).lean();
 
-    //   let status = "RUNNING";
+//   let status = "RUNNING";
 
-    //   if (jackpotResult) {
-    //     status = "CLOSED";
-    //   }
+//   if (jackpotResult) {
+//     status = "CLOSED";
+//   }
 
-    //   finalJackpotGames.push({
-    //     gameName: game.gameName,
-    //     openTime: todaySchedule.openTime,
-    //     closeTime: todaySchedule.closeTime,
-    //     jackpotResult,
-    //     status,
-    //   });
-    // }
+//   finalJackpotGames.push({
+//     gameName: game.gameName,
+//     openTime: todaySchedule.openTime,
+//     closeTime: todaySchedule.closeTime,
+//     jackpotResult,
+//     status,
+//   });
+// }
 
-    // // 🔥 Sort by openTime ascending
-    // finalJackpotGames.sort((a, b) => {
-    //   const timeA = new Date("1970-01-01T" + a.openTime);
-    //   const timeB = new Date("1970-01-01T" + b.openTime);
-    //   return timeA - timeB;
-    // });
+// // 🔥 Sort by openTime ascending
+// finalJackpotGames.sort((a, b) => {
+//   const timeA = new Date("1970-01-01T" + a.openTime);
+//   const timeB = new Date("1970-01-01T" + b.openTime);
+//   return timeA - timeB;
+// });
 
-    // // ⭐ Starline Games Fetch
-    // const starlineGames = await Game.find({
-    //   isStarline: true,
-    //   isJackpot: false,
-    //   isDeleted: false,
-    // }).lean();
+// // ⭐ Starline Games Fetch
+// const starlineGames = await Game.find({
+//   isStarline: true,
+//   isJackpot: false,
+//   isDeleted: false,
+// }).lean();
 
-    // const finalStarlineGames = [];
+// const finalStarlineGames = [];
 
-    // for (let game of starlineGames) {
-    //   const todaySchedule = game.schedule[todayWeekday];
-    //   if (!todaySchedule || !todaySchedule.isActive) continue;
+// for (let game of starlineGames) {
+//   const todaySchedule = game.schedule[todayWeekday];
+//   if (!todaySchedule || !todaySchedule.isActive) continue;
 
-    //   // Starline result (only OPEN session)
-    //   const starlineResult = await StarlineGameResult.findOne({
-    //     gameName: game.gameName,
-    //     session: "OPEN",
-    //     resultDate: todayDate,
-    //   }).lean();
+//   // Starline result (only OPEN session)
+//   const starlineResult = await StarlineGameResult.findOne({
+//     gameName: game.gameName,
+//     session: "OPEN",
+//     resultDate: todayDate,
+//   }).lean();
 
-    //   let status = "RUNNING";
+//   let status = "RUNNING";
 
-    //   // ⭐ Agar result mil gaya → direct CLOSED
-    //   if (starlineResult) {
-    //     status = "CLOSED";
-    //   }
+//   // ⭐ Agar result mil gaya → direct CLOSED
+//   if (starlineResult) {
+//     status = "CLOSED";
+//   }
 
-    //   finalStarlineGames.push({
-    //     gameName: game.gameName,
-    //     openTime: todaySchedule.openTime,
-    //     starlineResult,
-    //     status,
-    //   });
-    // }
+//   finalStarlineGames.push({
+//     gameName: game.gameName,
+//     openTime: todaySchedule.openTime,
+//     starlineResult,
+//     status,
+//   });
+// }
 
-    // // 🔥 Sort by openTime ascending
-    // finalStarlineGames.sort((a, b) => {
-    //   const timeA = new Date("1970-01-01T" + a.openTime);
-    //   const timeB = new Date("1970-01-01T" + b.openTime);
-    //   return timeA - timeB;
-    // });  render pass value -->   // finalJackpotGames,finalStarlineGames,
+// // 🔥 Sort by openTime ascending
+// finalStarlineGames.sort((a, b) => {
+//   const timeA = new Date("1970-01-01T" + a.openTime);
+//   const timeB = new Date("1970-01-01T" + b.openTime);
+//   return timeA - timeB;
+// });  render pass value -->   // finalJackpotGames,finalStarlineGames,
 
 //  <main class="bg-gray-100">
 //       <section class="max-w-7xl mx-auto px-4 py-6">
@@ -131,61 +131,60 @@
 
 //         </div>
 //       </section>
-//     </main> 
+//     </main>
 
-    //  <main class="bg-gray-100">
-    //   <section class="max-w-7xl mx-auto px-4 py-6">
+//  <main class="bg-gray-100">
+//   <section class="max-w-7xl mx-auto px-4 py-6">
 
-    //     <h2 class="text-xl font-semibold mb-4">Jackpot Games</h2>
+//     <h2 class="text-xl font-semibold mb-4">Jackpot Games</h2>
 
-    //     <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+//     <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 
-    //       <% finalJackpotGames.forEach(game=> { %>
+//       <% finalJackpotGames.forEach(game=> { %>
 
-    //         <div style="border: 2px solid green;" class="bg-green-100 rounded-lg shadow p-4">
+//         <div style="border: 2px solid green;" class="bg-green-100 rounded-lg shadow p-4">
 
-    //           <h3 class="font-semibold text-center mb-2">
-    //             <%= game.gameName %>
-    //           </h3>
+//           <h3 class="font-semibold text-center mb-2">
+//             <%= game.gameName %>
+//           </h3>
 
-    //           <div class="text-xs text-gray-600 flex justify-center mb-1">
-    //             <div class="text-amber-500">
-    //               <%= game.openTime %> - <%= game.closeTime %>
-    //             </div>
-    //           </div>
+//           <div class="text-xs text-gray-600 flex justify-center mb-1">
+//             <div class="text-amber-500">
+//               <%= game.openTime %> - <%= game.closeTime %>
+//             </div>
+//           </div>
 
-    //           <p class="text-sm text-center text-green-600 my-2">
-    //             <%= game.jackpotResult ? game.jackpotResult.left : "x" %>
-    //               -
-    //               <%= game.jackpotResult ? game.jackpotResult.jodi : "xx" %>
-    //                 -
-    //                 <%= game.jackpotResult ? game.jackpotResult.right : "x" %>
-    //           </p>
+//           <p class="text-sm text-center text-green-600 my-2">
+//             <%= game.jackpotResult ? game.jackpotResult.left : "x" %>
+//               -
+//               <%= game.jackpotResult ? game.jackpotResult.jodi : "xx" %>
+//                 -
+//                 <%= game.jackpotResult ? game.jackpotResult.right : "x" %>
+//           </p>
 
-    //           <div class="flex justify-center mb-3">
-    //             <span class="<%= game.status === 'CLOSED'
-    //             ? 'bg-red-500 text-white'
-    //             : 'bg-yellow-400 text-black' %>
-    //             text-xs px-3 py-1 rounded-full">
-    //               <%= game.status %>
-    //             </span>
-    //           </div>
-    //           <div class="flex justify-center gap-2">
-    //             <button class="border border-green-700 text-green-700 text-xs px-3 py-1 rounded">
-    //               Jodi Chart
-    //             </button>
-    //             <button class="border border-green-700 text-green-700 text-xs px-3 py-1 rounded">
-    //               Pana Chart
-    //             </button>
-    //           </div>
-    //         </div>
+//           <div class="flex justify-center mb-3">
+//             <span class="<%= game.status === 'CLOSED'
+//             ? 'bg-red-500 text-white'
+//             : 'bg-yellow-400 text-black' %>
+//             text-xs px-3 py-1 rounded-full">
+//               <%= game.status %>
+//             </span>
+//           </div>
+//           <div class="flex justify-center gap-2">
+//             <button class="border border-green-700 text-green-700 text-xs px-3 py-1 rounded">
+//               Jodi Chart
+//             </button>
+//             <button class="border border-green-700 text-green-700 text-xs px-3 py-1 rounded">
+//               Pana Chart
+//             </button>
+//           </div>
+//         </div>
 
-    //         <% }) %>
+//         <% }) %>
 
-    //     </div>
-    //   </section>
-    // </main>
-
+//     </div>
+//   </section>
+// </main>
 
 const mongoose = require("mongoose");
 const moment = require("moment-timezone");
@@ -326,7 +325,6 @@ exports.UserHomePage = async (req, res, next) => {
       return timeA - timeB;
     });
 
-
     const contact = await ContactAdmin.findOne({ isActive: true }).lean();
     const rawNumber = contact.whatsappNumber;
     const cleanNumber = rawNumber.replace(/\D/g, ""); // remove + and spaces
@@ -361,7 +359,6 @@ exports.getPanaChart = async (req, res, next) => {
     const weeks = {};
 
     results.forEach((result) => {
-
       const dateObj = new Date(result.resultDate);
 
       // Find Monday of that week
@@ -374,7 +371,6 @@ exports.getPanaChart = async (req, res, next) => {
 
       // Create week entry if not exists
       if (!weeks[weekKey]) {
-
         const mondayDate = new Date(monday);
         const sundayDate = new Date(mondayDate);
         sundayDate.setDate(mondayDate.getDate() + 6);
@@ -382,13 +378,14 @@ exports.getPanaChart = async (req, res, next) => {
         weeks[weekKey] = {
           startDate: mondayDate.toISOString().split("T")[0],
           endDate: sundayDate.toISOString().split("T")[0],
-          days: {}
+          days: {},
         };
       }
 
       // Get weekday name (Mon, Tue...)
-      const weekday = new Date(result.resultDate)
-        .toLocaleDateString("en-US", { weekday: "short" });
+      const weekday = new Date(result.resultDate).toLocaleDateString("en-US", {
+        weekday: "short",
+      });
 
       if (!weeks[weekKey].days[weekday]) {
         weeks[weekKey].days[weekday] = {};
@@ -398,14 +395,14 @@ exports.getPanaChart = async (req, res, next) => {
     });
 
     // Convert object to array & sort latest week first
-    const finalWeeks = Object.values(weeks)
-      .sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
+    const finalWeeks = Object.values(weeks).sort(
+      (a, b) => new Date(b.startDate) - new Date(a.startDate),
+    );
 
     res.render("User/PanaChart", {
       gameName,
-      finalWeeks
+      finalWeeks,
     });
-
   } catch (err) {
     console.error("Error in getJodiChart:", err);
     next(err);
@@ -424,7 +421,6 @@ exports.getJodiChart = async (req, res, next) => {
     const weeks = {};
 
     results.forEach((result) => {
-
       const dateObj = new Date(result.resultDate);
 
       // Find Monday of that week
@@ -437,7 +433,6 @@ exports.getJodiChart = async (req, res, next) => {
 
       // Create week entry if not exists
       if (!weeks[weekKey]) {
-
         const mondayDate = new Date(monday);
         const sundayDate = new Date(mondayDate);
         sundayDate.setDate(mondayDate.getDate() + 6);
@@ -445,13 +440,14 @@ exports.getJodiChart = async (req, res, next) => {
         weeks[weekKey] = {
           startDate: mondayDate.toISOString().split("T")[0],
           endDate: sundayDate.toISOString().split("T")[0],
-          days: {}
+          days: {},
         };
       }
 
       // Get weekday name (Mon, Tue...)
-      const weekday = new Date(result.resultDate)
-        .toLocaleDateString("en-US", { weekday: "short" });
+      const weekday = new Date(result.resultDate).toLocaleDateString("en-US", {
+        weekday: "short",
+      });
 
       if (!weeks[weekKey].days[weekday]) {
         weeks[weekKey].days[weekday] = {};
@@ -461,14 +457,14 @@ exports.getJodiChart = async (req, res, next) => {
     });
 
     // Convert object to array & sort latest week first
-    const finalWeeks = Object.values(weeks)
-      .sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
+    const finalWeeks = Object.values(weeks).sort(
+      (a, b) => new Date(b.startDate) - new Date(a.startDate),
+    );
 
     res.render("User/JodiChart", {
       gameName,
-      finalWeeks
+      finalWeeks,
     });
-
   } catch (err) {
     console.error("Error in getJodiChart:", err);
     next(err);
@@ -1865,6 +1861,18 @@ exports.placeSingleDigitBet = async (req, res) => {
       return res.json({ success: false, message: "Market closed today ❌" });
     }
 
+    // ✅ GET MAIN SETTINGS (MIN / MAX BET)
+    const mainSettings = await MainSettings.findOne();
+
+    if (!mainSettings) {
+      return res.json({
+        success: false,
+        message: "Bet settings not configured ❌",
+      });
+    }
+
+    const { minBet, maxBet } = mainSettings;
+
     let totalAmount = 0;
 
     // ✅ VALIDATION & OPEN TIME LOCK
@@ -1880,6 +1888,14 @@ exports.placeSingleDigitBet = async (req, res) => {
         return res.json({
           success: false,
           message: "Invalid digit / amount / mode ❌",
+        });
+      }
+
+      // ✅ NEW MIN / MAX CHECK (Separate Message)
+      if (b.amount < minBet || b.amount > maxBet) {
+        return res.json({
+          success: false,
+          message: `Bet amount must be between ₹${minBet} and ₹${maxBet} ❌`,
         });
       }
 
@@ -1996,6 +2012,18 @@ exports.placeSingleBulkDigitBet = async (req, res) => {
     if (!schedule || !schedule.isActive)
       return res.json({ success: false, message: "Market closed today ❌" });
 
+    // ✅ GET MAIN SETTINGS (MIN / MAX BET)
+    const mainSettings = await MainSettings.findOne();
+
+    if (!mainSettings) {
+      return res.json({
+        success: false,
+        message: "Bet settings not found ❌",
+      });
+    }
+
+    const { minBet, maxBet } = mainSettings;
+
     // ✅ 4. Validate each bet
     for (const b of bets) {
       if (typeof b.number !== "number" || b.number < 0 || b.number > 9)
@@ -2008,6 +2036,13 @@ exports.placeSingleBulkDigitBet = async (req, res) => {
         return res.json({
           success: false,
           message: `Invalid amount for number ${b.number} ❌`,
+        });
+
+      // ✅ NEW MIN / MAX CHECK (without touching old logic)
+      if (b.amount < minBet || b.amount > maxBet)
+        return res.json({
+          success: false,
+          message: `Bet amount must be between ₹${minBet} and ₹${maxBet} ❌`,
         });
 
       if (!["OPEN", "CLOSE"].includes(b.mode))
@@ -2135,6 +2170,18 @@ exports.placeJodiDigitBet = async (req, res) => {
       });
     }
 
+    /* ================= BET SETTINGS ================= */
+    const mainSettings = await MainSettings.findOne();
+
+    if (!mainSettings) {
+      return res.status(400).json({
+        success: false,
+        message: "Bet settings not found ❌",
+      });
+    }
+
+    const { minBet, maxBet } = mainSettings;
+
     let totalAmount = 0;
 
     for (const bet of bets) {
@@ -2150,6 +2197,14 @@ exports.placeJodiDigitBet = async (req, res) => {
         return res.status(400).json({
           success: false,
           message: "Invalid bet ❌",
+        });
+      }
+
+      // ✅ NEW MIN / MAX CHECK (old logic untouched)
+      if (bet.amount < minBet || bet.amount > maxBet) {
+        return res.status(400).json({
+          success: false,
+          message: `Bet amount must be between ₹${minBet} and ₹${maxBet} ❌`,
         });
       }
 
@@ -2299,6 +2354,18 @@ exports.placeJodiDigitBulkBet = async (req, res) => {
       return res.json({ success: false, message: "Market closed ❌" });
     }
 
+    /* ================= BET SETTINGS ================= */
+    const mainSettings = await MainSettings.findOne();
+
+    if (!mainSettings) {
+      return res.json({
+        success: false,
+        message: "Bet settings not found ❌",
+      });
+    }
+
+    const { minBet, maxBet } = mainSettings;
+
     let totalAmount = 0;
     const finalBets = [];
 
@@ -2314,6 +2381,14 @@ exports.placeJodiDigitBulkBet = async (req, res) => {
         perUnderNosPoints <= 0
       ) {
         return res.json({ success: false, message: "Invalid bet data ❌" });
+      }
+
+      // ✅ NEW MIN / MAX CHECK (old logic untouched)
+      if (perUnderNosPoints < minBet || perUnderNosPoints > maxBet) {
+        return res.json({
+          success: false,
+          message: `Bet amount must be between ₹${minBet} and ₹${maxBet} ❌`,
+        });
       }
 
       for (const digit of underNos) {
@@ -2444,7 +2519,17 @@ exports.placeSinglePannaBet = async (req, res) => {
 
     /* ================= VALIDATION & TOTAL ================= */
     let totalAmount = 0;
+    /* ================= BET SETTINGS ================= */
+    const mainSettings = await MainSettings.findOne();
 
+    if (!mainSettings) {
+      return res.json({
+        success: false,
+        message: "Bet settings not found ❌",
+      });
+    }
+
+    const { minBet, maxBet } = mainSettings;
     for (const b of bets) {
       /* BASIC FIELD CHECK */
       if (
@@ -2460,6 +2545,14 @@ exports.placeSinglePannaBet = async (req, res) => {
         return res.json({
           success: false,
           message: "Invalid panna data ❌",
+        });
+      }
+
+      // ✅ NEW MIN / MAX CHECK (old logic untouched)
+      if (b.amount < minBet || b.amount > maxBet) {
+        return res.json({
+          success: false,
+          message: `Bet amount must be between ₹${minBet} and ₹${maxBet} ❌`,
         });
       }
 
@@ -2615,6 +2708,18 @@ exports.placeSinglePannaBulkBet = async (req, res) => {
     let finalBets = [];
     let totalAmount = 0;
 
+    /* ===== BET SETTINGS ===== */
+    const mainSettings = await MainSettings.findOne();
+
+    if (!mainSettings) {
+      return res.json({
+        success: false,
+        message: "Bet settings not configured ❌",
+      });
+    }
+
+    const { minBet, maxBet } = mainSettings;
+
     /* ===== BREAK UI BATCH INTO INDIVIDUAL UNDERNO ===== */
     for (const batch of bets) {
       const { mainNo, underNos, amountPerUnderNo, mode } = batch;
@@ -2629,6 +2734,14 @@ exports.placeSinglePannaBulkBet = async (req, res) => {
         !["OPEN", "CLOSE"].includes(mode)
       ) {
         return res.json({ success: false, message: "Invalid bet data ❌" });
+      }
+
+      // ✅ NEW MIN / MAX CHECK (old logic untouched)
+      if (amountPerUnderNo < minBet || amountPerUnderNo > maxBet) {
+        return res.json({
+          success: false,
+          message: `Bet amount must be between ₹${minBet} and ₹${maxBet} ❌`,
+        });
       }
 
       // OPEN lock
@@ -2779,7 +2892,17 @@ exports.placeDoublePannaBet = async (req, res) => {
     const multiplier = doublePannaRate.profitAmount / doublePannaRate.betAmount;
     /* ================= VALIDATION & TOTAL ================= */
     let totalAmount = 0;
+    /* ================= BET SETTINGS ================= */
+    const mainSettings = await MainSettings.findOne();
 
+    if (!mainSettings) {
+      return res.json({
+        success: false,
+        message: "Bet settings not configured ❌",
+      });
+    }
+
+    const { minBet, maxBet } = mainSettings;
     for (const b of bets) {
       if (
         typeof b.mainNo !== "number" ||
@@ -2796,7 +2919,13 @@ exports.placeDoublePannaBet = async (req, res) => {
           message: "Invalid panna or amount ❌",
         });
       }
-
+      // ✅ NEW MIN / MAX CHECK (old logic untouched)
+      if (b.amount < minBet || b.amount > maxBet) {
+        return res.json({
+          success: false,
+          message: `Bet amount must be between ₹${minBet} and ₹${maxBet} ❌`,
+        });
+      }
       const pannaSum =
         Number(b.underNo[0]) + Number(b.underNo[1]) + Number(b.underNo[2]);
 
@@ -2938,6 +3067,18 @@ exports.placeDoublePannaBulkBet = async (req, res) => {
     const multiplier =
       doublePannaBulkRate.profitAmount / doublePannaBulkRate.betAmount;
 
+    /* ================= BET SETTINGS ================= */
+    const mainSettings = await MainSettings.findOne();
+
+    if (!mainSettings) {
+      return res.json({
+        success: false,
+        message: "Bet settings not configured ❌",
+      });
+    }
+
+    const { minBet, maxBet } = mainSettings;
+
     for (const batch of bets) {
       const { mainNo, underNos, amountPerUnderNo, mode } = batch;
 
@@ -2961,6 +3102,13 @@ exports.placeDoublePannaBulkBet = async (req, res) => {
             message: `Invalid panna ${underNo} ❌`,
           });
         }
+
+ if (amountPerUnderNo < minBet || amountPerUnderNo > maxBet) {
+  return res.json({
+    success: false,
+    message: `Bet amount must be between ₹${minBet} and ₹${maxBet} ❌`,
+  });
+}
 
         // Open session lock
         if (mode === "OPEN") {
@@ -3080,6 +3228,18 @@ exports.placeTriplePannaBet = async (req, res, next) => {
     // Multiplier = profit per 1 unit bet
     const multiplier = triplePannaRate.profitAmount / triplePannaRate.betAmount;
     let totalAmount = 0;
+
+        /* ================= BET SETTINGS ================= */
+    const mainSettings = await MainSettings.findOne();
+
+    if (!mainSettings) {
+      return res.json({
+        success: false,
+        message: "Bet settings not configured ❌",
+      });
+    }
+
+    const { minBet, maxBet } = mainSettings;
     // ✅ VALIDATION & OPEN TIME LOCK
     for (const b of bets) {
       if (
@@ -3094,6 +3254,13 @@ exports.placeTriplePannaBet = async (req, res, next) => {
           message: "Invalid number / amount / mode ❌",
         });
       }
+
+if (b.amount < minBet || b.amount > maxBet) {
+  return res.json({
+    success: false,
+    message: `Bet amount must be between ₹${minBet} and ₹${maxBet} ❌`,
+  });
+}
 
       // 🔒 OPEN TIME LOCK
       if (b.mode === "OPEN") {
@@ -3202,6 +3369,18 @@ exports.placeOddEvenBet = async (req, res) => {
     let finalBets = [];
     let totalAmount = 0;
 
+    /* ================= BET SETTINGS ================= */
+    const mainSettings = await MainSettings.findOne();
+
+if (!mainSettings) {
+  return res.json({
+    success: false,
+    message: "Bet settings not configured ❌",
+  });
+}
+
+const { minBet, maxBet } = mainSettings;
+
     /* ===== BREAK UI BATCH INTO INDIVIDUAL DIGITS ===== */
     for (const bet of bets) {
       const { pattern, underNos, amountPerUnderNo, mode } = bet;
@@ -3215,6 +3394,13 @@ exports.placeOddEvenBet = async (req, res) => {
       ) {
         return res.json({ success: false, message: "Invalid bet data ❌" });
       }
+
+      if (amountPerUnderNo < minBet || amountPerUnderNo > maxBet) {
+  return res.json({
+    success: false,
+    message: `Bet amount must be between ₹${minBet} and ₹${maxBet} ❌`,
+  });
+}
 
       // OPEN lock
       if (mode === "OPEN") {
@@ -3383,6 +3569,17 @@ exports.placeHalfSangamBet = async (req, res) => {
     /* ================= BET VALIDATION ================= */
     let totalAmount = 0;
     const formattedBets = [];
+    /* ================= BET SETTINGS ================= */
+    const mainSettings = await MainSettings.findOne();
+
+if (!mainSettings) {
+  return res.json({
+    success: false,
+    message: "Bet settings not configured ❌",
+  });
+}
+
+const { minBet, maxBet } = mainSettings;
 
     for (const bet of bets) {
       const { openPanna, closeDigit, totalAmount: betAmount } = bet;
@@ -3407,6 +3604,14 @@ exports.placeHalfSangamBet = async (req, res) => {
           message: "Invalid bet amount ❌",
         });
       }
+
+      /* 🔥 GLOBAL MIN / MAX BET CHECK */
+if (betAmount < minBet || betAmount > maxBet) {
+  return res.json({
+    success: false,
+    message: `Bet amount must be between ₹${minBet} and ₹${maxBet} ❌`,
+  });
+}
 
       totalAmount += betAmount;
 
@@ -3550,7 +3755,17 @@ exports.placeFullSangamBet = async (req, res) => {
 
     let totalAmount = 0;
     const formattedBets = [];
+    /* ================= BET SETTINGS ================= */
+    const mainSettings = await MainSettings.findOne();
 
+if (!mainSettings) {
+  return res.json({
+    success: false,
+    message: "Bet settings not configured ❌",
+  });
+}
+
+const { minBet, maxBet } = mainSettings;
     for (const bet of bets) {
       const openPannaStr = bet.openPanna;
       const closePannaStr = bet.closePanna;
@@ -3567,6 +3782,14 @@ exports.placeFullSangamBet = async (req, res) => {
           message: "Panna must be 3 digit ❌",
         });
       }
+
+      /* 🔥 GLOBAL MIN / MAX BET CHECK */
+if (points < minBet || points > maxBet) {
+  return res.json({
+    success: false,
+    message: `Bet amount must be between ₹${minBet} and ₹${maxBet} ❌`,
+  });
+}
 
       // ✅ KEEP AS STRING (DO NOT CONVERT)
       const openPanna = openPannaStr;
@@ -3675,7 +3898,17 @@ exports.placeSPMotorBet = async (req, res) => {
     const multiplier = spMotorRate.profitAmount / spMotorRate.betAmount;
     let totalAmount = 0;
     const finalBets = []; // 🔥 yahin individual bets banenge
+    /* ================= BET SETTINGS ================= */
+    const mainSettings = await MainSettings.findOne();
 
+if (!mainSettings) {
+  return res.json({
+    success: false,
+    message: "Bet settings not configured ❌",
+  });
+}
+
+const { minBet, maxBet } = mainSettings;
     for (const b of bets) {
       const { session, mainNo, underNos, perUnderNosPoints } = b;
 
@@ -3695,6 +3928,14 @@ exports.placeSPMotorBet = async (req, res) => {
           message: "Invalid bet data ❌",
         });
       }
+
+      /* 🔥 GLOBAL MIN / MAX BET CHECK */
+if (perUnderNosPoints < minBet || perUnderNosPoints > maxBet) {
+  return res.json({
+    success: false,
+    message: `Bet amount must be between ₹${minBet} and ₹${maxBet} ❌`,
+  });
+}
 
       /* ----- OPEN SESSION LOCK ----- */
       if (session === "OPEN") {
@@ -3817,7 +4058,17 @@ exports.placeDPMotorBet = async (req, res) => {
     /* ================= BET PROCESS ================= */
     let totalAmount = 0;
     const finalBets = []; // 🔥 yahin individual bets banenge
+    /* ================= BET SETTINGS ================= */
+    const mainSettings = await MainSettings.findOne();
 
+if (!mainSettings) {
+  return res.json({
+    success: false,
+    message: "Bet settings not configured ❌",
+  });
+}
+
+const { minBet, maxBet } = mainSettings;
     for (const b of bets) {
       const { session, mainNo, underNos, perUnderNosPoints } = b;
 
@@ -3837,6 +4088,14 @@ exports.placeDPMotorBet = async (req, res) => {
           message: "Invalid bet data ❌",
         });
       }
+
+      /* 🔥 GLOBAL MIN / MAX BET CHECK */
+if (perUnderNosPoints < minBet || perUnderNosPoints > maxBet) {
+  return res.json({
+    success: false,
+    message: `Bet amount must be between ₹${minBet} and ₹${maxBet} ❌`,
+  });
+}
 
       /* ----- OPEN SESSION LOCK ----- */
       if (session === "OPEN") {
@@ -3971,7 +4230,17 @@ exports.placeSpDpTpBet = async (req, res) => {
     /* ================= EXPLODE BETS ================= */
     let totalAmount = 0;
     const finalBets = [];
+    /* ================= BET SETTINGS ================= */
+    const mainSettings = await MainSettings.findOne();
 
+if (!mainSettings) {
+  return res.json({
+    success: false,
+    message: "Bet settings not configured ❌",
+  });
+}
+
+const { minBet, maxBet } = mainSettings;
     for (const bet of bets) {
       const {
         session,
@@ -4000,6 +4269,14 @@ exports.placeSpDpTpBet = async (req, res) => {
       ) {
         return res.json({ success: false, message: "Invalid bet data ❌" });
       }
+
+      /* 🔥 GLOBAL MIN / MAX BET CHECK */
+if (perUnderNosPoints < minBet || perUnderNosPoints > maxBet) {
+  return res.json({
+    success: false,
+    message: `Bet amount must be between ₹${minBet} and ₹${maxBet} ❌`,
+  });
+}
 
       // ---- OPEN SESSION LOCK ----
       if (session === "Open") {
@@ -4116,7 +4393,17 @@ exports.placeRedBracketBet = async (req, res) => {
 
     let totalAmount = 0;
     const finalBets = [];
+    /* ================= BET SETTINGS ================= */
+    const mainSettings = await MainSettings.findOne();
 
+if (!mainSettings) {
+  return res.json({
+    success: false,
+    message: "Bet settings not configured ❌",
+  });
+}
+
+const { minBet, maxBet } = mainSettings;
     for (const bet of bets) {
       const { bracketType, underDigits, totalPoints } = bet;
 
@@ -4130,7 +4417,13 @@ exports.placeRedBracketBet = async (req, res) => {
       }
 
       const perUnderNoAmount = totalPoints / underDigits.length;
-
+/* 🔥 GLOBAL MIN / MAX BET CHECK */
+if (perUnderNoAmount < minBet || perUnderNoAmount > maxBet) {
+  return res.json({
+    success: false,
+    message: `Bet amount must be between ₹${minBet} and ₹${maxBet} ❌`,
+  });
+}
       for (const digit of underDigits) {
         finalBets.push({
           bracketType,
@@ -4271,7 +4564,17 @@ exports.placeStarlineSingleDigitBet = async (req, res, next) => {
     }
 
     let totalAmount = 0;
+    /* ================= BET SETTINGS ================= */
+    const mainSettings = await MainSettings.findOne();
 
+if (!mainSettings) {
+  return res.json({
+    success: false,
+    message: "Bet settings not configured ❌",
+  });
+}
+
+const { minBet, maxBet } = mainSettings;
     // ✅ VALIDATION & OPEN TIME LOCK
     for (const b of bets) {
       if (
@@ -4287,6 +4590,14 @@ exports.placeStarlineSingleDigitBet = async (req, res, next) => {
           message: "Invalid digit / amount / mode ❌",
         });
       }
+
+      /* 🔥 GLOBAL MIN / MAX BET CHECK */
+if (b.amount < minBet || b.amount > maxBet) {
+  return res.json({
+    success: false,
+    message: `Bet amount must be between ₹${minBet} and ₹${maxBet} ❌`,
+  });
+}
 
       // 🔒 OPEN TIME LOCK
       if (b.mode === "OPEN") {
@@ -4425,7 +4736,17 @@ exports.placeStarlineSinglePannaBet = async (req, res, next) => {
 
     /* ================= VALIDATION & TOTAL ================= */
     let totalAmount = 0;
+    /* ================= BET SETTINGS ================= */
+    const mainSettings = await MainSettings.findOne();
 
+if (!mainSettings) {
+  return res.json({
+    success: false,
+    message: "Bet settings not configured ❌",
+  });
+}
+
+const { minBet, maxBet } = mainSettings;
     for (const b of bets) {
       /* BASIC FIELD CHECK */
       if (
@@ -4443,6 +4764,14 @@ exports.placeStarlineSinglePannaBet = async (req, res, next) => {
           message: "Invalid panna data ❌",
         });
       }
+
+      /* 🔥 GLOBAL MIN / MAX BET CHECK */
+if (b.amount < minBet || b.amount > maxBet) {
+  return res.json({
+    success: false,
+    message: `Bet amount must be between ₹${minBet} and ₹${maxBet} ❌`,
+  });
+}
 
       /* PANNA MATCH */
       if (Number(b.underNo[0]) !== b.mainNo) {
@@ -4608,7 +4937,17 @@ exports.placeStarlineDoublePannaBet = async (req, res, next) => {
     const multiplier = doublePannaRate.profitAmount / doublePannaRate.betAmount;
     /* ================= VALIDATION & TOTAL ================= */
     let totalAmount = 0;
+    /* ================= BET SETTINGS ================= */
+    const mainSettings = await MainSettings.findOne();
 
+if (!mainSettings) {
+  return res.json({
+    success: false,
+    message: "Bet settings not configured ❌",
+  });
+}
+
+const { minBet, maxBet } = mainSettings;
     for (const b of bets) {
       if (
         typeof b.mainNo !== "number" ||
@@ -4625,6 +4964,14 @@ exports.placeStarlineDoublePannaBet = async (req, res, next) => {
           message: "Invalid panna or amount ❌",
         });
       }
+
+      /* 🔥 GLOBAL MIN / MAX BET CHECK */
+if (b.amount < minBet || b.amount > maxBet) {
+  return res.json({
+    success: false,
+    message: `Bet amount must be between ₹${minBet} and ₹${maxBet} ❌`,
+  });
+}
 
       const pannaSum =
         Number(b.underNo[0]) + Number(b.underNo[1]) + Number(b.underNo[2]);
@@ -4754,7 +5101,17 @@ exports.placeStarlineTriplePannaBet = async (req, res, next) => {
     // Multiplier = profit per 1 unit bet
     const multiplier = triplePannaRate.profitAmount / triplePannaRate.betAmount;
     let totalAmount = 0;
+    /* ================= BET SETTINGS ================= */
+    const mainSettings = await MainSettings.findOne();
 
+if (!mainSettings) {
+  return res.json({
+    success: false,
+    message: "Bet settings not configured ❌",
+  });
+}
+
+const { minBet, maxBet } = mainSettings;
     // ✅ VALIDATION & OPEN TIME LOCK
     for (const b of bets) {
       if (
@@ -4769,6 +5126,14 @@ exports.placeStarlineTriplePannaBet = async (req, res, next) => {
           message: "Invalid number / amount / mode ❌",
         });
       }
+
+      /* 🔥 GLOBAL MIN / MAX BET CHECK */
+if (b.amount < minBet || b.amount > maxBet) {
+  return res.json({
+    success: false,
+    message: `Bet amount must be between ₹${minBet} and ₹${maxBet} ❌`,
+  });
+}
 
       // 🔒 OPEN TIME LOCK
       if (b.mode === "OPEN") {
@@ -4919,13 +5284,58 @@ exports.placeJackpotRightDigitBet = async (req, res) => {
     }
 
     const multiplier = rightDigitRate.profitAmount / rightDigitRate.betAmount;
-    // 🔥 ADD THIS LOOP JUST ABOVE totalAmount reduce
-    for (const b of bets) {
-      const amount = Number(b.amount) || 0;
-      b.gameRateWinAmount = amount * multiplier; // 🔥 add potential win amount to each bet for later use
-    }
 
-    const totalAmount = bets.reduce((sum, b) => sum + Number(b.amount || 0), 0);
+        /* ================= BET SETTINGS ================= */
+    const mainSettings = await MainSettings.findOne();
+
+if (!mainSettings) {
+  return res.json({
+    success: false,
+    message: "Bet settings not configured ❌",
+  });
+}
+
+const { minBet, maxBet } = mainSettings;
+    // // 🔥 ADD THIS LOOP JUST ABOVE totalAmount reduce
+    // for (const b of bets) {
+    //   const amount = Number(b.amount) || 0;
+    //   b.gameRateWinAmount = amount * multiplier; // 🔥 add potential win amount to each bet for later use
+    // }
+
+    // const totalAmount = bets.reduce((sum, b) => sum + Number(b.amount || 0), 0);
+
+    let totalAmount = 0;
+
+for (const b of bets) {
+  const amount = Number(b.amount);
+
+  if (
+    typeof b.digit !== "number" ||
+    b.digit < 0 ||
+    b.digit > 9 ||
+    !amount ||
+    amount <= 0
+  ) {
+    return res.json({
+      success: false,
+      message: "Invalid digit / amount ❌",
+    });
+  }
+
+  if (amount < minBet || amount > maxBet) {
+    return res.json({
+      success: false,
+      message: `Bet amount must be between ₹${minBet} and ₹${maxBet} ❌`,
+    });
+  }
+
+  b.gameRateWinAmount = amount * multiplier;
+  totalAmount += amount;
+}
+
+if (user.wallet < totalAmount)
+  return res.json({ success: false, message: "Insufficient balance ❌" });
+
     if (user.wallet < totalAmount)
       return res.json({ success: false, message: "Insufficient balance ❌" });
 
@@ -4995,12 +5405,47 @@ exports.placeJackpotLeftDigitBet = async (req, res, next) => {
     }
 
     const multiplier = leftDigitRate.profitAmount / leftDigitRate.betAmount;
+            /* ================= BET SETTINGS ================= */
+    const mainSettings = await MainSettings.findOne();
+
+if (!mainSettings) {
+  return res.json({
+    success: false,
+    message: "Bet settings not configured ❌",
+  });
+}
+
+const { minBet, maxBet } = mainSettings;
     // 🔥 ADD THIS LOOP JUST ABOVE totalAmount reduce
-    for (const b of bets) {
-      const amount = Number(b.amount) || 0;
-      b.gameRateWinAmount = amount * multiplier;
-    }
-    const totalAmount = bets.reduce((sum, b) => sum + Number(b.amount || 0), 0);
+let totalAmount = 0;
+
+for (const b of bets) {
+  const amount = Number(b.amount);
+
+  if (
+    typeof b.digit !== "number" ||
+    b.digit < 0 ||
+    b.digit > 9 ||
+    !amount ||
+    amount <= 0
+  ) {
+    return res.json({
+      success: false,
+      message: "Invalid digit / amount ❌",
+    });
+  }
+
+  /* 🔥 GLOBAL MIN / MAX BET CHECK */
+  if (amount < minBet || amount > maxBet) {
+    return res.json({
+      success: false,
+      message: `Bet amount must be between ₹${minBet} and ₹${maxBet} ❌`,
+    });
+  }
+
+  b.gameRateWinAmount = amount * multiplier;
+  totalAmount += amount;
+}
     if (user.wallet < totalAmount)
       return res.json({ success: false, message: "Insufficient balance ❌" });
 
@@ -5054,6 +5499,17 @@ exports.placeJackpotCenterJodiDigitBet = async (req, res, next) => {
     if (openTime && now.format("HH:mm") >= openTime) {
       return res.json({ success: false, message: "Game closed ❌" });
     }
+                /* ================= BET SETTINGS ================= */
+    const mainSettings = await MainSettings.findOne();
+
+if (!mainSettings) {
+  return res.json({
+    success: false,
+    message: "Bet settings not configured ❌",
+  });
+}
+
+const { minBet, maxBet } = mainSettings;
     for (const bet of bets) {
       if (!/^[0-9]{2}$/.test(bet.openDigit)) {
         return res.json({
@@ -5068,6 +5524,14 @@ exports.placeJackpotCenterJodiDigitBet = async (req, res, next) => {
           message: "Invalid bet amount ❌",
         });
       }
+
+        /* 🔥 GLOBAL MIN / MAX CHECK */
+  if (bet.amount < minBet || bet.amount > maxBet) {
+    return res.json({
+      success: false,
+      message: `Bet amount must be between ₹${minBet} and ₹${maxBet} ❌`,
+    });
+  }
     }
     // ===== GET ACTIVE GAME RATE =====
     const centerJodiRate = await GameRate.findOne({
