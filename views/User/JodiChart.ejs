@@ -38,25 +38,25 @@
   <!-- CONTENT WRAPPER -->
   <div class="pt-24 px-2 sm:px-4">
 
-    <h2 class="text-xl sm:text-3xl font-bold text-center mb-6 text-blue-800">
+    <h2 class="text-xl sm:text-3xl font-bold text-center mb-6 text-green-800">
       <%= gameName %> JODI CHART
     </h2>
 
     <div class="w-full overflow-x-auto">
 
       <!-- Important: min width so mobile scroll works properly -->
-      <table class="min-w-[900px] w-full border border-blue-700 text-center">
+      <table class="min-w-[900px] w-full border border-green-700 text-center">
 
         <thead>
-          <tr class="bg-yellow-400 text-black text-sm sm:text-lg font-bold">
-            <th class="border border-blue-700 p-2 sm:p-3">Date</th>
-            <th class="border border-blue-700 p-2 sm:p-3">Mon</th>
-            <th class="border border-blue-700 p-2 sm:p-3">Tue</th>
-            <th class="border border-blue-700 p-2 sm:p-3">Wed</th>
-            <th class="border border-blue-700 p-2 sm:p-3">Thu</th>
-            <th class="border border-blue-700 p-2 sm:p-3">Fri</th>
-            <th class="border border-blue-700 p-2 sm:p-3">Sat</th>
-            <th class="border border-blue-700 p-2 sm:p-3">Sun</th>
+          <tr class="bg-green-700 text-white text-sm sm:text-lg font-bold">
+            <th class="border border-green-700 p-2 sm:p-3">Date</th>
+            <th class="border border-green-700 p-2 sm:p-3">Mon</th>
+            <th class="border border-green-700 p-2 sm:p-3">Tue</th>
+            <th class="border border-green-700 p-2 sm:p-3">Wed</th>
+            <th class="border border-green-700 p-2 sm:p-3">Thu</th>
+            <th class="border border-green-700 p-2 sm:p-3">Fri</th>
+            <th class="border border-green-700 p-2 sm:p-3">Sat</th>
+            <th class="border border-green-700 p-2 sm:p-3">Sun</th>
           </tr>
         </thead>
 
@@ -66,9 +66,9 @@
 
             <% finalWeeks.forEach(week=> { %>
 
-              <tr class="bg-orange-200">
+              <tr class="bg-green-100">
 
-                <td class="border border-blue-700 p-2 sm:p-3 font-semibold text-xs sm:text-base whitespace-nowrap">
+                <td class="border border-green-700 p-2 sm:p-3 font-semibold text-xs sm:text-base whitespace-nowrap">
                   <%= new Date(week.startDate).toLocaleDateString("en-GB") %>
                     To
                     <%= new Date(week.endDate).toLocaleDateString("en-GB") %>
@@ -78,7 +78,7 @@
                   const dayData = week.days[day];
                   %>
 
-                  <td class="border border-blue-700 p-2 sm:p-3">
+                  <td class="border border-green-700 p-2 sm:p-3">
 
                     <% if(dayData && dayData.OPEN && dayData.CLOSE){ %>
 

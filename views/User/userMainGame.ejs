@@ -1229,6 +1229,8 @@
     </div>
   </header>
 
+  <div style="overflow-y: auto; height: 80vh;">
+
   <div class="px-5 pt-8 space-y-6 flex-1">
 
     <!-- SESSION -->
@@ -1268,7 +1270,8 @@
     </div>
 
     <!-- TABLE -->
-    <table class="w-full text-center border mt-4">
+
+      <table class="w-full text-center border mt-4">
       <thead class="bg-gray-100 font-bold">
         <tr>
           <td>Digit</td>
@@ -1279,9 +1282,10 @@
       </thead>
       <tbody id="dpTable"></tbody>
     </table>
+</div>
 
     <!-- SUBMIT -->
-    <div class="flex justify-center pt-6">
+    <div class="flex justify-center pt-6" style="padding-bottom: 2rem;">
       <button id="dpmotor_submitbtn"
         class="bg-teal-800 text-white px-24 py-4 rounded-xl font-bold">
         Submit
@@ -1290,7 +1294,7 @@
   </div>
 
   <!-- BOTTOM -->
-  <div class="border-t py-4">
+  <div class="border-t py-4" style="z-index: 100; position: fixed; bottom: 0; width: 100%; background-color: white;">
     <div class="flex justify-around font-bold">
       <div>Bids <div class="dpmotor_totalbids">0</div></div>
       <div>Amount <div class="dpmotor_totalamount">0</div></div>
@@ -1313,7 +1317,7 @@
         </h1>
       </div>
     </header>
-
+<div style="overflow-y: auto; height: 80vh;">
     <!-- FORM + TABLE (SCROLLABLE) -->
     <div class="flex-1 overflow-y-auto p-6 space-y-8">
 
@@ -1396,7 +1400,7 @@
         Submit
       </button>
     </div>
-
+</div>
     <!-- FOOTER -->
     <div class="border-t flex justify-around py-4 text-center bg-white">
       <div>
