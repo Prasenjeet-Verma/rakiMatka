@@ -357,7 +357,7 @@ exports.UserHomePage = async (req, res, next) => {
 exports.getPanaChart = async (req, res, next) => {
   try {
     const { gameName } = req.params;
-
+ const logo = await AdminLogo.findOne();
     // Get all results of that game (latest first)
     const results = await GameResult.find({ gameName })
       .sort({ resultDate: -1 })
@@ -409,6 +409,7 @@ exports.getPanaChart = async (req, res, next) => {
     res.render("User/PanaChart", {
       gameName,
       finalWeeks,
+      logo
     });
   } catch (err) {
     console.error("Error in getJodiChart:", err);
@@ -419,7 +420,7 @@ exports.getPanaChart = async (req, res, next) => {
 exports.getJodiChart = async (req, res, next) => {
   try {
     const { gameName } = req.params;
-
+ const logo = await AdminLogo.findOne();
     // Get all results of that game (latest first)
     const results = await GameResult.find({ gameName })
       .sort({ resultDate: -1 })
@@ -471,6 +472,7 @@ exports.getJodiChart = async (req, res, next) => {
     res.render("User/JodiChart", {
       gameName,
       finalWeeks,
+      logo
     });
   } catch (err) {
     console.error("Error in getJodiChart:", err);
