@@ -723,7 +723,7 @@ exports.getAllUsersPage = async (req, res) => {
     const filter = {
       role: "user",
       ...(search && {
-        username: { $regex: search, $options: "i" },
+        phoneNo: { $regex: search, $options: "i" },
       }),
     };
 
