@@ -5319,7 +5319,6 @@ for (const b of bets) {
   const amount = Number(b.amount);
 
   if (
-    typeof b.digit !== "number" ||
     b.digit < 0 ||
     b.digit > 9 ||
     !amount ||
@@ -5432,7 +5431,6 @@ for (const b of bets) {
   const amount = Number(b.amount);
 
   if (
-    typeof b.digit !== "number" ||
     b.digit < 0 ||
     b.digit > 9 ||
     !amount ||
