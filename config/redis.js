@@ -1,9 +1,20 @@
+// const redis = require("redis");
+
+// const client = redis.createClient({
+//   url: "redis://127.0.0.1:6379"
+// });
+
+// client.connect();
+
+// module.exports = client;  <--
+
 const redis = require("redis");
 
 const client = redis.createClient({
-  url: "redis://127.0.0.1:6379"
+  url: process.env.REDIS_URL
 });
 
-client.connect();
+client.connect().catch(console.error);
 
-module.exports = client;
+module.exports = client;  // <=-- render ke liya use isko kru 
+
