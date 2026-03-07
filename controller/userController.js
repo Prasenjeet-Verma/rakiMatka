@@ -1,191 +1,4 @@
-// //Jackpot
-// // ✅ Jackpot Games Fetch
-// const jackpotGames = await Game.find({
-//   isJackpot: true,
-//   isDeleted: false,
-// }).lean();
-
-// const finalJackpotGames = [];
-
-// for (let game of jackpotGames) {
-//   const todaySchedule = game.schedule[todayWeekday];
-//   if (!todaySchedule || !todaySchedule.isActive) continue;
-
-//   // Jackpot result fetch
-//   const jackpotResult = await JackpotGameResult.findOne({
-//     gameName: game.gameName,
-//     resultDate: todayDate,
-//   }).lean();
-
-//   let status = "RUNNING";
-
-//   if (jackpotResult) {
-//     status = "CLOSED";
-//   }
-
-//   finalJackpotGames.push({
-//     gameName: game.gameName,
-//     openTime: todaySchedule.openTime,
-//     closeTime: todaySchedule.closeTime,
-//     jackpotResult,
-//     status,
-//   });
-// }
-
-// // 🔥 Sort by openTime ascending
-// finalJackpotGames.sort((a, b) => {
-//   const timeA = new Date("1970-01-01T" + a.openTime);
-//   const timeB = new Date("1970-01-01T" + b.openTime);
-//   return timeA - timeB;
-// });
-
-// // ⭐ Starline Games Fetch
-// const starlineGames = await Game.find({
-//   isStarline: true,
-//   isJackpot: false,
-//   isDeleted: false,
-// }).lean();
-
-// const finalStarlineGames = [];
-
-// for (let game of starlineGames) {
-//   const todaySchedule = game.schedule[todayWeekday];
-//   if (!todaySchedule || !todaySchedule.isActive) continue;
-
-//   // Starline result (only OPEN session)
-//   const starlineResult = await StarlineGameResult.findOne({
-//     gameName: game.gameName,
-//     session: "OPEN",
-//     resultDate: todayDate,
-//   }).lean();
-
-//   let status = "RUNNING";
-
-//   // ⭐ Agar result mil gaya → direct CLOSED
-//   if (starlineResult) {
-//     status = "CLOSED";
-//   }
-
-//   finalStarlineGames.push({
-//     gameName: game.gameName,
-//     openTime: todaySchedule.openTime,
-//     starlineResult,
-//     status,
-//   });
-// }
-
-// // 🔥 Sort by openTime ascending
-// finalStarlineGames.sort((a, b) => {
-//   const timeA = new Date("1970-01-01T" + a.openTime);
-//   const timeB = new Date("1970-01-01T" + b.openTime);
-//   return timeA - timeB;
-// });  render pass value -->   // finalJackpotGames,finalStarlineGames,
-
-//  <main class="bg-gray-100">
-//       <section class="max-w-7xl mx-auto px-4 py-6">
-
-//         <h2 class="text-xl font-semibold mb-4">Starline Games</h2>
-
-//         <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-
-//           <% finalStarlineGames.forEach(game=> { %>
-
-//             <div style="border: 2px solid green;" class="bg-green-100 rounded-lg shadow p-4">
-
-//               <h3 class="font-semibold text-center mb-2">
-//                 <%= game.gameName %>
-//               </h3>
-
-//               <div class="text-xs text-gray-600 flex justify-center mb-1">
-//                 <div class="text-amber-500">
-//                   <%= game.openTime %>
-//                 </div>
-//               </div>
-
-//               ⭐ RESULT FORMAT xxx-x
-//               <p class="text-sm text-center text-green-600 my-2">
-//                 <%= game.starlineResult ? game.starlineResult.panna : "xxx" %>
-//                   -
-//                   <%= game.starlineResult ? game.starlineResult.digit : "x" %>
-//               </p>
-
-//               <div class="flex justify-center mb-3">
-//                 <span class="<%= game.status === 'CLOSED'
-//                 ? 'bg-red-500 text-white'
-//                 : 'bg-yellow-400 text-black' %>
-//                 text-xs px-3 py-1 rounded-full">
-//                   <%= game.status %>
-//                 </span>
-//               </div>
-//               <div class="flex justify-center gap-2">
-//                 <button class="border border-green-700 text-green-700 text-xs px-3 py-1 rounded">
-//                   Jodi Chart
-//                 </button>
-//                 <button class="border border-green-700 text-green-700 text-xs px-3 py-1 rounded">
-//                   Pana Chart
-//                 </button>
-//               </div>
-//             </div>
-
-//             <% }) %>
-
-//         </div>
-//       </section>
-//     </main>
-
-//  <main class="bg-gray-100">
-//   <section class="max-w-7xl mx-auto px-4 py-6">
-
-//     <h2 class="text-xl font-semibold mb-4">Jackpot Games</h2>
-
-//     <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-
-//       <% finalJackpotGames.forEach(game=> { %>
-
-//         <div style="border: 2px solid green;" class="bg-green-100 rounded-lg shadow p-4">
-
-//           <h3 class="font-semibold text-center mb-2">
-//             <%= game.gameName %>
-//           </h3>
-
-//           <div class="text-xs text-gray-600 flex justify-center mb-1">
-//             <div class="text-amber-500">
-//               <%= game.openTime %> - <%= game.closeTime %>
-//             </div>
-//           </div>
-
-//           <p class="text-sm text-center text-green-600 my-2">
-//             <%= game.jackpotResult ? game.jackpotResult.left : "x" %>
-//               -
-//               <%= game.jackpotResult ? game.jackpotResult.jodi : "xx" %>
-//                 -
-//                 <%= game.jackpotResult ? game.jackpotResult.right : "x" %>
-//           </p>
-
-//           <div class="flex justify-center mb-3">
-//             <span class="<%= game.status === 'CLOSED'
-//             ? 'bg-red-500 text-white'
-//             : 'bg-yellow-400 text-black' %>
-//             text-xs px-3 py-1 rounded-full">
-//               <%= game.status %>
-//             </span>
-//           </div>
-//           <div class="flex justify-center gap-2">
-//             <button class="border border-green-700 text-green-700 text-xs px-3 py-1 rounded">
-//               Jodi Chart
-//             </button>
-//             <button class="border border-green-700 text-green-700 text-xs px-3 py-1 rounded">
-//               Pana Chart
-//             </button>
-//           </div>
-//         </div>
-
-//         <% }) %>
-
-//     </div>
-//   </section>
-// </main>
-
+const redisClient = require("../config/redis");
 const mongoose = require("mongoose");
 const moment = require("moment-timezone");
 const bcrypt = require("bcryptjs");
@@ -233,49 +46,153 @@ const RightDigitBet = require("../model/JackpotRightDigitBet");
 const JackpotCentreJodiDigitBet = require("../model/JackpotCentreJodiDigitBet");
 const JackpotGameResult = require("../model/jackpotGameDeclareResuult");
 
+// exports.UserHomePage = async (req, res, next) => {
+//   try {
+//     // If already logged in user
+//     if (req.session?.user?.role === "user") {
+//       return res.redirect("/userdashboard");
+//     }
+
+//     const user = req.session.user || null;
+
+//     const slider = await HomeSliderImage.findOne()
+//       .sort({ createdAt: -1 })
+//       .lean();
+     
+
+//       const logo = await AdminLogo.findOne();
+//       const mainSetting = await MainSettings.findOne()
+
+//     // ✅ Only Normal GameRates
+//     const normalRates = await GameRate.find({
+//       isStarline: false,
+//       isJackpot: false,
+//       isActive: true,
+//     }).lean();
+//     // ✅ Only Starline GameRates
+//     const starlineRates = await GameRate.find({
+//       isStarline: true,
+//       isJackpot: false,
+//       isActive: true,
+//     }).lean();
+//     // ✅ Only Jackpot GameRates
+//     const jackpotRates = await GameRate.find({
+//       isJackpot: true,
+//       isStarline: false,
+//       isActive: true,
+//     }).lean();
+
+//     // 🇮🇳 India Time
+//     const now = new Date();
+//     const indiaTime = new Date(
+//       now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }),
+//     );
+
+//     const todayDate = indiaTime.toISOString().split("T")[0]; // YYYY-MM-DD
+//     const todayWeekday = indiaTime
+//       .toLocaleDateString("en-US", {
+//         weekday: "long",
+//         timeZone: "Asia/Kolkata",
+//       })
+//       .toLowerCase();
+
+//     const games = await Game.find({
+//       isStarline: false,
+//       isJackpot: false,
+//       isDeleted: false,
+//     }).lean();
+
+//     const finalGames = [];
+
+//     for (let game of games) {
+//       const todaySchedule = game.schedule[todayWeekday];
+//       if (!todaySchedule || !todaySchedule.isActive) continue;
+
+//       // Fetch results
+//       const openResult = await GameResult.findOne({
+//         gameName: game.gameName,
+//         session: "OPEN",
+//         resultDate: todayDate,
+//       }).lean();
+
+//       const closeResult = await GameResult.findOne({
+//         gameName: game.gameName,
+//         session: "CLOSE",
+//         resultDate: todayDate,
+//       }).lean();
+
+//       let status = "RUNNING";
+
+//       if (closeResult) {
+//         status = "CLOSED";
+//       }
+
+//       finalGames.push({
+//         gameName: game.gameName,
+//         openTime: todaySchedule.openTime,
+//         closeTime: todaySchedule.closeTime,
+//         openResult,
+//         closeResult,
+//         status,
+//       });
+//     }
+//     // 🔥 Sort by openTime ascending
+//     finalGames.sort((a, b) => {
+//       const timeA = new Date("1970-01-01T" + a.openTime);
+//       const timeB = new Date("1970-01-01T" + b.openTime);
+//       return timeA - timeB;
+//     });
+
+//     const contact = await ContactAdmin.findOne({ isActive: true }).lean();
+//     const rawNumber = contact.whatsappNumber;
+//     const cleanNumber = rawNumber.replace(/\D/g, ""); // remove + and spaces
+//     contact.whatsappNumber = cleanNumber;
+//     const rawCall = contact.callNumber;
+//     const cleanCall = rawCall.replace(/\D/g, "");
+//     contact.callNumber = cleanCall;
+//     res.render("User/UserHomePage", {
+//       user,
+//       slider,
+//       mainSetting,
+//       normalRates,
+//       starlineRates,
+//       jackpotRates,
+//       finalGames,
+//       contact,
+//       logo
+//     });
+//   } catch (err) {
+//     console.error("Error in UserHomePage:", err);
+//     next(err);
+//   }
+// };
+
 exports.UserHomePage = async (req, res, next) => {
   try {
-    // If already logged in user
+
     if (req.session?.user?.role === "user") {
       return res.redirect("/userdashboard");
     }
 
     const user = req.session.user || null;
 
-    const slider = await HomeSliderImage.findOne()
-      .sort({ createdAt: -1 })
-      .lean();
-     
+    // 🔥 Check Redis Cache
+    const cacheData = await redisClient.get("homepage_cache");
 
-      const logo = await AdminLogo.findOne();
-      const mainSetting = await MainSettings.findOne()
-
-    // ✅ Only Normal GameRates
-    const normalRates = await GameRate.find({
-      isStarline: false,
-      isJackpot: false,
-      isActive: true,
-    }).lean();
-    // ✅ Only Starline GameRates
-    const starlineRates = await GameRate.find({
-      isStarline: true,
-      isJackpot: false,
-      isActive: true,
-    }).lean();
-    // ✅ Only Jackpot GameRates
-    const jackpotRates = await GameRate.find({
-      isJackpot: true,
-      isStarline: false,
-      isActive: true,
-    }).lean();
+    if (cacheData) {
+      const parsedData = JSON.parse(cacheData);
+      parsedData.user = user; // session user add
+      return res.render("User/UserHomePage", parsedData);
+    }
 
     // 🇮🇳 India Time
     const now = new Date();
     const indiaTime = new Date(
-      now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }),
+      now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
     );
 
-    const todayDate = indiaTime.toISOString().split("T")[0]; // YYYY-MM-DD
+    const todayDate = indiaTime.toISOString().split("T")[0];
+
     const todayWeekday = indiaTime
       .toLocaleDateString("en-US", {
         weekday: "long",
@@ -283,30 +200,65 @@ exports.UserHomePage = async (req, res, next) => {
       })
       .toLowerCase();
 
-    const games = await Game.find({
-      isStarline: false,
-      isJackpot: false,
-      isDeleted: false,
-    }).lean();
+    // 🚀 Parallel Queries
+    const [
+      slider,
+      logo,
+      mainSetting,
+      normalRates,
+      starlineRates,
+      jackpotRates,
+      games,
+      contact,
+      results
+    ] = await Promise.all([
+      HomeSliderImage.findOne().sort({ createdAt: -1 }).lean(),
+      AdminLogo.findOne().lean(),
+      MainSettings.findOne().lean(),
+
+      GameRate.find({
+        isStarline: false,
+        isJackpot: false,
+        isActive: true,
+      }).lean(),
+
+      GameRate.find({
+        isStarline: true,
+        isJackpot: false,
+        isActive: true,
+      }).lean(),
+
+      GameRate.find({
+        isJackpot: true,
+        isStarline: false,
+        isActive: true,
+      }).lean(),
+
+      Game.find({
+        isStarline: false,
+        isJackpot: false,
+        isDeleted: false,
+      }).lean(),
+
+      ContactAdmin.findOne({ isActive: true }).lean(),
+
+      GameResult.find({ resultDate: todayDate }).lean()
+    ]);
 
     const finalGames = [];
 
     for (let game of games) {
       const todaySchedule = game.schedule[todayWeekday];
+
       if (!todaySchedule || !todaySchedule.isActive) continue;
 
-      // Fetch results
-      const openResult = await GameResult.findOne({
-        gameName: game.gameName,
-        session: "OPEN",
-        resultDate: todayDate,
-      }).lean();
+      const openResult = results.find(
+        r => r.gameName === game.gameName && r.session === "OPEN"
+      );
 
-      const closeResult = await GameResult.findOne({
-        gameName: game.gameName,
-        session: "CLOSE",
-        resultDate: todayDate,
-      }).lean();
+      const closeResult = results.find(
+        r => r.gameName === game.gameName && r.session === "CLOSE"
+      );
 
       let status = "RUNNING";
 
@@ -323,31 +275,43 @@ exports.UserHomePage = async (req, res, next) => {
         status,
       });
     }
-    // 🔥 Sort by openTime ascending
+
+    // 🔥 Sort Games
     finalGames.sort((a, b) => {
       const timeA = new Date("1970-01-01T" + a.openTime);
       const timeB = new Date("1970-01-01T" + b.openTime);
       return timeA - timeB;
     });
 
-    const contact = await ContactAdmin.findOne({ isActive: true }).lean();
-    const rawNumber = contact.whatsappNumber;
-    const cleanNumber = rawNumber.replace(/\D/g, ""); // remove + and spaces
-    contact.whatsappNumber = cleanNumber;
-    const rawCall = contact.callNumber;
-    const cleanCall = rawCall.replace(/\D/g, "");
-    contact.callNumber = cleanCall;
-    res.render("User/UserHomePage", {
-      user,
+    // 📞 Clean Contact Numbers
+    if (contact) {
+      contact.whatsappNumber = contact.whatsappNumber.replace(/\D/g, "");
+      contact.callNumber = contact.callNumber.replace(/\D/g, "");
+    }
+
+    const renderData = {
       slider,
+      logo,
       mainSetting,
       normalRates,
       starlineRates,
       jackpotRates,
       finalGames,
       contact,
-      logo
+    };
+
+    // 🔥 Save Cache (20 seconds)
+    await redisClient.setEx(
+      "homepage_cache",
+      20,
+      JSON.stringify(renderData)
+    );
+
+    res.render("User/UserHomePage", {
+      user,
+      ...renderData
     });
+
   } catch (err) {
     console.error("Error in UserHomePage:", err);
     next(err);
@@ -479,9 +443,11 @@ exports.getJodiChart = async (req, res, next) => {
     next(err);
   }
 };
+
+
 exports.getUserDashboardPage = async (req, res, next) => {
   try {
-    // 🔐 Auth check
+
     if (
       !req.session.isLoggedIn ||
       !req.session.user ||
@@ -490,197 +456,180 @@ exports.getUserDashboardPage = async (req, res, next) => {
       return res.redirect("/login");
     }
 
+    const userId = req.session.user._id;
+    const cacheKey = `dashboard_${userId}`;
+
+    // 🔥 REDIS CACHE
+    const cachedData = await redisClient.get(cacheKey);
+
+    if (cachedData) {
+      return res.render("User/userDashboard", {
+        ...JSON.parse(cachedData),
+        isLoggedIn: req.session.isLoggedIn
+      });
+    }
+
+    // ================= USER =================
     const user = await User.findOne({
-      _id: req.session.user._id,
+      _id: userId,
       role: "user",
-      userStatus: "active",
-    }).select("-password");
+      userStatus: "active"
+    }).select("-password").lean();
 
     if (!user) {
       req.session.destroy();
       return res.redirect("/login");
     }
-    // const moment = require("moment-timezone"); // make sure you have this at the top
-    const admin = await User.findOne({ role: "admin" }).select(
-      "username phoneNo profilePhoto",
-    );
 
-    // 🇮🇳 Current time in India
+    const admin = await User.findOne({ role: "admin" })
+      .select("username phoneNo profilePhoto")
+      .lean();
+
     const now = moment().tz("Asia/Kolkata");
-    const days = [
-      "sunday",
-      "monday",
-      "tuesday",
-      "wednesday",
-      "thursday",
-      "friday",
-      "saturday",
-    ];
-    const todayKey = days[now.day()];
 
-    // Fetch all active games
-    const games = await Game.find({ isDeleted: false }).lean();
-    // ===================== 🎯 FETCH TODAY RESULTS =====================
+    const days = [
+      "sunday","monday","tuesday","wednesday",
+      "thursday","friday","saturday"
+    ];
+
+    const todayKey = days[now.day()];
     const todayDate = now.format("YYYY-MM-DD");
 
-    const todayResults = await GameResult.find({
-      resultDate: todayDate,
-    }).lean();
-    // ===================== 🎯 FETCH TODAY JACKPOT RESULTS =====================
-    const todayJackpotResults = await JackpotGameResult.find({
-      resultDate: todayDate,
-    }).lean();
-    // ===================== 🎯 FETCH TODAY STARLINE RESULTS =====================
-    const todayStarlineResults = await StarlineGameResult.find({
-      resultDate: todayDate,
-    }).lean();
-    // ===================== 🎯 PROCESS GAMES =====================
+    // 🚀 PARALLEL QUERIES
+    const [
+      games,
+      todayResults,
+      todayJackpotResults,
+      todayStarlineResults,
+      starlineRates,
+      jackpotRates,
+      manualDeposit,
+      contactDetails,
+      mainSettings,
+      paymentSettings,
+      withdrawTimeSettings,
+      signupRewards,
+      allNotifications
+    ] = await Promise.all([
+
+      Game.find({ isDeleted: false }).lean(),
+
+      GameResult.find({ resultDate: todayDate }).lean(),
+
+      JackpotGameResult.find({ resultDate: todayDate }).lean(),
+
+      StarlineGameResult.find({ resultDate: todayDate }).lean(),
+
+      GameRate.find({
+        isStarline: true,
+        isJackpot: false,
+        isActive: true
+      }).sort({ gameType: 1 }).lean(),
+
+      GameRate.find({
+        isJackpot: true,
+        isStarline: false,
+        isActive: true
+      }).sort({ gameType: 1 }).lean(),
+
+      ManualDeposit.findOne({ isActive: true })
+        .sort({ createdAt: -1 })
+        .lean(),
+
+      ContactAdmin.findOne({ isActive: true }).lean(),
+
+      MainSettings.findOne().lean(),
+
+      payment.findOne().lean(),
+
+      WithdrawTime.findOne().lean(),
+
+      Reward.find({
+        user: userId,
+        rewardType: "signup"
+      }).lean(),
+
+      SendImageMessage.find({})
+        .sort({ createdAt: -1 })
+        .lean()
+    ]);
+
+    // ================= RESULT MAP =================
+    const resultMap = {};
+    todayResults.forEach(r => {
+      if (!resultMap[r.gameName]) resultMap[r.gameName] = {};
+      resultMap[r.gameName][r.session] = r;
+    });
+
+    const jackpotMap = {};
+    todayJackpotResults.forEach(r => {
+      jackpotMap[r.gameName] = r;
+    });
+
+    const starlineMap = {};
+    todayStarlineResults.forEach(r => {
+      if (!starlineMap[r.gameName]) starlineMap[r.gameName] = {};
+      starlineMap[r.gameName][r.session] = r;
+    });
+
+    // ================= PROCESS GAMES =================
     const processedGames = games
-      .filter((game) => {
-        const d = game.schedule?.[todayKey];
+      .filter(g => {
+        const d = g.schedule?.[todayKey];
         return d && d.isActive && d.closeTime;
       })
-      .map((game) => {
-        const d = game.schedule[todayKey];
+      .map(g => {
 
-        const nowMinutes = now.hours() * 60 + now.minutes();
+        const d = g.schedule[todayKey];
 
+        const nowMinutes = now.hours()*60 + now.minutes();
         const [ch, cm] = d.closeTime.split(":").map(Number);
-        const closeMinutes = ch * 60 + cm;
+        const closeMinutes = ch*60 + cm;
 
-        // 🔥 SIMPLE & CORRECT LOGIC
         const isRunning = nowMinutes <= closeMinutes;
-        // 🔥 FIND TODAY RESULT FOR THIS GAME
-        const gameResults = todayResults.filter(
-          (r) => r.gameName === game.gameName,
-        );
 
-        const openResult = gameResults.find((r) => r.session === "OPEN");
-        const closeResult = gameResults.find((r) => r.session === "CLOSE");
-        // 🔥 FIND TODAY JACKPOT RESULT FOR THIS GAME
-        const jackpotResult = todayJackpotResults.find(
-          (r) => r.gameName === game.gameName,
-        );
-        // 🔥 FIND TODAY STARLINE RESULT FOR THIS GAME
-        const starlineResults = todayStarlineResults.filter(
-          (r) => r.gameName === game.gameName,
-        );
-
-        const starlineOpen = starlineResults.find((r) => r.session === "OPEN");
-        const starlineClose = starlineResults.find(
-          (r) => r.session === "CLOSE",
-        );
         return {
-          _id: game._id,
-          gameName: game.gameName,
-          openTime: moment(d.openTime, "HH:mm").format("hh:mm A"), // admin open time (display)
-          closeTime: moment(d.closeTime, "HH:mm").format("hh:mm A"),
+          _id: g._id,
+          gameName: g.gameName,
+          openTime: moment(d.openTime,"HH:mm").format("hh:mm A"),
+          closeTime: moment(d.closeTime,"HH:mm").format("hh:mm A"),
           isRunning,
           statusText: isRunning ? "Market Running" : "Market Closed",
-          isStarline: game.isStarline || false,
-          isJackpot: game.isJackpot || false,
-          // ✅ NEW FIELD
-          openResult: openResult || null,
-          closeResult: closeResult || null,
-          // ✅ NEW FOR JACKPOT
-          jackpotResult: jackpotResult || null,
-          starlineOpen: starlineOpen || null,
-          starlineClose: starlineClose || null,
+          isStarline: g.isStarline || false,
+          isJackpot: g.isJackpot || false,
+
+          openResult: resultMap[g.gameName]?.OPEN || null,
+          closeResult: resultMap[g.gameName]?.CLOSE || null,
+          jackpotResult: jackpotMap[g.gameName] || null,
+          starlineOpen: starlineMap[g.gameName]?.OPEN || null,
+          starlineClose: starlineMap[g.gameName]?.CLOSE || null
         };
+
       });
 
-    // ===================== 🎯 SEPARATE GAMES =====================
-    const normalGames = processedGames.filter(
-      (g) => !g.isStarline && !g.isJackpot,
-    );
-    const starlineGames = processedGames.filter((g) => g.isStarline);
-    const jackpotGames = processedGames.filter((g) => g.isJackpot);
+    const normalGames = processedGames.filter(g => !g.isStarline && !g.isJackpot);
+    const starlineGames = processedGames.filter(g => g.isStarline);
+    const jackpotGames = processedGames.filter(g => g.isJackpot);
 
-    // ===================== 🎯 FETCH TRANSACTIONS =====================
-    const transactions = await UserWalletTransaction.find({
-      user: user._id,
-    })
+    // ================= TRANSACTIONS =================
+    const transactions = await UserWalletTransaction
+      .find({ user: userId })
       .sort({ createdAt: -1 })
       .limit(20)
       .lean();
 
-    const formattedTransactions = transactions.map((tx) => {
-      let title, displayType, amountSign, amountColor;
+    // ================= VIDEO =================
+    let embedLink = "";
 
-      amountSign = tx.type === "credit" ? "+" : "-";
+    if (mainSettings?.withdrawVideoLink) {
+      const match = mainSettings.withdrawVideoLink.match(
+        /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&]+)/
+      );
 
-      // 🎨 STATUS BASED COLOR
-      if (tx.status === "pending") {
-        amountColor = "text-yellow-500";
-      } else if (tx.status === "failed" || tx.status === "rejected") {
-        amountColor = "text-red-600";
-      } else if (tx.status === "success") {
-        amountColor = tx.type === "credit" ? "text-green-600" : "text-red-600";
-      } else {
-        amountColor = "text-gray-600";
-      }
+      if (match) embedLink = `https://www.youtube.com/embed/${match[1]}`;
+    }
 
-      // ✅ CORRECT TITLE LOGIC
-      if (tx.source === "deposit") {
-        displayType = "deposit";
-        title = "Deposit";
-      }
-
-      if (tx.source === "withdraw") {
-        displayType = "withdraw";
-        title = "Withdrawal";
-      }
-
-      return {
-        title,
-        displayType,
-        amountText: `${amountSign}${tx.amount}`,
-        amountColor,
-        createdAt: moment(tx.createdAt)
-          .tz("Asia/Kolkata")
-          .format("DD MMM YYYY hh:mm:ss A"),
-        status: tx.status,
-      };
-    });
-
-    // ===================== 🎯 FETCH STARLINE GAME RATES =====================
-    const starlineRates = await GameRate.find({
-      isStarline: true,
-      isJackpot: false,
-      isActive: true,
-    })
-      .sort({ gameType: 1 })
-      .lean();
-    const jackpotRates = await GameRate.find({
-      isJackpot: true,
-      isStarline: false,
-      isActive: true,
-    })
-      .sort({ gameType: 1 })
-      .lean();
-
-    // ===================== 🎯 FETCH MANUAL DEPOSIT METHOD =====================
-    const manualDeposit = await ManualDeposit.findOne({ isActive: true })
-      .sort({ createdAt: -1 })
-      .lean();
-
-    // ===================== 🎯 FETCH ACTIVE CONTACT =====================
-    const contactDetails = await ContactAdmin.findOne({
-      isActive: true,
-    }).lean();
-
-    // ===================== 🎯 FETCH MAIN SETTINGS =====================
-    const mainSettings = await MainSettings.findOne().lean();
-
-    // ===================== 🎯 FETCH PAYMENT SETTINGS =====================
-    const paymentSettings = await payment.findOne().lean();
-
-    // ===================== 🎯 FETCH WITHDRAW TIME =====================
-    const withdrawTimeSettings = await WithdrawTime.findOne().lean();
-
-    // 🇮🇳 India time already defined above as:
-    // const now = moment().tz("Asia/Kolkata");
-
+    // ================= WITHDRAW TIME =================
     let todayWithdrawTime = null;
 
     if (withdrawTimeSettings) {
@@ -688,81 +637,334 @@ exports.getUserDashboardPage = async (req, res, next) => {
 
       if (todayConfig && todayConfig.isActive) {
         todayWithdrawTime = {
-          startTime: moment(todayConfig.startTime, "HH:mm").format("hh:mm A"),
-          endTime: moment(todayConfig.endTime, "HH:mm").format("hh:mm A"),
+          startTime: moment(todayConfig.startTime,"HH:mm").format("hh:mm A"),
+          endTime: moment(todayConfig.endTime,"HH:mm").format("hh:mm A")
         };
       }
     }
 
-    // ===================== 🎯 FETCH ALL IMAGE MESSAGES (ONCE PER LOGIN) =====================
-    let allNotifications = [];
-
-    if (!req.session.hasSeenNotifications) {
-      allNotifications = await SendImageMessage.find({})
-        .sort({ createdAt: -1 })
-        .lean();
-
-      // Mark notifications as seen for this session
-      req.session.hasSeenNotifications = true;
-    }
-
-    // ===================== 🎯 FETCH SIGNUP REWARDS =====================
-    const signupRewards = await Reward.find({
-      user: user._id,
-      rewardType: "signup",
-    })
-      .sort({ createdAt: -1 })
-      .lean();
-
-    // Format dates for EJS
-    const formattedSignupRewards = signupRewards.map((r) => ({
-      ...r,
-      formattedDate: moment(r.createdAt)
-        .tz("Asia/Kolkata")
-        .format("DD MMM YYYY hh:mm:ss A"),
-    }));
-    //
-    let embedLink = "";
-
-    if (mainSettings?.withdrawVideoLink) {
-      const videoIdMatch = mainSettings.withdrawVideoLink.match(
-        /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&]+)/,
-      );
-
-      if (videoIdMatch) {
-        embedLink = `https://www.youtube.com/embed/${videoIdMatch[1]}`;
-      }
-    }
-    // ===================== 🎯 RENDER DASHBOARD =====================
-    res.render("User/userDashboard", {
+    const renderData = {
       user,
       admin,
       normalGames,
       starlineGames,
       jackpotGames,
-      starlineRates, // ✅ NEW
-      jackpotRates, // ✅ NEW
+      starlineRates,
+      jackpotRates,
       manualDeposit,
       contactDetails,
-      transactions: formattedTransactions,
+      transactions,
+      embedLink,
+      signupRewards,
+      todayWithdrawTime,
+      allNotifications,
       homescreenText: mainSettings?.homescreenText || "",
       minDeposit: mainSettings?.minDeposit || 0,
       quickDepositAmounts: paymentSettings?.quickDepositAmounts || "",
       directGpayId: paymentSettings?.directGpayId || "",
       directPhonepeId: paymentSettings?.directPhonepeId || "",
       directPaytmId: paymentSettings?.directPaytmId || "",
-      todayWithdrawTime,
-      directUpiStatus: paymentSettings?.directUpi || "Disable",
-      allNotifications, // ✅ NEW
-      signupRewards: formattedSignupRewards, // ✅ use formatted dates
-      embedLink,
-      isLoggedIn: req.session.isLoggedIn,
+      directUpiStatus: paymentSettings?.directUpi || "Disable"
+    };
+
+    // 🔥 CACHE 15 sec
+    await redisClient.setEx(cacheKey, 15, JSON.stringify(renderData));
+
+    res.render("User/userDashboard", {
+      ...renderData,
+      isLoggedIn: req.session.isLoggedIn
     });
+
   } catch (err) {
     console.error("UserDashboardPage Error:", err);
     next(err);
   }
 };
+
+// exports.getUserDashboardPage = async (req, res, next) => {
+//   try {
+//     // 🔐 Auth check
+//     if (
+//       !req.session.isLoggedIn ||
+//       !req.session.user ||
+//       req.session.user.role !== "user"
+//     ) {
+//       return res.redirect("/login");
+//     }
+
+//     const user = await User.findOne({
+//       _id: req.session.user._id,
+//       role: "user",
+//       userStatus: "active",
+//     }).select("-password");
+
+//     if (!user) {
+//       req.session.destroy();
+//       return res.redirect("/login");
+//     }
+//     // const moment = require("moment-timezone"); // make sure you have this at the top
+//     const admin = await User.findOne({ role: "admin" }).select(
+//       "username phoneNo profilePhoto",
+//     );
+
+//     // 🇮🇳 Current time in India
+//     const now = moment().tz("Asia/Kolkata");
+//     const days = [
+//       "sunday",
+//       "monday",
+//       "tuesday",
+//       "wednesday",
+//       "thursday",
+//       "friday",
+//       "saturday",
+//     ];
+//     const todayKey = days[now.day()];
+
+//     // Fetch all active games
+//     const games = await Game.find({ isDeleted: false }).lean();
+//     // ===================== 🎯 FETCH TODAY RESULTS =====================
+//     const todayDate = now.format("YYYY-MM-DD");
+
+//     const todayResults = await GameResult.find({
+//       resultDate: todayDate,
+//     }).lean();
+//     // ===================== 🎯 FETCH TODAY JACKPOT RESULTS =====================
+//     const todayJackpotResults = await JackpotGameResult.find({
+//       resultDate: todayDate,
+//     }).lean();
+//     // ===================== 🎯 FETCH TODAY STARLINE RESULTS =====================
+//     const todayStarlineResults = await StarlineGameResult.find({
+//       resultDate: todayDate,
+//     }).lean();
+//     // ===================== 🎯 PROCESS GAMES =====================
+//     const processedGames = games
+//       .filter((game) => {
+//         const d = game.schedule?.[todayKey];
+//         return d && d.isActive && d.closeTime;
+//       })
+//       .map((game) => {
+//         const d = game.schedule[todayKey];
+
+//         const nowMinutes = now.hours() * 60 + now.minutes();
+
+//         const [ch, cm] = d.closeTime.split(":").map(Number);
+//         const closeMinutes = ch * 60 + cm;
+
+//         // 🔥 SIMPLE & CORRECT LOGIC
+//         const isRunning = nowMinutes <= closeMinutes;
+//         // 🔥 FIND TODAY RESULT FOR THIS GAME
+//         const gameResults = todayResults.filter(
+//           (r) => r.gameName === game.gameName,
+//         );
+
+//         const openResult = gameResults.find((r) => r.session === "OPEN");
+//         const closeResult = gameResults.find((r) => r.session === "CLOSE");
+//         // 🔥 FIND TODAY JACKPOT RESULT FOR THIS GAME
+//         const jackpotResult = todayJackpotResults.find(
+//           (r) => r.gameName === game.gameName,
+//         );
+//         // 🔥 FIND TODAY STARLINE RESULT FOR THIS GAME
+//         const starlineResults = todayStarlineResults.filter(
+//           (r) => r.gameName === game.gameName,
+//         );
+
+//         const starlineOpen = starlineResults.find((r) => r.session === "OPEN");
+//         const starlineClose = starlineResults.find(
+//           (r) => r.session === "CLOSE",
+//         );
+//         return {
+//           _id: game._id,
+//           gameName: game.gameName,
+//           openTime: moment(d.openTime, "HH:mm").format("hh:mm A"), // admin open time (display)
+//           closeTime: moment(d.closeTime, "HH:mm").format("hh:mm A"),
+//           isRunning,
+//           statusText: isRunning ? "Market Running" : "Market Closed",
+//           isStarline: game.isStarline || false,
+//           isJackpot: game.isJackpot || false,
+//           // ✅ NEW FIELD
+//           openResult: openResult || null,
+//           closeResult: closeResult || null,
+//           // ✅ NEW FOR JACKPOT
+//           jackpotResult: jackpotResult || null,
+//           starlineOpen: starlineOpen || null,
+//           starlineClose: starlineClose || null,
+//         };
+//       });
+
+//     // ===================== 🎯 SEPARATE GAMES =====================
+//     const normalGames = processedGames.filter(
+//       (g) => !g.isStarline && !g.isJackpot,
+//     );
+//     const starlineGames = processedGames.filter((g) => g.isStarline);
+//     const jackpotGames = processedGames.filter((g) => g.isJackpot);
+
+//     // ===================== 🎯 FETCH TRANSACTIONS =====================
+//     const transactions = await UserWalletTransaction.find({
+//       user: user._id,
+//     })
+//       .sort({ createdAt: -1 })
+//       .limit(20)
+//       .lean();
+
+//     const formattedTransactions = transactions.map((tx) => {
+//       let title, displayType, amountSign, amountColor;
+
+//       amountSign = tx.type === "credit" ? "+" : "-";
+
+//       // 🎨 STATUS BASED COLOR
+//       if (tx.status === "pending") {
+//         amountColor = "text-yellow-500";
+//       } else if (tx.status === "failed" || tx.status === "rejected") {
+//         amountColor = "text-red-600";
+//       } else if (tx.status === "success") {
+//         amountColor = tx.type === "credit" ? "text-green-600" : "text-red-600";
+//       } else {
+//         amountColor = "text-gray-600";
+//       }
+
+//       // ✅ CORRECT TITLE LOGIC
+//       if (tx.source === "deposit") {
+//         displayType = "deposit";
+//         title = "Deposit";
+//       }
+
+//       if (tx.source === "withdraw") {
+//         displayType = "withdraw";
+//         title = "Withdrawal";
+//       }
+
+//       return {
+//         title,
+//         displayType,
+//         amountText: `${amountSign}${tx.amount}`,
+//         amountColor,
+//         createdAt: moment(tx.createdAt)
+//           .tz("Asia/Kolkata")
+//           .format("DD MMM YYYY hh:mm:ss A"),
+//         status: tx.status,
+//       };
+//     });
+
+//     // ===================== 🎯 FETCH STARLINE GAME RATES =====================
+//     const starlineRates = await GameRate.find({
+//       isStarline: true,
+//       isJackpot: false,
+//       isActive: true,
+//     })
+//       .sort({ gameType: 1 })
+//       .lean();
+//     const jackpotRates = await GameRate.find({
+//       isJackpot: true,
+//       isStarline: false,
+//       isActive: true,
+//     })
+//       .sort({ gameType: 1 })
+//       .lean();
+
+//     // ===================== 🎯 FETCH MANUAL DEPOSIT METHOD =====================
+//     const manualDeposit = await ManualDeposit.findOne({ isActive: true })
+//       .sort({ createdAt: -1 })
+//       .lean();
+
+//     // ===================== 🎯 FETCH ACTIVE CONTACT =====================
+//     const contactDetails = await ContactAdmin.findOne({
+//       isActive: true,
+//     }).lean();
+
+//     // ===================== 🎯 FETCH MAIN SETTINGS =====================
+//     const mainSettings = await MainSettings.findOne().lean();
+
+//     // ===================== 🎯 FETCH PAYMENT SETTINGS =====================
+//     const paymentSettings = await payment.findOne().lean();
+
+//     // ===================== 🎯 FETCH WITHDRAW TIME =====================
+//     const withdrawTimeSettings = await WithdrawTime.findOne().lean();
+
+//     // 🇮🇳 India time already defined above as:
+//     // const now = moment().tz("Asia/Kolkata");
+
+//     let todayWithdrawTime = null;
+
+//     if (withdrawTimeSettings) {
+//       const todayConfig = withdrawTimeSettings[todayKey];
+
+//       if (todayConfig && todayConfig.isActive) {
+//         todayWithdrawTime = {
+//           startTime: moment(todayConfig.startTime, "HH:mm").format("hh:mm A"),
+//           endTime: moment(todayConfig.endTime, "HH:mm").format("hh:mm A"),
+//         };
+//       }
+//     }
+
+//     // ===================== 🎯 FETCH ALL IMAGE MESSAGES (ONCE PER LOGIN) =====================
+//     let allNotifications = [];
+
+//     if (!req.session.hasSeenNotifications) {
+//       allNotifications = await SendImageMessage.find({})
+//         .sort({ createdAt: -1 })
+//         .lean();
+
+//       // Mark notifications as seen for this session
+//       req.session.hasSeenNotifications = true;
+//     }
+
+//     // ===================== 🎯 FETCH SIGNUP REWARDS =====================
+//     const signupRewards = await Reward.find({
+//       user: user._id,
+//       rewardType: "signup",
+//     })
+//       .sort({ createdAt: -1 })
+//       .lean();
+
+//     // Format dates for EJS
+//     const formattedSignupRewards = signupRewards.map((r) => ({
+//       ...r,
+//       formattedDate: moment(r.createdAt)
+//         .tz("Asia/Kolkata")
+//         .format("DD MMM YYYY hh:mm:ss A"),
+//     }));
+//     //
+//     let embedLink = "";
+
+//     if (mainSettings?.withdrawVideoLink) {
+//       const videoIdMatch = mainSettings.withdrawVideoLink.match(
+//         /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&]+)/,
+//       );
+
+//       if (videoIdMatch) {
+//         embedLink = `https://www.youtube.com/embed/${videoIdMatch[1]}`;
+//       }
+//     }
+//     // ===================== 🎯 RENDER DASHBOARD =====================
+//     res.render("User/userDashboard", {
+//       user,
+//       admin,
+//       normalGames,
+//       starlineGames,
+//       jackpotGames,
+//       starlineRates, // ✅ NEW
+//       jackpotRates, // ✅ NEW
+//       manualDeposit,
+//       contactDetails,
+//       transactions: formattedTransactions,
+//       homescreenText: mainSettings?.homescreenText || "",
+//       minDeposit: mainSettings?.minDeposit || 0,
+//       quickDepositAmounts: paymentSettings?.quickDepositAmounts || "",
+//       directGpayId: paymentSettings?.directGpayId || "",
+//       directPhonepeId: paymentSettings?.directPhonepeId || "",
+//       directPaytmId: paymentSettings?.directPaytmId || "",
+//       todayWithdrawTime,
+//       directUpiStatus: paymentSettings?.directUpi || "Disable",
+//       allNotifications, // ✅ NEW
+//       signupRewards: formattedSignupRewards, // ✅ use formatted dates
+//       embedLink,
+//       isLoggedIn: req.session.isLoggedIn,
+//     });
+//   } catch (err) {
+//     console.error("UserDashboardPage Error:", err);
+//     next(err);
+//   }
+// };
 
 exports.createDeposit = async (req, res) => {
   try {
