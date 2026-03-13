@@ -16,5 +16,5 @@ const client = redis.createClient({
 
 client.connect().catch(console.error);
 
-module.exports = client;  // <=-- render ke liya use isko kru 
+module.exports = client;  
 
